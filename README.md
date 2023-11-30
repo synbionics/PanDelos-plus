@@ -1,2 +1,2 @@
 # ParPanDelos
-paraller PanDelos
+Parallel PanDelos
