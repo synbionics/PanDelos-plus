@@ -31,7 +31,7 @@ namespace kmers {
             multiplicityType getMultiplicity() const;
             indexType getFirstIndex() const;
 
-            void print() const;
+            void print(std::ostream& os) const;
 
             ~Kmer();
     };
@@ -61,7 +61,7 @@ namespace kmers {
         return this->begins_->at(0);
     }
 
-    void Kmer::print() const{
+    void Kmer::print(std::ostream& os) const{
 
         std::cerr<<"begins:\n";
         for(auto it = begins_->begin(); it != begins_->end(); ++it){

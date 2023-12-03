@@ -117,4 +117,11 @@ Il container sono stati realizzati attraverso una `unordered_map` così da riusc
 ## Note importati 
 
 ### Kmer
+
 Possibili ottimizzazioni da valutare ed implementare, non è strettamente necessario tenere la variabile `multiplicity_` perché si ha la possibiltà di ricalcolarla guardando la dimensione di `begins_`
+
+### KmersHandler
+
+È stata utilizzata una reference, avendo accesso diretto all'oggetto non dovendo deferenziare il puntatore, all'alfabeto che sarà successivamente memorizzato all'interno di un gene per ottimizzare le prestazioni
+
+

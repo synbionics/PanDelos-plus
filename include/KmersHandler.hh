@@ -46,6 +46,7 @@ namespace kmers {
             std::string calculateKmersString() const;
             
             void calculateKmers();
+            void printDictionary(std::ostream& os) const;
 
     };
     
@@ -109,17 +110,12 @@ namespace kmers {
         }
 
         #ifdef DEBUG2
-
-        for(auto it = dictionary_->begin(); it != dictionary_->end(); ++it){
-
-            std::cerr<<"\n";
-            std::cerr<<it->first<<") {"<<alphabet_.substr(it->first, k_)<<"}:\n";
-            it->second->print();
-        }
+        printDictionary(std::cerr);
         #endif
 
         delete currentKmers;
     }
+
 
     // testing function
     std::string KmersHandler::calculateKmersString() const{
@@ -180,6 +176,14 @@ namespace kmers {
         
         return ret;
 
+    }
+    void KmersHandler::printDictionary(std::ostream& os) const{
+        for(auto it = dictionary_->begin(); it != dictionary_->end(); ++it){
+
+            os<<"\n";
+            os<<it->first<<") {"<<alphabet_.substr(it->first, k_)<<"}:\n";
+            it->second->print(os);
+        }
     }
     
 }
