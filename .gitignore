@@ -1,0 +1,19 @@
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+!.vscode/*.code-snippets
+
+# local history for Visual Studio Code
+.history/
+
+
+
+### Cpp ###
+
+# Executables
+*.exe
+*.out
+*.app
