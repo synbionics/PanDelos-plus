@@ -314,6 +314,7 @@ namespace gene {
         os<<"\ngene id: "<<geneId_;
         os<<"\nfile pos: "<<geneFilePosition_;
         os<<"\nalph: "<<alphabet_;
+        os<<"\nalphlength: "<<alphabetLength_;
     }
 
     inline bool

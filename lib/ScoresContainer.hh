@@ -118,12 +118,12 @@ namespace score {
 
     inline void
     ScoresContainer::setScoreAt(index_t rowNumber, index_t colNumber, score_t newScore) {
-        scores_.at(rowNumber).at(colNumber) = newScore;
+        scores_[rowNumber][colNumber] = newScore;
     }
 
     inline ScoresContainer::score_t
     ScoresContainer::getScoreAt(index_t rowNumber, index_t colNumber) {
-        return scores_.at(rowNumber).at(colNumber);
+        return scores_[rowNumber][colNumber];
     }
 
     inline ScoresContainer::index_t

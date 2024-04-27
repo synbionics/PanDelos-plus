@@ -216,7 +216,7 @@ namespace genome {
         // if(index >= size_)
         //     throw std::runtime_error("index >= size");
 
-        return genes_.at(index);
+        return genes_[index];
     }
 
     inline void
