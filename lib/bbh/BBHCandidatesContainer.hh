@@ -142,7 +142,7 @@ namespace bbh{
 
     inline void
     BBHCandidatesContainer::addCandidate(const index_t candidateIndex, const score_t newScore, const index_t newIndex) {
-        candidates_.at(candidateIndex).addCandidate(newScore, newIndex);
+        candidates_[candidateIndex].addCandidate(newScore, newIndex);
     }
 
     inline BBHCandidatesContainer::index_t
@@ -154,7 +154,7 @@ namespace bbh{
     BBHCandidatesContainer::print(std::ostream& os) const {
         for(index_t i = 0; i < capacity_; ++i) {
             os<<"\nCandidates for index "<<i<<":";
-            candidates_.at(i).print(os);
+            candidates_[i].print(os);
         }
     }
 
@@ -169,7 +169,7 @@ namespace bbh{
 
         for(index_t i = 0; i < capacity_; ++i){
             
-            const auto& list = candidates_.at(i).getCandidateList();
+            const auto& list = candidates_[i].getCandidateList();
             for(auto k = list.begin(); k != list.end(); ++k) {
                 index_t key = *k;
                 auto mapIt = mapRef.find(key);
@@ -190,12 +190,12 @@ namespace bbh{
 
     inline BBHCandidatesContainer::BBHCandidate_tr
     BBHCandidatesContainer::getCandidateAt(const index_t id) {
-        return candidates_.at(id);
+        return candidates_[id];
     }
 
     inline BBHCandidatesContainer::score_t
     BBHCandidatesContainer::getBestScoreForCandidate(const index_t candidateIndex) {
-        return candidates_.at(candidateIndex).getBestScore();
+        return candidates_[candidateIndex].getBestScore();
     }
 
 }

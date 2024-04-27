@@ -301,8 +301,8 @@ namespace kmers {
                 ++(iter->second);
             }
         }
-        smallerMultip_ = tmpDic.at(smallerKey_);
-        biggerMultip_ = tmpDic.at(biggerKey_);
+        smallerMultip_ = tmpDic[smallerKey_];
+        biggerMultip_ = tmpDic[biggerKey_];
 
         for(auto i = tmpDic.begin(); i != tmpDic.end(); ++i)
             dictionary_.push_back(std::make_pair(i->first, i->second));

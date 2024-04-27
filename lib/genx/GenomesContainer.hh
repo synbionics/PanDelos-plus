@@ -65,14 +65,14 @@ namespace genome {
     GenomesContainer::getGenomeAt(const index_t id) {
         if(id >= size_)
             throw std::runtime_error("id >= size");
-        return genomes_.at(id);
+        return genomes_[id];
     }
 
     inline void
     GenomesContainer::addGeneToGenome(const index_t genomeId, const index_t geneId, sequence_t alphabet, const index_t geneFilePosition) {
         if(genomeId >= size_)
             throw std::runtime_error("genomeId >= size");
-        genomes_.at(genomeId).addGene(geneId, alphabet, geneFilePosition);
+        genomes_[genomeId].addGene(geneId, alphabet, geneFilePosition);
     }
 
     inline GenomesContainer::index_t

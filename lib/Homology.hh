@@ -250,11 +250,13 @@ namespace homology {
     inline Homology::score_t
     Homology::calculateSimilarity(const gene_tr gene1, const gene_tr gene2) const {
         
-        // if(
-        //     gene1.getAlphabetLength() < gene2.getAlphabetLength()/2
-        //     || gene2.getAlphabetLength() < gene1.getAlphabetLength()/2
-        // )
-        //     return 0;
+
+        if(
+            gene1.getAlphabetLength() < gene2.getAlphabetLength()/2
+            || gene2.getAlphabetLength() < gene1.getAlphabetLength()/2
+        ) {
+            return 0;
+        }
 
         kmersContainer_tr shortestContainer = 
             gene1.getKmersNum() < gene2.getKmersNum() ? *gene1.getKmerContainer() : *gene2.getKmerContainer();
@@ -263,10 +265,10 @@ namespace homology {
         
 
         return
-            shortestContainer.getMultiplicityNumber() < longestContainer.getMultiplicityNumber()/10 ||
-            longestContainer.getMultiplicityNumber() < shortestContainer.getMultiplicityNumber()/10 ||
-            longestContainer.getSmallerKey() > shortestContainer.getBiggerKey()
-            ? 0 : calculateSimilarity(shortestContainer, longestContainer);
+            // shortestContainer.getMultiplicityNumber() < longestContainer.getMultiplicityNumber()/10 ||
+            // longestContainer.getMultiplicityNumber() < shortestContainer.getMultiplicityNumber()/10 ||
+            // longestContainer.getSmallerKey() > shortestContainer.getBiggerKey()
+            calculateSimilarity(shortestContainer, longestContainer);
     }
 
 
@@ -410,7 +412,7 @@ namespace homology {
                 
                 for(auto l = list.begin(); l != list.end(); ++l) {
                     fwRows.write(
-                        std::to_string(rowGenes.at(i).getGeneFilePosition()) + "," + std::to_string(colGenes.at(*l).getGeneFilePosition()) + "," + std::to_string(bestCols.getBestScore()), fileRow
+                        std::to_string(rowGenes[i].getGeneFilePosition()) + "," + std::to_string(colGenes[*l].getGeneFilePosition()) + "," + std::to_string(bestCols.getBestScore()), fileRow
                     );
                 }
             }
@@ -420,11 +422,11 @@ namespace homology {
         
 
         #ifdef matrixPrint
-        FileWriter fw("", std::to_string(rowGenome.getId())+"_"+std::to_string(colGenome.getId())+"_matrix", ".csv", false);
+        utilities::FileWriter fw("", std::to_string(rowGenome.getId())+"_"+std::to_string(colGenome.getId())+"_matrix", ".csv", false);
         auto file = fw.openAppend();
 
         for(index_t col = 0; col < colGenes.size(); ++col) {
-            gene_tr gene = colGenes.at(col);
+            gene_tr gene = colGenes[col];
             file<<gene.getGeneFilePosition();
             if(col != colGenes.size()-1)
                 file<<",";
@@ -432,10 +434,10 @@ namespace homology {
         
         file<<"\n";
         for(index_t row = 0; row < rowGenes.size(); ++row){
-            gene_tr rowGene = rowGenes.at(row);
+            gene_tr rowGene = rowGenes[row];
             file<<rowGene.getGeneFilePosition()<<",";
             for(index_t col = 0; col < colGenes.size(); ++col) {
-                gene_tr colGene = colGenes.at(col);
+                // gene_tr colGene = colGenes.at(col);
                 file<<scores.getScoreAt(row, col);
                 if(col != colGenes.size()-1)
                     file<<",";
@@ -480,8 +482,8 @@ namespace homology {
                 
                 for(auto l = list.begin(); l != list.end(); ++l) {
                     fwRows.write(
-                        std::to_string(rowGenes.at(i).getGeneFilePosition()) + "," +
-                        std::to_string(colGenes.at(*l).getGeneFilePosition()) + "," +
+                        std::to_string(rowGenes[i].getGeneFilePosition()) + "," +
+                        std::to_string(colGenes[*l].getGeneFilePosition()) + "," +
                         std::to_string(bestCols.getBestScore()), fileRow
                     );
                 }
@@ -491,24 +493,24 @@ namespace homology {
         #endif
 
         #ifdef matrixPrint
-        FileWriter fw("", std::to_string(rowGenome.getId())+"_"+std::to_string(colGenome.getId())+"_matrix", ".csv", false);
+        utilities::FileWriter fw("", std::to_string(genome.getId())+"_"+std::to_string(genome.getId())+"_matrix", ".csv", false);
         auto file = fw.openAppend();
         
-        for(index_t col = 0; col < colGenes.size(); ++col) {
-            gene_tr gene = colGenes.at(col);
+        for(index_t col = 0; col < genes.size(); ++col) {
+            gene_tr gene = genes[col];
             file<<gene.getGeneFilePosition();
-            if(col != colGenes.size()-1)
+            if(col != genes.size()-1)
                 file<<",";
         }
 
         file<<"\n";
-        for(index_t row = 0; row < rowGenes.size(); ++row){
-            gene_tr rowGene = rowGenes.at(row);
+        for(index_t row = 0; row < genes.size(); ++row){
+            gene_tr rowGene = genes[row];
             file<<rowGene.getGeneFilePosition()<<",";
-            for(index_t col = 0; col < colGenes.size(); ++col) {
-                gene_tr colGene = colGenes.at(col);
+            for(index_t col = 0; col < genes.size(); ++col) {
+                // gene_tr colGene = genes.at(col);
                 file<<scores.getScoreAt(row, col);
-                if(col != colGenes.size()-1)
+                if(col != genes.size()-1)
                     file<<",";
             }
             file<<"\n";
@@ -534,7 +536,7 @@ namespace homology {
             poolRef.execute(
                 [row, &scores, this, &genes, &bestRows] {
                     for(index_t col = row+1; col < genes.size(); ++col) {
-                        score_t currentScore = calculateSimilarity(genes.at(row), genes.at(col));
+                        score_t currentScore = calculateSimilarity(genes[row], genes[col]);
                         scores.setScoreAt(row, col, currentScore);
                         bestRows.addCandidate(row, currentScore, col);
                     }
@@ -556,11 +558,12 @@ namespace homology {
         thread_ptr poolRef = *pool_;
 
         for(index_t row = 0; row < rowGenes.size(); ++row){
-            gene_tr rowGene = rowGenes.at(row);
+            // gene_tr rowGene = rowGenes.at(row);
             poolRef.execute(
-                [row, &scores, this, &colGenes, &bestRows, &rowGene] {
+                [row, &scores, this, &colGenes, &bestRows, &rowGenes] {
+                    gene_tr rowGene = rowGenes[row];
                     for(index_t col = 0; col < colGenes.size(); ++col) {
-                        gene_tr colGene = colGenes.at(col);
+                        gene_tr colGene = colGenes[col];
 
                         score_t currentScore = calculateSimilarity(rowGene, colGene);
                         scores.setScoreAt(row, col, currentScore);
@@ -582,7 +585,7 @@ namespace homology {
         ScoresContainer &scores
     ) {
         #ifdef bbhPrint
-        FileWriter fw("", std::to_string(rowGenes.at(0).getGenomeId())+"_"+std::to_string(colGenes.at(0).getGenomeId())+"_bbh", ".csv", false);
+        FileWriter fw("", std::to_string(rowGenes[0].getGenomeId())+"_"+std::to_string(colGenes[0].getGenomeId())+"_bbh", ".csv", false);
         auto file = fw.openAppend();
         fw.write("row,col,score",file);
         #endif
@@ -607,7 +610,7 @@ namespace homology {
                         std::unordered_set<index_t> currentBestIndexs;
                         boost::unordered_set<index_t> currentBestIndexs;
                         index_t colGeneId = currentColRef.first;
-                        gene_tr currentColGene = colGenes.at(colGeneId);
+                        gene_tr currentColGene = colGenes[colGeneId];
                         // estrae le migliori righe per la colonna corrente
                         // e li memorizza in current best indexs
 
@@ -631,23 +634,19 @@ namespace homology {
                                 index_t currentIndex = *index;
                                 
                                 if(bestScore == candidates.getBestScoreForCandidate(currentIndex)) {
-                                    // if(rowGenes.at(currentIndex).getGeneFilePosition() == 9326 && colGenes.at(colGeneId).getGeneFilePosition() == 46711) {
-                                    //     std::cerr<<"\nbest score"<<bestScore;
-                                    //     std::cerr<<"\nrowGenes.at(currentIndex).getGeneFilePosition() == 9326 && colGenes.at(colGeneId).getGeneFilePosition() == 46711 "<<bestScore;
-                                    //     candidates.getCandidateAt(currentIndex).print(std::cerr);
-                                    // }
+                                    
                                     bbhContainerRef.add (
                                         currentColGene.getGenomeId(),
-                                        rowGenes.at(currentIndex).getGenomeId(),
+                                        rowGenes[currentIndex].getGenomeId(),
                                         colGeneId, currentIndex, bestScore,
-                                        colGenes.at(colGeneId).getGeneFilePosition(),
-                                        rowGenes.at(currentIndex).getGeneFilePosition()
+                                        colGenes[colGeneId].getGeneFilePosition(),
+                                        rowGenes[currentIndex].getGeneFilePosition()
                                     );
                                     
-                                    if(colGenes.at(colGeneId).getGeneFilePosition() != rowGenes.at(currentIndex).getGeneFilePosition())
+                                    if(colGenes[colGeneId].getGeneFilePosition() != rowGenes[currentIndex].getGeneFilePosition())
                                         fw.write(
-                                            std::to_string(rowGenes.at(currentIndex).getGeneFilePosition()) + "," +
-                                            std::to_string(colGenes.at(colGeneId).getGeneFilePosition()) + "," +
+                                            std::to_string(rowGenes[currentIndex].getGeneFilePosition()) + "," +
+                                            std::to_string(colGenes[colGeneId].getGeneFilePosition()) + "," +
                                             std::to_string(bestScore),
                                             file
                                         );
@@ -669,7 +668,7 @@ namespace homology {
                         // std::unordered_set<index_t> currentBestIndexs;
                         boost::unordered_set<index_t> currentBestIndexs;
                         index_t colGeneId = currentColRef.first;
-                        gene_tr currentColGene = colGenes.at(colGeneId);
+                        gene_tr currentColGene = colGenes[colGeneId];
                         // estrae le migliori righe per la colonna corrente
                         // e li memorizza in current best indexs
 
@@ -693,14 +692,9 @@ namespace homology {
                             index_t currentIndex = *index;
                             
                             if(bestScore == candidates.getBestScoreForCandidate(currentIndex)) {
-                                // if(rowGenes.at(currentIndex).getGeneFilePosition() == 9326 && colGenes.at(colGeneId).getGeneFilePosition() == 46711) {
-                                //     std::cerr<<"\nbest score"<<bestScore;
-                                //     std::cerr<<"\nrowGenes.at(currentIndex).getGeneFilePosition() == 9326 && colGenes.at(colGeneId).getGeneFilePosition() == 46711 "<<bestScore;
-                                //     candidates.getCandidateAt(currentIndex).print(std::cerr);
-                                // }
                                 fwRef.write(
                                     std::to_string(
-                                        rowGenes.at(currentIndex).getGeneFilePosition()
+                                        rowGenes[currentIndex].getGeneFilePosition()
                                     ) + "," +
                                     std::to_string(
                                         currentColGeneFileLine
@@ -732,10 +726,10 @@ namespace homology {
     Homology::checkForBBHSame (
         const genome_t::gene_ctr genes, 
         BBHcandidatesContainer_tr candidates,
-        ScoresContainer &scores
+        ScoresContainer& scores
     ) {
         #ifdef bbhPrint
-        FileWriter fw("", std::to_string(genes.at(0).getGenomeId())+"_"+std::to_string(genes.at(0).getGenomeId())+"_bbh", ".csv", false);
+        FileWriter fw("", std::to_string(genes[0].getGenomeId())+"_"+std::to_string(genes[0].getGenomeId())+"_bbh", ".csv", false);
         auto file = fw.openAppend();
         fw.write("row,col,score",file);
         #endif
@@ -759,7 +753,7 @@ namespace homology {
                         // std::unordered_set<index_t> currentBestIndexs;
                         boost::unordered_set<index_t> currentBestIndexs;
                         index_t colGeneId = currentColRef.first;
-                        gene_tr currentColGene = genes.at(colGeneId);
+                        gene_tr currentColGene = genes[colGeneId];
                         // estrae le migliori righe per la colonna corrente
                         // e li memorizza in current best indexs
 
@@ -787,15 +781,15 @@ namespace homology {
                                 if(bestScore == candidates.getBestScoreForCandidate(currentIndex)) {
                                     bbhContainerRef.add (
                                         currentColGene.getGenomeId(),
-                                        genes.at(currentIndex).getGenomeId(),
+                                        genes[currentIndex].getGenomeId(),
                                         colGeneId, currentIndex, bestScore,
-                                        genes.at(colGeneId).getGeneFilePosition(),
-                                        genes.at(currentIndex).getGeneFilePosition()
+                                        genes[colGeneId].getGeneFilePosition(),
+                                        genes[currentIndex].getGeneFilePosition()
                                     );
-                                    if(genes.at(colGeneId).getGeneFilePosition() != genes.at(currentIndex).getGeneFilePosition())
+                                    if(genes[colGeneId].getGeneFilePosition() != genes[currentIndex].getGeneFilePosition())
                                         fw.write(
-                                            std::to_string(genes.at(currentIndex).getGeneFilePosition()) + "," +
-                                            std::to_string(genes.at(colGeneId).getGeneFilePosition()) + "," +
+                                            std::to_string(genes[currentIndex].getGeneFilePosition()) + "," +
+                                            std::to_string(genes[colGeneId].getGeneFilePosition()) + "," +
                                             std::to_string(bestScore),
                                             file
                                         );
@@ -814,7 +808,7 @@ namespace homology {
                         boost::unordered_set<index_t> currentBestIndexs;
                         // std::unordered_set<index_t> currentBestIndexs;
                         index_t colGeneId = currentColRef.first;
-                        gene_tr currentColGene = genes.at(colGeneId);
+                        gene_tr currentColGene = genes[colGeneId];
                         // estrae le migliori righe per la colonna corrente
                         // e li memorizza in current best indexs
 
@@ -843,7 +837,7 @@ namespace homology {
                             if(bestScore == candidates.getBestScoreForCandidate(currentIndex)) {
                                 fwRef.write(
                                     std::to_string(
-                                        genes.at(currentIndex).getGeneFilePosition()
+                                        genes[currentIndex].getGeneFilePosition()
                                     ) + "," +
                                     std::to_string(
                                         currentColGeneFileLine
