@@ -1,10 +1,12 @@
 #include <iostream>
 #include <unistd.h>
+#include <thread>
 
 #include "lib/Homology.hh"
 #include "lib/genx/GenomesContainer.hh"
 #include "utils/FileLoader.hh"
 #include "utils/StopWatch.hh"
+
 
 using namespace homology;
 using namespace genome;
@@ -66,8 +68,9 @@ void printHelp() {
  * @param outFile Reference to a string to store the output file path.
  * @param threadNum Reference to an unsigned short to store the number of threads.
  * @param mode Reference to a boolean to indicate a specific mode.
+ * @param discard Reference to a float to indicate a discard value during similarity computation.
 */
-void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& outFile, ushort& threadNum, bool& mode, double& discard) {
+void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& outFile, ushort& threadNum, bool& mode, float& discard) {
     int option;
     while ((option = getopt(argc, argv, "d:i:o:k:t:hm")) != -1) {
         switch (option) {
@@ -84,7 +87,7 @@ void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& ou
                 threadNum = atoi(optarg);
                 break;
             case 'd':
-                discard = atoi(optarg);
+                discard = atof(optarg);
                 if(discard > 1 || discard < 0) {
                     printTitle();
                     printHelp();
@@ -121,26 +124,34 @@ int main(int argc, char *argv[]){
     std::string inFile = "";
     std::string outFile = "";
     bool mode = false;
-    double discard = 0.5;
+    float discard = 0.5;
 
     parser(argc, argv, k, inFile, outFile, threadNum, mode, discard);
+
+    #ifndef DEV_MODE
+        std::cerr<<"\nDiscard value: "<<discard;
+        std::cerr<<"\nInput File: "<<inFile;
+        std::cerr<<"\nOutput File: "<<outFile;
+        std::cerr<<"\nMode: "<<mode;
+        std::cerr<<"\nThread number: "<<threadNum;
+        std::cerr<<"\nK: "<<k;
+    #else
+        std::cout<<"\nDiscard value: "<<discard;
+        std::cout<<"\nInput File: "<<inFile;
+        std::cout<<"\nOutput File: "<<outFile;
+        std::cout<<"\nMode: "<<mode;
+        std::cout<<"\nThread number: "<<threadNum;
+        std::cout<<"\nK: "<<k;
+    #endif
 
     if(inFile == "" || outFile == "" || k == 0) {
         exit(1);
     }
-    std::cout<<"discard: "<<discard;
-    // use all threads
     GenomesContainer gh;
     FileLoader fl(inFile);
     fl.loadFile(gh);
-
-    // auto genomes = gh.getGenomes();
-    // for(auto rowGenome = genomes.begin(); rowGenome != genomes.end(); ++rowGenome)
-    //     rowGenome->print(std::cerr);
-    // return 0;
-
     
-    if(threadNum == 0) {
+    if(threadNum == 0 || threadNum > std::thread::hardware_concurrency()) {
         Homology hd(k, outFile, discard);
         hd.calculateBidirectionalBestHit(gh, mode);
     } else {
