@@ -87,6 +87,7 @@ namespace homology {
             std::fstream outStream_;
             thread_ptp pool_;
             std::string inFile_;
+            double discard_;
 
 
             
@@ -187,7 +188,7 @@ namespace homology {
              * @param fileName The name of the output file.
              * @param threadNumber The number of threads to use.
              */
-            inline explicit Homology(k_t k, std::string fileName, ushort threadNumber);
+            inline explicit Homology(k_t k, std::string fileName, ushort threadNumber, double discard);
             
             
             /**
@@ -195,7 +196,7 @@ namespace homology {
              * @param k The length of kmers.
              * @param fileName The name of the output file.
              */
-            inline explicit Homology(k_t k, std::string fileName);
+            inline explicit Homology(k_t k, std::string fileName, double discard);
             
             Homology(const Homology&) = delete;
             Homology operator=(const Homology&) = delete;
@@ -221,8 +222,8 @@ namespace homology {
     };
 
     inline
-    Homology::Homology(k_t k, std::string fileName, ushort threadNumber) 
-    : k_(k) {
+    Homology::Homology(k_t k, std::string fileName, ushort threadNumber, double discard) 
+    : k_(k), discard_(discard) {
         if(k <= 0)
             throw std::runtime_error("k <= 0");
         pool_ = new thread_pt(threadNumber);
@@ -232,8 +233,8 @@ namespace homology {
     }
 
     inline
-    Homology::Homology(k_t k, std::string fileName)
-    : k_(k) {
+    Homology::Homology(k_t k, std::string fileName, double discard)
+    : k_(k), discard_(discard){
         if(k <= 0)
             throw std::runtime_error("k <= 0");
         pool_ = new thread_pt();
@@ -252,8 +253,8 @@ namespace homology {
         
 
         if(
-            gene1.getAlphabetLength() < gene2.getAlphabetLength()/2
-            || gene2.getAlphabetLength() < gene1.getAlphabetLength()/2
+            gene1.getAlphabetLength() < gene2.getAlphabetLength()*discard_
+            || gene2.getAlphabetLength() < gene1.getAlphabetLength()*discard_
         ) {
             return 0;
         }

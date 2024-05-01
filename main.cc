@@ -11,11 +11,6 @@ using namespace genome;
 using namespace utilities;
 
 
-// ! todo: aggiungere la possibilità di scegliere il criterio di filtraggio
-// ! todo: spostare analisi e calcoli vari in homology
-// ! todo: commentare codice
-
-
 /**
  * @brief Prints the title.
  *
@@ -39,7 +34,25 @@ void printTitle() {
         std::cout<<" +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+\n";
     #endif
 }
-
+void printHelp() {
+    #ifdef DEV_MODE
+    std::cerr<<"Utilizzo:\n"
+            <<"-i per selezionare il file di input (path_to_file/file.faa\n"
+            <<"-o per indicare il path/file di output\n"
+            <<"-k per indicare la dimensione dei kmers (1 default)\n"
+            <<"-t per indicare il numero di thread\n"
+            <<"-m per attivare la modalità con un costo minore in ram (0 default)\n"
+            <<"-d per selezionare un valore di scarto (0 <= d <= 1) per il calcolo della similarità (0.5 default, un valore maggiore corrisponde a un scarto più aggressivo)\n";
+    #else
+    std::cout<<"Usage:\n"
+        <<"-i to select the input file (path_to_file/file.faa)\n"
+        <<"-o to specify the file for output(path_to_file/file_name.extension)\n"
+        <<"-k to indicate the size of kmers\n"
+        <<"-t to indicate the number of threads\n"
+        <<"-m to activate specific mode with lower RAM cost (0 default)\n"
+        <<"-d to select a discard value (0 <= d <= 1) for similarity computation (0.5 default, a grater value implys a more aggressive discard)\n";
+    #endif
+}
 /**
  * @brief Parse command line arguments.
  *
@@ -54,9 +67,9 @@ void printTitle() {
  * @param threadNum Reference to an unsigned short to store the number of threads.
  * @param mode Reference to a boolean to indicate a specific mode.
 */
-void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& outFile, ushort& threadNum, bool& mode) {
+void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& outFile, ushort& threadNum, bool& mode, double& discard) {
     int option;
-    while ((option = getopt(argc, argv, "i:o:k:t:hm")) != -1) {
+    while ((option = getopt(argc, argv, "d:i:o:k:t:hm")) != -1) {
         switch (option) {
             case 'i':
                 inFile = optarg;
@@ -70,63 +83,32 @@ void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& ou
             case 't':
                 threadNum = atoi(optarg);
                 break;
+            case 'd':
+                discard = atoi(optarg);
+                if(discard > 1 || discard < 0) {
+                    printTitle();
+                    printHelp();
+                    exit(1);
+                }
+                break;
             case 'm':
                 mode = true;
-                // if(atoi(optarg) != 0)
                 break;
             case 'h':
                 printTitle();
-                #ifdef DEV_MODE
-                std::cerr<<"Utilizzo:\n"
-                        <<"-i per selezionare il file di input (path_to_file/file.faa)\n"
-                        <<"-o per indicare il path/file di output\n"
-                        <<"-k per indicare la dimensione dei kmers\n"
-                        <<"-t per indicare il numero di thread\n"
-                        <<"-m per attivare la modalità con un costo minore in ram (0 default)\n";
-                #else
-                std::cout<<"Usage:\n"
-                    <<"-i to select the input file (path_to_file/file.faa)\n"
-                    <<"-o to specify the file for output(path_to_file/file_name.extension)\n"
-                    <<"-k to indicate the size of kmers\n"
-                    <<"-t to indicate the number of threads\n"
-                    <<"-m to activate specific mode with lower RAM cost (0 default)\n";
-                #endif
+                printHelp();
                 exit(1);
-
+                break;
             case '?':
                 printTitle();
-                #ifdef DEV_MODE
-                if (optopt == 'i' || optopt == 'o' || optopt == 'k' || optopt == 't')
-                    std::cerr<<"L'opzione -"<<static_cast<char>(optopt)<<" richiede un argomento\n";
-                else
-                    std::cerr<<"Opzione sconosciuta: -"<<static_cast<char>(optopt)<<"\n";
-            
-                #else
-                if (optopt == 'i' || optopt == 'o' || optopt == 'k' || optopt == 't')
-                    std::cerr<<"Option -"<<static_cast<char>(optopt)<<" requires an argument\n";
-                else
-                    std::cerr<<"Unknown option: -"<<static_cast<char>(optopt)<<"\n";
-                
-                #endif
+                printHelp();
                 exit(1);
+                break;
             default:
                 printTitle();
-                #ifdef DEV_MODE
-                std::cerr<<"Utilizzo:\n"
-                        <<"-i per selezionare il file di input (path_to_file/file.faa\n"
-                        <<"-o per indicare il path/file di output\n"
-                        <<"-k per indicare la dimensione dei kmers\n"
-                        <<"-t per indicare il numero di thread\n"
-                        <<"-m per attivare la modalità con un costo minore in ram (0 default)\n";
-                #else
-                std::cout<<"Usage:\n"
-                    <<"-i to select the input file (path_to_file/file.faa)\n"
-                    <<"-o to specify the file for output(path_to_file/file_name.extension)\n"
-                    <<"-k to indicate the size of kmers\n"
-                    <<"-t to indicate the number of threads\n"
-                    <<"-m to activate specific mode with lower RAM cost (0 default)\n";
-                #endif
+                printHelp();
                 exit(1);
+                break;
         }
     }
 }
@@ -134,25 +116,35 @@ void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& ou
 
 int main(int argc, char *argv[]){
 
-	int k = 0;
+	int k = 1;
     ushort threadNum = 0;
-    std::string inFile;
-    std::string outFile;
+    std::string inFile = "";
+    std::string outFile = "";
     bool mode = false;
+    double discard = 0.5;
 
-    parser(argc, argv, k, inFile, outFile, threadNum, mode);
+    parser(argc, argv, k, inFile, outFile, threadNum, mode, discard);
 
+    if(inFile == "" || outFile == "" || k == 0) {
+        exit(1);
+    }
+    std::cout<<"discard: "<<discard;
     // use all threads
     GenomesContainer gh;
     FileLoader fl(inFile);
     fl.loadFile(gh);
-    if(k == 0)
-		exit(-1);
+
+    // auto genomes = gh.getGenomes();
+    // for(auto rowGenome = genomes.begin(); rowGenome != genomes.end(); ++rowGenome)
+    //     rowGenome->print(std::cerr);
+    // return 0;
+
+    
     if(threadNum == 0) {
-        Homology hd(k, outFile);
+        Homology hd(k, outFile, discard);
         hd.calculateBidirectionalBestHit(gh, mode);
     } else {
-        Homology hd(k, outFile, threadNum);
+        Homology hd(k, outFile, threadNum, discard);
         hd.calculateBidirectionalBestHit(gh, mode);
     }
     std::cerr<<"\n";
