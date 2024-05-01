@@ -4,7 +4,9 @@
 #include "../VariablesTypes.hh"
 #include <utility>
 #include <iostream>
-#include <boost/unordered_set.hpp>
+#include <vector>
+// #include <ext/pb_ds/assoc_container.hpp>
+// #include <ext/pb_ds/hash_policy.hpp>
 // #define debug 1
 
 
@@ -29,7 +31,9 @@ namespace bbh {
             using index_t = shared::indexType;
             using score_t = shared::scoreType;
 
-            using container_t = boost::unordered_set<index_t>;
+            using container_t = std::vector<index_t>;
+            // using container_t = __gnu_pbds::gp_hash_table<index_t, std::nullptr_t>;
+
 
             // numero di candidati
             index_t size_;
@@ -180,11 +184,11 @@ namespace bbh {
 
         if(score > currentBestScore_ ) {
             candidates_.clear();
-            candidates_.emplace(index);
+            candidates_.emplace_back(index);
             currentBestScore_ = score;
             size_ = 1;
         } else if (score == currentBestScore_) {
-            candidates_.emplace(index);
+            candidates_.emplace_back(index);
             ++size_;
         }
     }

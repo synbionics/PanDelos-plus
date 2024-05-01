@@ -39,7 +39,7 @@ python3 "$genes_distribution_path" "$infile"
 
 /usr/bin/time -f "time(seconds): %e user time(seconds): %U memory(KB): %M" ./main -m -i "$infile" -o "$outFile" -k "$k" > $tmp 2>&1
 
-python3 "$net_clug_path" "$infile" "$outFile.net" > $tmp
+python3 "$net_clug_path" "$infile" "$outFile.net" >> $tmp
 
 clus="$outFile.clus"
 

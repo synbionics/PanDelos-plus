@@ -4,7 +4,6 @@
 #include <string>
 #include <iostream>
 #include <cstddef>
-#include <boost/unordered_map.hpp>
 #include <map>
 
 #include "KmerMapper.hh"

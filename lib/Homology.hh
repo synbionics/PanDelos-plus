@@ -14,9 +14,9 @@
 #include "genx/GenomesContainer.hh"
 #include "bbh/BBHCandidatesContainer.hh"
 #include <math.h>
-#include <boost/unordered_set.hpp>
 #include <unordered_set>
 #include <iomanip>
+
 
 #include "kmers/KmerMapper.hh"
 #include "ScoresContainer.hh"
@@ -590,7 +590,7 @@ namespace homology {
         fw.write("row,col,score",file);
         #endif
 
-        auto matchp = candidates.getPossibleMatch(); 
+        auto matchp = candidates.getPossibleMatch(rowGenes.size()); 
         auto& match = *matchp; 
         
         // BBHcandidatesContainer_t::set_tr matchRef = *match;
@@ -608,7 +608,6 @@ namespace homology {
                         score_t bestScore = -1;
                         
                         std::unordered_set<index_t> currentBestIndexs;
-                        boost::unordered_set<index_t> currentBestIndexs;
                         index_t colGeneId = currentColRef.first;
                         gene_tr currentColGene = colGenes[colGeneId];
                         // estrae le migliori righe per la colonna corrente
@@ -665,8 +664,8 @@ namespace homology {
                         auto& fwRef = *fw;
                         score_t bestScore = -1;
                         
-                        // std::unordered_set<index_t> currentBestIndexs;
-                        boost::unordered_set<index_t> currentBestIndexs;
+                        std::unordered_set<index_t> currentBestIndexs;
+
                         index_t colGeneId = currentColRef.first;
                         gene_tr currentColGene = colGenes[colGeneId];
                         // estrae le migliori righe per la colonna corrente
@@ -678,9 +677,9 @@ namespace homology {
                             if(currentScore > bestScore) {
                                 bestScore = currentScore;
                                 currentBestIndexs.clear();
-                                currentBestIndexs.insert(row);
+                                currentBestIndexs.emplace(row);
                             } else if(currentScore == bestScore) {
-                                currentBestIndexs.insert(row);
+                                currentBestIndexs.emplace(row);
                             }
                         }
 
@@ -734,7 +733,7 @@ namespace homology {
         fw.write("row,col,score",file);
         #endif
         
-        auto matchp = candidates.getPossibleMatch(); 
+        auto matchp = candidates.getPossibleMatch(genes.size()); 
         auto& match = *matchp; 
         // BBHcandidatesContainer_t::set_tr matchRef = *match;
         
@@ -750,8 +749,7 @@ namespace homology {
                     [&currentColRef, &genes, &scores, &candidates, &bbhContainerRef, &file, &fw] {
                         score_t bestScore = -1;
                 
-                        // std::unordered_set<index_t> currentBestIndexs;
-                        boost::unordered_set<index_t> currentBestIndexs;
+                        std::unordered_set<index_t> currentBestIndexs;
                         index_t colGeneId = currentColRef.first;
                         gene_tr currentColGene = genes[colGeneId];
                         // estrae le migliori righe per la colonna corrente
@@ -805,8 +803,7 @@ namespace homology {
                         auto& fwRef = *fw;
                         score_t bestScore = -1;
 
-                        boost::unordered_set<index_t> currentBestIndexs;
-                        // std::unordered_set<index_t> currentBestIndexs;
+                        std::unordered_set<index_t> currentBestIndexs;
                         index_t colGeneId = currentColRef.first;
                         gene_tr currentColGene = genes[colGeneId];
                         // estrae le migliori righe per la colonna corrente

@@ -50,7 +50,7 @@ The execution of ParPanDelos produces 2 output files named `[prefix_input_file].
 
 ### System requirements
 
-ParPanDelos can run on any operating system where Bash, Python3 (or higher), C++11 and [Boost Library](https://www.boost.org) are installed.
+ParPanDelos can run on any operating system where Bash, Python3 (or higher), C++11 and [GCC](https://gcc.gnu.org) are installed.
 
 ### Compilation
 

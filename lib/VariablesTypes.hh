@@ -10,7 +10,7 @@
  * When set to 1, enables development mode. 
  * Comment out or set to 0 to disable.
  */
-//#define DEV_MODE 1
+#define DEV_MODE 1
 
 
 /**
