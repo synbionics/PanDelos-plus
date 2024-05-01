@@ -52,6 +52,20 @@ The execution of ParPanDelos produces 2 output files named `[prefix_input_file].
 
 ParPanDelos can run on any operating system where Bash, Python3 (or higher), C++11 and [GCC](https://gcc.gnu.org) are installed.
 
+
+```bash
+sudo apt update
+sudo apt-get install -y bash python3 python3-pip build-essential
+```
+
+Python packages:
+```bash
+pip install biopython
+pip install networkx
+pip install matplotlib
+```
+
+
 ### Compilation
 
 The current repository contains a bash script `compile.sh` with a selection of compilation flags.
