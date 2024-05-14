@@ -1,0 +1,21 @@
+#!/bin/bash
+ilist="$1"
+folder="$2"
+
+rm -rf "./$folder"
+mkdir -p $folder
+
+cat $ilist
+echo ""
+
+python3 ./download.py $ilist | while read line;
+do
+[ -z "$line" ] && continue
+arrLine=(${line//;/ })
+url=${arrLine[0]}
+prefix=${arrLine[1]}
+
+echo "curl for $url --output $folder/$prefix.gz"
+curl "$url" --output "$folder/$prefix.gz"
+gzip -d "$folder/$prefix.gz"
+done

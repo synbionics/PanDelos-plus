@@ -5,20 +5,21 @@ inFile=""
 outFile=""
 mode=""
 discard=""
+path2gbks=""
 
 function usage() {
-    echo "Usage: $0 [-i input_file] [-o output_file] [-t thread_num] [-m] [-d discard_value] [-h]"
+    echo "Usage: $0 [-i input_file] [-o output_file] [-t thread_num] [-m] [-d discard_value] [-g path to gbks][-h]"
     echo "Options:"
     echo "  -i: Input file path"
     echo "  -o: Output file path"
     echo "  -t: Number of threads"
     echo "  -m: Enable a different mode"
-    echo "  -d: Discard value (0 <= d <= 1)"
+    echo "  -d: Discard value (0 <= d <= 1, default 0.5)"
     echo "  -h: Display this help message"
-
+    echo "  -g: Path to gbk folder"
 }
 
-while getopts ":i:o:t:md:h" opt; do
+while getopts ":i:o:t:md:g:h" opt; do
     case ${opt} in
         i )
             inFile=$OPTARG
@@ -35,6 +36,10 @@ while getopts ":i:o:t:md:h" opt; do
         d )
             discard=$OPTARG
             ;;
+        g )
+            path2gbks=$OPTARG
+            ;;
+        
         h )
             usage
             exit 0
@@ -94,13 +99,25 @@ python3 "$genes_distribution_path" "$inFile"
 /usr/bin/time -f "time(seconds): %e user time(seconds): %U memory(KB): %M" $mainCommand > $tmp 2>&1
 
 echo "" >> $tmp;
-python3 "$net_clug_path" "$inFile" "$outFile" >> $tmp
+python3 "$net_clug_path" "$inFile" "$outFile.net" >> $tmp
 
 clus="$outFile.clus"
 
 grep "F{ " $tmp | sed s/F{\ //g | sed s/}//g | sed s/\ \;//g | sort | uniq > "$clus"
 
-# json="$outFile.json"
-# python3 "$clus2json_path" "$tmp" "$json"
+
+
+if [ -z "$path2gbks" ]; then
+    echo "Missing gbk folder"
+    echo "Missing gbk folder" >> $tmp
+    usage
+    usage >> $tmp
+    exit(1)
+fi
+
+
+json="$outFile.json"
+python3 "$clus2json_path" "$path2gbks" "$clus" "$json" >> $tmp
+
 
 # rm $tmp

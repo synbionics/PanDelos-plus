@@ -1,0 +1,11 @@
+
+Discard value: 0.5
+Input File: cancer.faa
+Output File: cancer.net
+Mode: 0
+Thread number: 0
+K: 4
+time(seconds): 1.44 user time(seconds): 8.45 memory(KB): 158684
+
+nof sequences 4293
+nof genomes 2
