@@ -9,8 +9,21 @@ ParPanDelos: a dictionary-based method for pan-genome content discovery
 ParPanDelos a dictionary-based method for pan-genome content discovery. It's the C++ revisitation of [PanDelos](https://github.com/InfOmics/PanDelos).
 It's structured into different python modules and C++ library, piped together by a bash script, `execute.sh`, that provides the access point to the ParPanDelos pipeline.
 
+Simple usage
 ```bash
-bash execute.sh <path_to_input_file.faa>
+bash execute.sh -i <path_to_input_file.faa>
+```
+
+Custom usage (`bash execute.sh -h`)
+```bash
+Usage: execute.sh [-i input_file] [-o output_file] [-t thread_num] [-m] [-d discard_value] [-h]
+Options:
+  -i: Input file path
+  -o: Output file path
+  -t: Number of threads
+  -m: Enable a different mode
+  -d: Discard value (0 <= d <= 1)
+  -h: Display this help message
 ```
 
 ### Input format
@@ -50,7 +63,21 @@ The execution of ParPanDelos produces 2 output files named `[prefix_input_file].
 
 ### System requirements
 
-ParPanDelos can run on any operating system where Bash, Python3 (or higher), C++11 and [Boost Library](https://www.boost.org) are installed.
+ParPanDelos can run on any operating system where Bash, Python3 (or higher), C++11 and [GCC](https://gcc.gnu.org) are installed.
+
+
+```bash
+sudo apt update
+sudo apt-get install -y bash python3 python3-pip build-essential
+```
+
+Python packages:
+```bash
+pip install biopython
+pip install networkx
+pip install matplotlib
+```
+
 
 ### Compilation
 
@@ -70,7 +97,7 @@ g++ -std=c++11 -O1 -o main
 The current repository contains a bash script `execute.sh` that takes an argument (the path to the input file), execute a sequence off tools (tools folder) and execute cpp software.
 
 ```bash
-bash execute.sh <path_to_input_file.faa>
+bash execute.sh -i <path_to_input_file.faa>
 ```
 
 ---

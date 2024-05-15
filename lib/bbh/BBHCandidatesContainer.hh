@@ -5,9 +5,9 @@
 #include <utility>
 #include <iostream>
 #include <vector>
-#include <boost/unordered_set.hpp>
-#include <boost/unordered_map.hpp>
-
+#include <unordered_set>
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/hash_policy.hpp>
 #include "../VariablesTypes.hh"
 #include "BBHCandidate.hh"
 
@@ -37,13 +37,13 @@ namespace bbh{
 
             using BBHCandidate_t = bbh::BBHCandidate;
             using BBHCandidate_tp = BBHCandidate_t*;
-            using BBHCandidatesSet = boost::unordered_set<index_t>;
+            using BBHCandidatesSet = std::unordered_set<index_t>;
             
             using candidates_t = std::vector<BBHCandidate_t>;
             
             index_t capacity_;
             candidates_t candidates_;
-            using set_t = boost::unordered_map<index_t, BBHCandidatesSet>;
+            using set_t = __gnu_pbds::gp_hash_table<index_t, BBHCandidatesSet>;
 
         public:
             using set_tp = set_t*;
@@ -109,7 +109,7 @@ namespace bbh{
              * 
              * @return Pointer to the map of possible matches.
              */
-            inline set_tp getPossibleMatch() const;
+            inline set_tp getPossibleMatch(size_t maxSize) const;
             
             /**
              * @brief Retrieves the capacity of the container.
@@ -162,7 +162,7 @@ namespace bbh{
     // - first contains colums (secondary indexes)
     // - second contains cadidates rows (main indexes)
     inline BBHCandidatesContainer::set_tp
-    BBHCandidatesContainer::getPossibleMatch() const {
+    BBHCandidatesContainer::getPossibleMatch(size_t maxSize) const {
         
         set_tp map = new set_t();
         set_tr mapRef = *map;
@@ -175,6 +175,7 @@ namespace bbh{
                 auto mapIt = mapRef.find(key);
                 if(mapIt == mapRef.end()) {
                     BBHCandidatesSet set;
+                    set.reserve(maxSize);
                     set.insert(i);
                     mapRef.insert(
                         std::move(

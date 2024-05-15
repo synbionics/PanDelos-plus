@@ -3,7 +3,6 @@
 import sys
 import os
 import matplotlib.pyplot as plt
-import numpy as np
 
 
 
@@ -42,8 +41,8 @@ with open(filePath, "r") as file:
 # print()
 # print(genome_genes)
 
-x = np.array(list(genomes.keys()))
-y = np.array(list(genome_genes.values()))
+x = list(genomes.keys())
+y = list(genome_genes.values())
 
 # print(x)
 # print(y)

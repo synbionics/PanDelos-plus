@@ -2,9 +2,8 @@
 #define KMER_MAPPER_INCLUDE_GUARD 1
 #include <cstddef>
 #include <iostream>
-#include <boost/unordered_map.hpp>
-#include <unordered_map>
-
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/hash_policy.hpp>
 #include "../VariablesTypes.hh"
 
 
@@ -29,7 +28,7 @@ namespace kmers {
             using index_t = shared::indexType;
             using subsequence_t = shared::subSequenceType;
             using subsequence_tr = subsequence_t&;
-            using map_t = boost::unordered_map<subsequence_t, index_t>;
+            using map_t = __gnu_pbds::gp_hash_table<subsequence_t, index_t>;
             index_t nextIndex_;
             map_t map_;
 

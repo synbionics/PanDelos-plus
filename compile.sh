@@ -23,6 +23,6 @@ g++ -std=c++11 \
 -fmodulo-sched \
 -fmodulo-sched-allow-regmoves \
 -fno-lifetime-dse \
--Wextra -Wall \
 main.cc -o main
+# -Wextra -Wall \
 
