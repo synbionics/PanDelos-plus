@@ -52,7 +52,7 @@ void printHelp() {
         <<"-k to indicate the size of kmers\n"
         <<"-t to indicate the number of threads\n"
         <<"-m to activate specific mode with lower RAM cost (0 default)\n"
-        <<"-d to select a discard value (0 <= d <= 1) for similarity computation (0.5 default, a grater value implys a more aggressive discard)\n";
+        <<"-d to select a discard value (0 <= d <= 1) for similarity computation (0.5 default, a grater value implies a more aggressive discard)\n";
     #endif
 }
 /**

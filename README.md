@@ -16,15 +16,29 @@ bash execute.sh -i <path_to_input_file.faa>
 
 Custom usage (`bash execute.sh -h`)
 ```bash
-Usage: execute.sh [-i input_file] [-o output_file] [-t thread_num] [-m] [-d discard_value] [-h]
+Usage: execute.sh [-i input_file] [-o output_file] [-t thread_num] [-m] [-d discard_value] [-g path to gbks][-h]
 Options:
   -i: Input file path
   -o: Output file path
   -t: Number of threads
   -m: Enable a different mode
-  -d: Discard value (0 <= d <= 1)
+  -d: Discard value (0 <= d <= 1, default 0.5)
   -h: Display this help message
+  -g: Path to gbk files folder
 ```
+
+***IMPORTANT***
+Note that discard value will filter compared genes basing on their length. For example:
+
+```faa
+NC_000913	NC_000913:NC_000913.3:b0001:1	thr operon leader peptide
+MKRISTTITTTITITTGNGAG
+NC_000913	NC_000913:NC_000913.3:b0018:1	regulatory protein MokC
+MLNTCRVPLTDRKVKEKRAMKQHKAMIVALIVICITAVVAALVTRKDLCEVHIRTGQTEVAVFTAYESE
+```
+In case of this pair the gene identified by `NC_000913:NC_000913.3:b0001:1` has a length equal to $69$ and the other has length equal to $21$ so a discard greater than $0.2$ will skip this comparison
+
+
 
 ### Input format
 ParPanDelos takes as imput a complete set of gene sequence stored in a `.faa` text file, belonging to any of the studied genomes.
@@ -68,7 +82,7 @@ ParPanDelos can run on any operating system where Bash, Python3 (or higher), C++
 
 ```bash
 sudo apt update
-sudo apt-get install -y bash python3 python3-pip build-essential
+sudo apt-get install -y bash python3 python3-pip build-essential time
 ```
 
 Python packages:
@@ -102,13 +116,48 @@ bash execute.sh -i <path_to_input_file.faa>
 
 ---
 
-## Examples
+## Running the examples
 
-<!-- TODO -->
+### Requirements
 
+To run examples following packages are required:
+```bash
+sudo apt-get update
+sudo apt-get -y install gzip curl bash python3 python3-pip build-essential time
+```
+
+```bash
+pip install biopython
+pip install networkx
+pip install matplotlib
+```
+
+### Run examples
+
+To run all examples for ParPanDelos' benchmarks
+
+```bash
+cd examples
+python run_tests.py
+```
+
+The script will test a set of genomes retrieved from [NCBI](https://ncbi.nlm.nih.gov) databases. Every test corresponds to a `.list.txt` file in `examples/lists/`, that contains different number of lines, each formatted in 3 column, separated by a tabulation character `\t`, representing, in this order, Genome Assembly, GenBank and RefSeq.
+
+For every test will be created a folder named as basename of corresponding `.list.txt` file with this structure:
+```bash
+basename
+├── banks
+│  └── # all .gbk files used in the test
+├── basename.faa # .faa file extracted from all gbk files contained in 'banks' folder
+├── basename.png # with a bar plot with gene number for each genome
+├── nets
+│  └── # all .net file
+├── plots
+│  └── # list of .png files with plots
+└── tmp.txt # a temporal file
+```
 
 ---
-
 
 
 ## For developers
@@ -116,8 +165,8 @@ bash execute.sh -i <path_to_input_file.faa>
 ### Tools
 This repository has a folder (`tools`) that contains a set of tools concatenated by `execute.sh` script. Current tools are:
 - `calculate_k.py` used to calculate kmers length given a `path_to_file.faa` file.
-- `netclu_ng.py`, that takes (in this ordere) `path_to_file.faa` file and the respective `path_to_file.net` calculated by cpp software, and generate `.clus`.
-- `netclu_ng_plot.py`, that takes (in this ordere) `path_to_file.faa` file and the respective `path_to_file.net` calculated by cpp software, and generate `.clus` and a `.pdf` file
+- `netclu_ng.py`, that takes (in this order) `path_to_file.faa` file and the respective `path_to_file.net` calculated by cpp software, and generate `.clus`.
+- `netclu_ng_plot.py`, that takes (in this order) `path_to_file.faa` file and the respective `path_to_file.net` calculated by cpp software, and generate `.clus` and a `.pdf` file
 - `clus2json.py` that takes a `path_to_file.clus` and generate a `.json` file.
 - `genesDistributions.py` that takes `path_to_file.faa` and generate a bar plot with the distribution of genes for each genome (`file.png`).
 
@@ -131,22 +180,23 @@ g++ -std=c++11 <list_of_compilation_flags> -o main
 > It's recommended to use at least `-O1` flag
 
 ***IMPORTANT***
-The ouput file (`-o`) must be named `main` for a correct work of the pipeline.
+The output file (`-o`) must be named `main` for a correct work of the pipeline.
 
 ### Execution
 
 If you want a customized execution, you can run `./main -h` to see all possible options
 
 ```bash
-    +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+
-    |P| |a| |r| |P| |a| |n| |D| |e| |l| |o| |s|
-    +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+
-    Usage:
-    -i to select the input file (path_to_file/file.faa)
-    -o to specify the file for output(path_to_file/file_name.extension)
-    -k to indicate the size of kmers
-    -t to indicate the number of threads
-    -m to activate specific mode with lower RAM cost (0 default)
++-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+
+|P| |a| |r| |P| |a| |n| |D| |e| |l| |o| |s|
++-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+
+Usage:
+-i to select the input file (path_to_file/file.faa)
+-o to specify the file for output(path_to_file/file_name.extension)
+-k to indicate the size of kmers
+-t to indicate the number of threads
+-m to activate specific mode with lower RAM cost (0 default)
+-d to select a discard value (0 <= d <= 1) for similarity computation (0.5 default, a grater value implies a more aggressive discard)
 ```
 
 ---
