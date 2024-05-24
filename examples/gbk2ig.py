@@ -74,9 +74,9 @@ with open(ofile, 'w') as off:
         uniques[ gen_id ][k[2]] = uniques[ gen_id ].get(k[2],0) + 1
         cc = uniques[ gen_id ][k[2]]
 
-        print("cc:",cc)
+        #print("cc:",cc)
         acc = k[0]+":"+k[1]+":"+k[2]+":"+str(cc)
-        print("acc:",acc)
+        #print("acc:",acc)
         # off.write(k[0]+"\t"+ acc +"\t"+ cdstag2product[k] +"\n")
         off.write(k[0]+"\t"+ acc +"\t"+ cdstag2product[k] +"\n")
 

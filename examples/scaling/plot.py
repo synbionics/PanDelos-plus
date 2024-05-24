@@ -48,9 +48,23 @@ plt.plot(noMode["genomes"], noMode["time"], label="No Mode", color="red", marker
 
 plt.xlabel("Genomes")
 plt.ylabel("Time")
-plt.title("Time vs Genomes for Mode and No Mode")
+plt.title("Time x Genomes for Mode and No Mode")
 plt.legend()
 plt.grid(True)
 
 # Show the plot
-plt.savefig("plot.png")
+plt.savefig("time_plot.png")
+
+plt.clf()
+
+plt.plot(mode["genomes"], mode["memory"], label="Mode", color="blue", marker='o')
+plt.plot(noMode["genomes"], noMode["memory"], label="No Mode", color="red", marker='x')
+
+plt.xlabel("Genomes")
+plt.ylabel("Memory")
+plt.title("Memory x Genomes for Mode and No Mode")
+plt.legend()
+plt.grid(True)
+
+# Show the plot
+plt.savefig("memory_plot.png")
