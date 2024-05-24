@@ -22,10 +22,15 @@ except:
     pass
 print(" ---- Download started ---- ")
 
-# command = f"bash download.sh ./scaling/{scalingList} ./scaling/{banks}"
-# subprocess.call(command, shell=True, cwd="{}/..".format(cwd))
+#command = f"bash download.sh ./scaling/{scalingList} ./scaling/{banks}"
+command = f"bash download.sh ./scaling/{scalingList} /run/media/simo/Ventoy/tmpBanks"
+
+subprocess.call(command, shell=True, cwd="{}/..".format(cwd))
+
 
 print(" ---- Download completed ---- ")
+
+exit(0)
 
 tmpBanks = "tmpBanks"
 try:

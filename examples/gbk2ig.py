@@ -65,7 +65,7 @@ uniques = dict()
 print('writing to', ofile)
 with open(ofile, 'w') as off:
     for k in sorted(cdsseqs.keys()):
-        print("k:",k)
+        #print("k:",k)
 
         gen_id = k[0]+":"+k[1]
         if gen_id not in uniques:

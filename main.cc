@@ -70,9 +70,9 @@ void printHelp() {
  * @param mode Reference to a boolean to indicate a specific mode.
  * @param discard Reference to a float to indicate a discard value during similarity computation.
 */
-void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& outFile, ushort& threadNum, bool& mode, float& discard) {
+void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& outFile, ushort& threadNum, bool& mode, float& discard, bool& grid) {
     int option;
-    while ((option = getopt(argc, argv, "d:i:o:k:t:hm")) != -1) {
+    while ((option = getopt(argc, argv, "d:i:o:k:t:hmg")) != -1) {
         switch (option) {
             case 'i':
                 inFile = optarg;
@@ -96,6 +96,9 @@ void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& ou
                 break;
             case 'm':
                 mode = true;
+                break;
+            case 'g':
+                grid = true;
                 break;
             case 'h':
                 printTitle();
@@ -125,8 +128,8 @@ int main(int argc, char *argv[]){
     std::string outFile = "";
     bool mode = false;
     float discard = 0.5;
-
-    parser(argc, argv, k, inFile, outFile, threadNum, mode, discard);
+    bool grid = false;
+    parser(argc, argv, k, inFile, outFile, threadNum, mode, discard, grid);
 
     #ifndef DEV_MODE
         std::cerr<<"\nDiscard value: "<<discard;
@@ -135,6 +138,7 @@ int main(int argc, char *argv[]){
         std::cerr<<"\nMode: "<<mode;
         std::cerr<<"\nThread number: "<<threadNum;
         std::cerr<<"\nK: "<<k;
+        std::cerr<<"\nGrid: "<<grid;
     #else
         std::cout<<"\nDiscard value: "<<discard;
         std::cout<<"\nInput File: "<<inFile;
@@ -147,16 +151,23 @@ int main(int argc, char *argv[]){
     if(inFile == "" || outFile == "" || k == 0) {
         exit(1);
     }
+
     GenomesContainer gh;
     FileLoader fl(inFile);
     fl.loadFile(gh);
-    
+
+    std::cerr<<"\nStarting";
+    try{
     if(threadNum == 0 || threadNum > std::thread::hardware_concurrency()) {
         Homology hd(k, outFile, discard);
-        hd.calculateBidirectionalBestHit(gh, mode);
+        hd.calculateBidirectionalBestHit(gh, mode, grid);
     } else {
         Homology hd(k, outFile, threadNum, discard);
-        hd.calculateBidirectionalBestHit(gh, mode);
+        hd.calculateBidirectionalBestHit(gh, mode, grid);
+    }
+
+    } catch (std::exception& e) {
+        throw e;
     }
     std::cerr<<"\n";
     return 0;
