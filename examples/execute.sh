@@ -69,7 +69,7 @@ echo "outFile = $outFile" >> $tmp;
 maxT=$(nproc)
 
 echo "max threads: $maxT" >>$tmp
-for ((t = 4; t <= $maxT; t*=2)); do
+for ((t = 1; t <= $maxT; t*=2)); do
 
     echo "Iterazione $t"
     currentOutName="${outFile}_${t}"

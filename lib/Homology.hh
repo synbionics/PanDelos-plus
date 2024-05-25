@@ -290,9 +290,6 @@ namespace homology {
         
 
         return
-            // shortestContainer.getMultiplicityNumber() < longestContainer.getMultiplicityNumber()/10 ||
-            // longestContainer.getMultiplicityNumber() < shortestContainer.getMultiplicityNumber()/10 ||
-            // longestContainer.getSmallerKey() > shortestContainer.getBiggerKey()
             calculateSimilarity(shortestContainer, longestContainer);
     }
 
@@ -368,7 +365,7 @@ namespace homology {
     void Homology::calculateBidirectionalBestHit(genome::GenomesContainer& gc, bool mode, bool grid) {
 
         if(grid) {
-            std::cerr<<"\ngrid mode";
+            // std::cerr<<"\ngrid mode";
             if(mode) {
 
                 genome::GenomesContainer::genome_ctr genomes = gc.getGenomes();
@@ -755,13 +752,13 @@ namespace homology {
         fw.close(file);
         #endif
         
-        std::cerr<<"\npre check";
+        // std::cerr<<"\npre check";
         checkForBBHSame(
             genes,
             bestRows,
             scores
         );
-        std::cerr<<"\npost check";
+        // std::cerr<<"\npost check";
     }
 
     inline void
@@ -823,7 +820,7 @@ namespace homology {
         BBHcandidatesContainer_tr bestRows, ScoresContainer& scores
     ) const {
 
-        std::cerr<<"\nComputing same geneome grid";
+        // std::cerr<<"\nComputing same geneome grid";
         thread_ptr poolRef = *pool_; 
         index_t genesNumber = genes.size();
 
@@ -847,21 +844,21 @@ namespace homology {
                 }
             );
         }
-        std::cerr<<"\n main waiting";
+        // std::cerr<<"\n main waiting";
         while(!poolRef.tasksCompleted()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
-        std::cerr<<"\n main waited";
+        // std::cerr<<"\n main waited";
 
         // lato*lato - lato )/2
 
         unsigned long validCells = ((genesNumber * genesNumber) - genesNumber)/2;
-        std::cerr<<"\ngenes number: "<<genesNumber;
+        // std::cerr<<"\ngenes number: "<<genesNumber;
         for(index_t row = 0; row < genesNumber; ++row){
-            std::cerr<<"\nrow: "<<row<<"discarded: "<<lines[row].discarded<<"/"<<genes.size()-(row+1);
+            // std::cerr<<"\nrow: "<<row<<"discarded: "<<lines[row].discarded<<"/"<<genes.size()-(row+1);
             validCells -= lines[row].discarded;
         }
-        std::cerr<<"\nvalid cells: "<<validCells;
+        // std::cerr<<"\nvalid cells: "<<validCells;
 
 
         unsigned long workXthread = floor(validCells / poolRef.getTotalThread());
@@ -869,10 +866,10 @@ namespace homology {
         unsigned long remainingXthread = ceil(remaining / poolRef.getTotalThread());
         unsigned long remainUsed = 0;
         // related to lines
-        std::cerr<<"\nworkXthread "<<workXthread;
-        std::cerr<<"\nremaining "<<remaining;
-        std::cerr<<"\nremainingXthread "<<remainingXthread;
-        std::cerr<<"\nremainUsed "<<remainUsed;
+        // std::cerr<<"\nworkXthread "<<workXthread;
+        // std::cerr<<"\nremaining "<<remaining;
+        // std::cerr<<"\nremainingXthread "<<remainingXthread;
+        // std::cerr<<"\nremainUsed "<<remainUsed;
         
 
         std::vector<job> jobs;
@@ -944,10 +941,10 @@ namespace homology {
             poolRef.execute(
 
                 [&currentJob, this, &scores, &genes, &lines] {
-                    std::cerr<<"\n"<<currentJob.startRow;
-                    std::cerr<<"\n"<<currentJob.startCol;
-                    std::cerr<<"\n"<<currentJob.stopRow;
-                    std::cerr<<"\n"<<currentJob.stopCol;
+                    // std::cerr<<"\n"<<currentJob.startRow;
+                    // std::cerr<<"\n"<<currentJob.startCol;
+                    // std::cerr<<"\n"<<currentJob.stopRow;
+                    // std::cerr<<"\n"<<currentJob.stopCol;
 
                     index_t row = currentJob.startRow;
 
@@ -971,7 +968,7 @@ namespace homology {
                             scores.setScoreAt(row, realCol, calculateSimilarityGrid(rowGene, genes[realCol]));
                             // scores.setScoreAt(row, col, calculateSimilarityGrid(rowGene, genes[col]));
                         }
-                        std::cerr<<"\n first for done";
+                        // std::cerr<<"\n first for done";
 
                         ++row;
                         while(row < currentJob.stopRow - 1) {
@@ -986,7 +983,7 @@ namespace homology {
 
                             ++row;
                         }
-                        std::cerr<<"\n second for done";
+                        // std::cerr<<"\n second for done";
 
                         auto& otherRowGene = genes[row];
 
@@ -996,7 +993,7 @@ namespace homology {
                             scores.setScoreAt(row, realCol, calculateSimilarityGrid(rowGene, genes[realCol]));
                             // scores.setScoreAt(row, col, calculateSimilarityGrid(otherRowGene, genes[col]));
                         }
-                        std::cerr<<"\n post third for";
+                        // std::cerr<<"\n post third for";
                     }
 
                 }
@@ -1004,16 +1001,16 @@ namespace homology {
         }
         
         
-        std::cerr<<"\n main waiting";
+        // std::cerr<<"\n main waiting";
         while(!poolRef.tasksCompleted()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
-        std::cerr<<"\n main waited";
+        // std::cerr<<"\n main waited";
 
 
         }
 
-        std::cerr<<"pre best rows";
+        // std::cerr<<"pre best rows";
 
         for(index_t row = 0; row < genesNumber; ++row){
         
@@ -1022,7 +1019,7 @@ namespace homology {
                     for(index_t col = row+1; col < genes.size(); ++col) {
                         score_t score = scores.getScoreAt(row, col);
 
-                        std::cerr<<"\nAdding: "<< score <<" to: "<<row<<", "<<col;
+                        // std::cerr<<"\nAdding: "<< score <<" to: "<<row<<", "<<col;
                         if(score > 0)
                             bestRows.addCandidate(row, scores.getScoreAt(row, col), col);
                     }
@@ -1030,11 +1027,11 @@ namespace homology {
             );
         }
 
-        std::cerr<<"\n main waiting";
+        // std::cerr<<"\n main waiting";
         while(!poolRef.tasksCompleted()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
-        std::cerr<<"\n main waited";
+        // std::cerr<<"\n main waited";
     }
 
     inline void
@@ -1044,19 +1041,21 @@ namespace homology {
         
         thread_ptr poolRef = *pool_;
         
+        index_t rows = rowGenes.size();
         {
         
         std::vector<informations> lines;
-        lines.resize(rowGenes.size());
+        lines.resize(rows);
         
         
-        for(index_t row = 0; row < rowGenes.size(); ++row){
+        for(index_t row = 0; row < rows; ++row){
             
             poolRef.execute(
                 [row, this, &colGenes, &lines, &rowGenes] {
                     gene_tr rowGene = rowGenes[row];
+
                     lines[row].acceptedCols.reserve(colGenes.size());
-                    for(index_t col = row+1; col < colGenes.size(); ++col) {
+                    for(index_t col = 0; col < colGenes.size(); ++col) {
                         if (rowGene.getAlphabetLength() < colGenes[col].getAlphabetLength()*discard_ || colGenes[col].getAlphabetLength() < rowGene.getAlphabetLength()*discard_)
                             ++lines[row].discarded;
                         else
@@ -1147,34 +1146,37 @@ namespace homology {
 
                     if(row == currentJob.stopRow - 1) {
                         auto& rowGene = rowGenes[row];
+                        auto line = lines[row];
                         for(index_t col = currentJob.startCol; col < currentJob.stopCol; ++col) {
-                            index_t realCol = lines[row].acceptedCols[col];
+                            index_t realCol = line.acceptedCols[col];
                             scores.setScoreAt(row, realCol, calculateSimilarityGrid(rowGene, colGenes[realCol]));
                         }
                     } else {
 
                         auto& rowGene = rowGenes[row];
+                        auto line = lines[row];
 
                         for(index_t col = currentJob.startCol; col < lines[row].acceptedCols.size(); ++col) {
-                            index_t realCol = lines[row].acceptedCols[col];
+                            index_t realCol = line.acceptedCols[col];
                             scores.setScoreAt(row, realCol, calculateSimilarityGrid(rowGene, colGenes[realCol]));
                         }
                         ++row;
 
                         while(row < currentJob.stopRow - 1) {
                             auto& rowGene = rowGenes[row];
-                            for(index_t col = 0; col < lines[row].acceptedCols.size(); ++col) {
+                            auto l = lines[row];
 
-                                index_t realCol = lines[row].acceptedCols[col];
+                            for(index_t col = 0; col < lines[row].acceptedCols.size(); ++col) {
+                                index_t realCol = l.acceptedCols[col];
                                 scores.setScoreAt(row, realCol, calculateSimilarityGrid(rowGene, colGenes[realCol]));
                             }
                             ++row;
                         }
 
                         auto& otherRowGene = rowGenes[row];
-
+                        auto l = lines[row];
                         for(index_t col = 0; col < currentJob.stopCol; ++col) {
-                            index_t realCol = lines[row].acceptedCols[col];
+                            index_t realCol = l.acceptedCols[col];
                             scores.setScoreAt(row, realCol, calculateSimilarityGrid(otherRowGene, colGenes[realCol]));
                         }
                     }
@@ -1182,14 +1184,14 @@ namespace homology {
                 }
             );
         }
-        std::cerr<<"\n------------------------";
+        // std::cerr<<"\n------------------------";
 
         while(!poolRef.tasksCompleted()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
 
         }
-        std::cerr<<"\n------------------------";
+        // std::cerr<<"\n------------------------";
 
         for(index_t row = 0; row < rowGenes.size(); ++row){
             poolRef.execute(
@@ -1197,7 +1199,7 @@ namespace homology {
                     for(index_t col = 0; col < colGenes.size(); ++col) {
                         score_t score = scores.getScoreAt(row, col);
                         
-                        std::cerr<<"\nAdding: "<< score <<" to: "<<row<<", "<<col;
+                        // std::cerr<<"\nAdding: "<< score <<" to: "<<row<<", "<<col;
                         if(score > 0)
                             bestRows.addCandidate(row, scores.getScoreAt(row, col), col);
                     }
