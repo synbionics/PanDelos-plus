@@ -83,34 +83,34 @@ for ((t = 1; t <= $maxT; t*=2)); do
     /usr/bin/time -f "-> {0,%e,%M,$t,0}" $mainCommand >> $tmp 2>&1
     
 
-    # tmpName="${currentOutName}_g"
-    # mainCommand="../main -i $inFile -k $k -o $tmpName -t $t -g"
-    # echo "Running $mainCommand"
-    # echo "$mainCommand" >> $tmp
-    # echo "" >> $tmp;
-    # echo "# no mode - grid" >> $tmp;
-    # # mode, time, memory, threads
-    # /usr/bin/time -f "-> {0,%e,%M,$t,1}" $mainCommand >> $tmp 2>&1
+    tmpName="${currentOutName}_g"
+    mainCommand="../main -i $inFile -k $k -o $tmpName -t $t -g"
+    echo "Running $mainCommand"
+    echo "$mainCommand" >> $tmp
+    echo "" >> $tmp;
+    echo "# no mode - grid" >> $tmp;
+    # mode, time, memory, threads
+    /usr/bin/time -f "-> {0,%e,%M,$t,1}" $mainCommand >> $tmp 2>&1
 
 
     echo "" >> $tmp;
     currentOutName+="_m"
 
-    mainCommand="../main -i $inFile -k $k -o $currentOutName -t $t -g"
+    mainCommand="../main -i $inFile -k $k -o $currentOutName -t $t"
     echo "Running $mainCommand"
 
     echo "# mode" >> $tmp;
     /usr/bin/time -f "-> {1,%e,%M,$t,0}" $mainCommand >> $tmp 2>&1
     echo "" >> $tmp;
 
-    # tmpName="${currentOutName}_g"
-    # mainCommand="../main -i $inFile -k $k -o $tmpName -t $t -m -g"
-    # echo "Running $mainCommand"
-    # echo "$mainCommand" >> $tmp
-    # echo "" >> $tmp;
-    # echo "# no mode - grid" >> $tmp;
-    # # mode, time, memory, threads
-    # /usr/bin/time -f "-> {1,%e,%M,$t,1}" $mainCommand >> $tmp 2>&1
+    tmpName="${currentOutName}_g"
+    mainCommand="../main -i $inFile -k $k -o $tmpName -t $t -m -g"
+    echo "Running $mainCommand"
+    echo "$mainCommand" >> $tmp
+    echo "" >> $tmp;
+    echo "# no mode - grid" >> $tmp;
+    # mode, time, memory, threads
+    /usr/bin/time -f "-> {1,%e,%M,$t,1}" $mainCommand >> $tmp 2>&1
 done
 
 python plot.py $tmp $path
