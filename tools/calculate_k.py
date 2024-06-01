@@ -22,6 +22,7 @@ def main():
     alphabet = set()
     totLength = 0
 
+
     with open(file, 'r') as file:
         for i, line in enumerate(file):
             if i % 2 != 0:

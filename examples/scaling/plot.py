@@ -1,6 +1,7 @@
 #!/usr/bin/python3
 
 import matplotlib.pyplot as plt
+from matplotlib.ticker import ScalarFormatter
 
 
 tmpFile = "tmp.txt"
@@ -32,23 +33,23 @@ noMode = {
 for l in interestedLines:
     splitted = l.split(",")
     if int(splitted[0]) == 1:
-        mode["time"].append(float(splitted[2]))
-        mode["memory"].append(int(splitted[3]))
         mode["genomes"].append(int(splitted[1]))
+        mode["time"].append(float(splitted[2]))
+        mode["memory"].append(int(int(splitted[3])/1024))
     else:
-        noMode["time"].append(float(splitted[2]))
-        noMode["memory"].append(int(splitted[3]))
         noMode["genomes"].append(int(splitted[1]))
+        noMode["time"].append(float(splitted[2]))
+        noMode["memory"].append(int(int(splitted[3])/1024))
 
 print(mode)
 print(noMode)
 
-plt.plot(mode["genomes"], mode["time"], label="Mode", color="blue", marker='o')
-plt.plot(noMode["genomes"], noMode["time"], label="No Mode", color="red", marker='x')
+plt.plot(noMode["genomes"], noMode["time"], label="Normal mode", color="blue", marker='o')
+plt.plot(mode["genomes"], mode["time"], label="Eco mode", color="red", marker='x')
 
-plt.xlabel("Genomes")
-plt.ylabel("Time")
-plt.title("Time x Genomes for Mode and No Mode")
+plt.xlabel("Number of genomes")
+plt.ylabel("Time (seconds)")
+plt.title("Time x Genomes for normal mode and eco mode")
 plt.legend()
 plt.grid(True)
 
@@ -57,14 +58,19 @@ plt.savefig("time_plot.png")
 
 plt.clf()
 
-plt.plot(mode["genomes"], mode["memory"], label="Mode", color="blue", marker='o')
-plt.plot(noMode["genomes"], noMode["memory"], label="No Mode", color="red", marker='x')
 
-plt.xlabel("Genomes")
-plt.ylabel("Memory")
-plt.title("Memory x Genomes for Mode and No Mode")
+plt.plot(noMode["genomes"], noMode["memory"], label="Normal mode", color="blue", marker='o')
+plt.plot(mode["genomes"], mode["memory"], label="Eco mode", color="red", marker='x')
+
+plt.xlabel("Number of genomes")
+plt.ylabel("Memory (KB)")
+plt.title("Memory x Genomes for normal mode and eco mode")
 plt.legend()
 plt.grid(True)
+
+plt.gca().yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
+plt.gca().yaxis.get_major_formatter().set_scientific(False)
+
 
 # Show the plot
 plt.savefig("memory_plot.png")

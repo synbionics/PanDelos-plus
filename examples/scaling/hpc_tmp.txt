@@ -1,0 +1,271 @@
+k = 5
+inFile = tmpFaa.faa
+outFile = ./tmpNets/10
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/10 -t 64
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/10
+Mode: 0
+Thread number: 64
+K: 5
+-> {0,10,43.74,1002452}
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/10_m -t 64 -m
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/10_m
+Mode: 1
+Thread number: 64
+K: 5
+-> {1,10,72.80,1043720}
+k = 5
+inFile = tmpFaa.faa
+outFile = ./tmpNets/20
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/20 -t 64
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/20
+Mode: 0
+Thread number: 64
+K: 5
+-> {0,20,152.57,1350496}
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/20_m -t 64 -m
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/20_m
+Mode: 1
+Thread number: 64
+K: 5
+-> {1,20,271.60,1036608}
+k = 5
+inFile = tmpFaa.faa
+outFile = ./tmpNets/30
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/30 -t 64
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/30
+Mode: 0
+Thread number: 64
+K: 5
+-> {0,30,367.73,1752852}
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/30_m -t 64 -m
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/30_m
+Mode: 1
+Thread number: 64
+K: 5
+-> {1,30,607.51,1135048}
+k = 5
+inFile = tmpFaa.faa
+outFile = ./tmpNets/40
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/40 -t 64
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/40
+Mode: 0
+Thread number: 64
+K: 5
+-> {0,40,540.12,2052296}
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/40_m -t 64 -m
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/40_m
+Mode: 1
+Thread number: 64
+K: 5
+-> {1,40,996.41,1191236}
+k = 5
+inFile = tmpFaa.faa
+outFile = ./tmpNets/50
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/50 -t 64
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/50
+Mode: 0
+Thread number: 64
+K: 5
+-> {0,50,907.68,2344896}
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/50_m -t 64 -m
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/50_m
+Mode: 1
+Thread number: 64
+K: 5
+-> {1,50,1492.46,1229740}
+k = 5
+inFile = tmpFaa.faa
+outFile = ./tmpNets/60
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/60 -t 64
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/60
+Mode: 0
+Thread number: 64
+K: 5
+-> {0,60,1341.47,2693388}
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/60_m -t 64 -m
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/60_m
+Mode: 1
+Thread number: 64
+K: 5
+-> {1,60,2127.36,1271092}
+k = 6
+inFile = tmpFaa.faa
+outFile = ./tmpNets/70
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/70 -t 64
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/70
+Mode: 0
+Thread number: 64
+K: 6
+-> {0,70,1885.27,3373028}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/70_m -t 64 -m
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/70_m
+Mode: 1
+Thread number: 64
+K: 6
+-> {1,70,2876.20,1957472}
+k = 5
+inFile = tmpFaa.faa
+outFile = ./tmpNets/80
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/80 -t 64
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/80
+Mode: 0
+Thread number: 64
+K: 5
+-> {0,80,2151.93,3337544}
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/80_m -t 64 -m
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/80_m
+Mode: 1
+Thread number: 64
+K: 5
+-> {1,80,3712.41,1314912}
+k = 6
+inFile = tmpFaa.faa
+outFile = ./tmpNets/90
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/90 -t 64
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/90
+Mode: 0
+Thread number: 64
+K: 6
+-> {0,90,3089.08,4014256}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/90_m -t 64 -m
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/90_m
+Mode: 1
+Thread number: 64
+K: 6
+-> {1,90,5053.85,2006748}
+k = 6
+inFile = tmpFaa.faa
+outFile = ./tmpNets/100
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/100 -t 64
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/100
+Mode: 0
+Thread number: 64
+K: 6
+-> {0,100,3614.92,4341176}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/100_m -t 64 -m
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/100_m
+Mode: 1
+Thread number: 64
+K: 6
+-> {1,100,5959.33,2029124}
+k = 6
+inFile = tmpFaa.faa
+outFile = ./tmpNets/200
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/200 -t 64
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/200
+Mode: 0
+Thread number: 64
+K: 6
+-> {0,200,14612.19,7511368}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/200_m -t 64 -m
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/200_m
+Mode: 1
+Thread number: 64
+K: 6
+-> {1,200,23723.14,2237940}
+k = 6
+inFile = tmpFaa.faa
+outFile = ./tmpNets/300
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/300 -t 64
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/300
+Mode: 0
+Thread number: 64
+K: 6
+-> {0,300,33481.43,10760308}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/300_m -t 64 -m
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/300_m
+Mode: 1
+Thread number: 64
+K: 6
+-> {1,300,53592.55,2520600}
+k = 6
+inFile = tmpFaa.faa
+outFile = ./tmpNets/400
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/400 -t 64
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/400
+Mode: 0
+Thread number: 64
+K: 6
+{0,400,64310.66,14116820}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/400_m -t 64 -m
+
+Discard value: 0.5
+Input File: tmpFaa.faa
+Output File: ./tmpNets/400_m
+Mode: 1
+Thread number: 64
