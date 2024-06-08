@@ -273,23 +273,17 @@ namespace homology {
     // gene1 = row gene
     inline Homology::score_t
     Homology::calculateSimilarity(const gene_tr gene1, const gene_tr gene2) const {
-        
-
-        if(
-            gene1.getAlphabetLength() < gene2.getAlphabetLength()*discard_
-            || gene2.getAlphabetLength() < gene1.getAlphabetLength()*discard_
-        ) {
-            return 0;
-        }
-
-        kmersContainer_tr shortestContainer = 
-            gene1.getKmersNum() < gene2.getKmersNum() ? *gene1.getKmerContainer() : *gene2.getKmerContainer();
-        kmersContainer_tr longestContainer =
-            gene1.getKmersNum() < gene2.getKmersNum() ? *gene2.getKmerContainer() : *gene1.getKmerContainer();
-        
-
-        return
-            calculateSimilarity(shortestContainer, longestContainer);
+        return (
+                gene1.getAlphabetLength() < gene2.getAlphabetLength()*discard_
+                || gene2.getAlphabetLength() < gene1.getAlphabetLength()*discard_
+                ) ? 
+                0
+                :
+                calculateSimilarity(
+                    gene1.getKmersNum() < gene2.getKmersNum() ? *gene1.getKmerContainer() : *gene2.getKmerContainer(),
+                    gene1.getKmersNum() < gene2.getKmersNum() ? *gene2.getKmerContainer() : *gene1.getKmerContainer()
+                );
+    
     }
 
 
