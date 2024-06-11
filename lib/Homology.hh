@@ -762,16 +762,11 @@ namespace homology {
         for(index_t row = 0; row < genes.size(); ++row){
             poolRef.execute(
                 [row, &scores, this, &genes, &bestRows] {
-                    score_t bestScore = -1;
                     for(index_t col = row+1; col < genes.size(); ++col) {
                         const auto& g = genes[row];
                         score_t currentScore = calculateSimilarity(g, genes[col]);
                         scores.setScoreAt(row, col, currentScore);
-                        bestScore = currentScore > bestScore ? currentScore : bestScore;
-                    }
-                    for(index_t col = row+1; col < genes.size(); ++col) {
-                        if(scores.getScoreAt(row, col) == bestScore)
-                            bestRows.addCandidate(row, bestScore, col);
+                        bestRows.addCandidate(row, currentScore, col);
                     }
                 }
             );
@@ -795,16 +790,10 @@ namespace homology {
             poolRef.execute(
                 [row, &scores, this, &colGenes, &bestRows, &rowGenes] {
                     gene_tr rowGene = rowGenes[row];
-                    score_t bestScore = -1;
                     for(index_t col = 0; col < colGenes.size(); ++col) {
                         score_t currentScore = calculateSimilarity(rowGene, colGenes[col]);
                         scores.setScoreAt(row, col, currentScore);
-                        bestScore = currentScore > bestScore ? currentScore : bestScore;
-                    }
-                    if(bestScore > 0)
-                    for(index_t col = 0; col < colGenes.size(); ++col) {
-                        if(scores.getScoreAt(row, col) == bestScore)
-                        bestRows.addCandidate(row, bestScore, col);
+                        bestRows.addCandidate(row, currentScore, col);
                     }
                 }
             );
@@ -1006,16 +995,12 @@ namespace homology {
         
             poolRef.execute(
                 [row, &scores, this, &genes, &bestRows] {
-                    score_t bestScore = -1;
                     for(index_t col = row+1; col < genes.size(); ++col) {
                         score_t score = scores.getScoreAt(row, col);
-                        bestScore = score > bestScore ? score : bestScore;
-                    }
 
-                    if(bestScore > 0)
-                    for(index_t col = row+1; col < genes.size(); ++col) {
-                        if(scores.getScoreAt(row, col) == bestScore)
-                            bestRows.addCandidate(row, bestScore, col);
+                        // std::cerr<<"\nAdding: "<< score <<" to: "<<row<<", "<<col;
+                        if(score > 0)
+                            bestRows.addCandidate(row, scores.getScoreAt(row, col), col);
                     }
                 }
             );
@@ -1182,15 +1167,12 @@ namespace homology {
         for(index_t row = 0; row < rowGenes.size(); ++row){
             poolRef.execute(
                 [row, &scores, this, &colGenes, &bestRows] {
-                    score_t bestScore = -1;
                     for(index_t col = 0; col < colGenes.size(); ++col) {
                         score_t score = scores.getScoreAt(row, col);
-                        bestScore = score > bestScore ? score : bestScore;
-                    }
-                    if(bestScore > 0)
-                    for(index_t col = 0; col < colGenes.size(); ++col) {
-                        if(scores.getScoreAt(row, col) == bestScore)
-                            bestRows.addCandidate(row, bestScore, col);
+                        
+                        // std::cerr<<"\nAdding: "<< score <<" to: "<<row<<", "<<col;
+                        if(score > 0)
+                            bestRows.addCandidate(row, scores.getScoreAt(row, col), col);
                     }
                 }
             );
@@ -1431,6 +1413,7 @@ namespace homology {
 
                         std::unordered_set<index_t> currentBestIndexs;
                         index_t colGeneId = currentColRef.first;
+                        gene_tr currentColGene = genes[colGeneId];
                         // estrae le migliori righe per la colonna corrente
                         // e li memorizza in current best indexs
 
@@ -1452,7 +1435,7 @@ namespace homology {
                         // crea il bbh
 
                         if(bestScore > 0) {
-                            index_t currentColGeneFileLine = genes[colGeneId].getGeneFilePosition();
+                            index_t currentColGeneFileLine = currentColGene.getGeneFilePosition();
                             for(auto index = currentBestIndexs.begin(); index != currentBestIndexs.end(); ++index) {
                                 index_t currentIndex = *index;
 
