@@ -283,7 +283,6 @@ namespace homology {
                     gene1.getKmersNum() < gene2.getKmersNum() ? *gene1.getKmerContainer() : *gene2.getKmerContainer(),
                     gene1.getKmersNum() < gene2.getKmersNum() ? *gene2.getKmerContainer() : *gene1.getKmerContainer()
                 );
-    
     }
 
 
@@ -764,7 +763,8 @@ namespace homology {
             poolRef.execute(
                 [row, &scores, this, &genes, &bestRows] {
                     for(index_t col = row+1; col < genes.size(); ++col) {
-                        score_t currentScore = calculateSimilarity(genes[row], genes[col]);
+                        const auto& g = genes[row];
+                        score_t currentScore = calculateSimilarity(g, genes[col]);
                         scores.setScoreAt(row, col, currentScore);
                         bestRows.addCandidate(row, currentScore, col);
                     }
@@ -791,9 +791,7 @@ namespace homology {
                 [row, &scores, this, &colGenes, &bestRows, &rowGenes] {
                     gene_tr rowGene = rowGenes[row];
                     for(index_t col = 0; col < colGenes.size(); ++col) {
-                        gene_tr colGene = colGenes[col];
-
-                        score_t currentScore = calculateSimilarity(rowGene, colGene);
+                        score_t currentScore = calculateSimilarity(rowGene, colGenes[col]);
                         scores.setScoreAt(row, col, currentScore);
                         bestRows.addCandidate(row, currentScore, col);
                     }
@@ -1281,7 +1279,7 @@ namespace homology {
                         for(index_t row = 0; row < rowGenes.size(); ++row) {
                             score_t currentScore = scores.getScoreAt(row, colGeneId);
 
-                            if(currentScore > bestScore) {
+                            if(currentScore > bestScore && currentScore != 0) {
                                 bestScore = currentScore;
                                 currentBestIndexs.clear();
                                 currentBestIndexs.emplace(row);
@@ -1293,22 +1291,25 @@ namespace homology {
                         // passa per tutte le righe con il punteggio migliore
                         // e se quel punteggio è il migliore anche per la riga
                         // crea il bbh
-                        index_t currentColGeneFileLine = currentColGene.getGeneFilePosition();
-                        for(auto index = currentBestIndexs.begin(); index != currentBestIndexs.end(); ++index) {
-                            index_t currentIndex = *index;
-                            
-                            if(bestScore == candidates.getBestScoreForCandidate(currentIndex)) {
-                                fwRef.write(
-                                    std::to_string(
-                                        rowGenes[currentIndex].getGeneFilePosition()
-                                    ) + "," +
-                                    std::to_string(
-                                        currentColGeneFileLine
-                                    ) + "," +
-                                    std::to_string(bestScore)
-                                    , outStream_);
+                        if(bestScore > 0) {
+                            index_t currentColGeneFileLine = currentColGene.getGeneFilePosition();
+                            for(auto index = currentBestIndexs.begin(); index != currentBestIndexs.end(); ++index) {
+                                index_t currentIndex = *index;
+                                
+                                if(bestScore == candidates.getBestScoreForCandidate(currentIndex)) {
+                                    fwRef.write(
+                                        std::to_string(
+                                            rowGenes[currentIndex].getGeneFilePosition()
+                                        ) + "," +
+                                        std::to_string(
+                                            currentColGeneFileLine
+                                        ) + "," +
+                                        std::to_string(bestScore)
+                                        , outStream_);
+                                }
                             }
                         }
+                        
                         // if(bestScore > 0) {
                         // }
                     }
@@ -1420,7 +1421,7 @@ namespace homology {
                         for(index_t row = 0; row < colGeneId; ++row) {
                             score_t currentScore = scores.getScoreAt(row, colGeneId);
 
-                            if(currentScore > bestScore) {
+                            if(currentScore > bestScore && currentScore != 0) {
                                 bestScore = currentScore;
                                 currentBestIndexs.clear();
                                 currentBestIndexs.insert(row);
@@ -1433,22 +1434,23 @@ namespace homology {
                         // e se quel punteggio è il migliore anche per la riga
                         // crea il bbh
 
-                        // if(bestScore > 0)
-                        index_t currentColGeneFileLine = currentColGene.getGeneFilePosition();
-                        for(auto index = currentBestIndexs.begin(); index != currentBestIndexs.end(); ++index) {
-                            index_t currentIndex = *index;
+                        if(bestScore > 0) {
+                            index_t currentColGeneFileLine = currentColGene.getGeneFilePosition();
+                            for(auto index = currentBestIndexs.begin(); index != currentBestIndexs.end(); ++index) {
+                                index_t currentIndex = *index;
 
-                            if(bestScore == candidates.getBestScoreForCandidate(currentIndex)) {
-                                fwRef.write(
-                                    std::to_string(
-                                        genes[currentIndex].getGeneFilePosition()
-                                    ) + "," +
-                                    std::to_string(
-                                        currentColGeneFileLine
-                                    ) + "," +
-                                    std::to_string(bestScore)
-                                    , outStream_);
-                                
+                                if(bestScore == candidates.getBestScoreForCandidate(currentIndex)) {
+                                    fwRef.write(
+                                        std::to_string(
+                                            genes[currentIndex].getGeneFilePosition()
+                                        ) + "," +
+                                        std::to_string(
+                                            currentColGeneFileLine
+                                        ) + "," +
+                                        std::to_string(bestScore)
+                                        , outStream_);
+                                    
+                                }
                             }
                         }
                     }
