@@ -1,0 +1,11 @@
+
+Discard value: 0.5
+Input File: files/escherichia.faa
+Output File: nets/doubleFor
+Mode: 0
+Thread number: 0
+K: 5
+Grid: 0
+Starting
+time(seconds): 175.60 user time(seconds): 1218.38 memory(KB): 1064336
+
