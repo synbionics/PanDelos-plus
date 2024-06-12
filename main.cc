@@ -88,6 +88,7 @@ void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& ou
                 break;
             case 'd':
                 discard = atof(optarg);
+                shared::cut = discard;
                 if(discard > 1 || discard < 0) {
                     printTitle();
                     printHelp();
@@ -155,14 +156,13 @@ int main(int argc, char *argv[]){
     GenomesContainer gh;
     FileLoader fl(inFile);
     fl.loadFile(gh);
-
     std::cerr<<"\nStarting";
     try{
     if(threadNum == 0 || threadNum > std::thread::hardware_concurrency()) {
-        Homology hd(k, outFile, discard);
+        Homology hd(k, outFile);
         hd.calculateBidirectionalBestHit(gh, mode, grid);
     } else {
-        Homology hd(k, outFile, threadNum, discard);
+        Homology hd(k, outFile, threadNum);
         hd.calculateBidirectionalBestHit(gh, mode, grid);
     }
 

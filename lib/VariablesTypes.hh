@@ -52,7 +52,7 @@ namespace shared {
      *
      * This constant represents a cut-off value used in certain calculations.
      */
-    const size_t cut = 4;
+    double cut = 0.5;
 }
 
 

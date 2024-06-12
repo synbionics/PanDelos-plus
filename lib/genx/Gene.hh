@@ -194,7 +194,7 @@ namespace gene {
     inline
     Gene::Gene(const index_t geneId, const sequence_t alphabet, const index_t genomeId, index_t geneFilePosition) noexcept
     : genomeId_(genomeId), geneId_(geneId), alphabet_(alphabet), kmers_(nullptr),
-    alphabetLength_(alphabet.length()), alphabetCutted_(alphabet.length()/shared::cut),
+    alphabetLength_(alphabet.length()), alphabetCutted_(floor(alphabet.length() * shared::cut)),
     geneFilePosition_(geneFilePosition), kmersNumber_(0) {
     }
 

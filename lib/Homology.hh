@@ -80,7 +80,6 @@ namespace homology {
             std::fstream outStream_;
             thread_ptp pool_;
             std::string inFile_;
-            double discard_;
 
             struct informations {
                 std::vector<index_t> acceptedCols; /**Index of accepted columns*/
@@ -205,7 +204,7 @@ namespace homology {
              * @param fileName The name of the output file.
              * @param threadNumber The number of threads to use.
              */
-            inline explicit Homology(k_t k, std::string fileName, ushort threadNumber, double discard);
+            inline explicit Homology(k_t k, std::string fileName, ushort threadNumber);
             
             
             /**
@@ -213,7 +212,7 @@ namespace homology {
              * @param k The length of kmers.
              * @param fileName The name of the output file.
              */
-            inline explicit Homology(k_t k, std::string fileName, double discard);
+            inline explicit Homology(k_t k, std::string fileName);
             
             Homology(const Homology&) = delete;
             Homology operator=(const Homology&) = delete;
@@ -239,8 +238,8 @@ namespace homology {
     };
 
     inline
-    Homology::Homology(k_t k, std::string fileName, ushort threadNumber, double discard) 
-    : k_(k), discard_(discard) {
+    Homology::Homology(k_t k, std::string fileName, ushort threadNumber) 
+    : k_(k){
         if(k <= 0)
             throw std::runtime_error("k <= 0");
         pool_ = new thread_pt(threadNumber);
@@ -250,8 +249,8 @@ namespace homology {
     }
 
     inline
-    Homology::Homology(k_t k, std::string fileName, double discard)
-    : k_(k), discard_(discard){
+    Homology::Homology(k_t k, std::string fileName)
+    : k_(k){
         if(k <= 0)
             throw std::runtime_error("k <= 0");
         pool_ = new thread_pt();
@@ -264,19 +263,18 @@ namespace homology {
     // all kmers must be calculated before
 
 
-    // gene1 = row gene
     inline Homology::score_t
     Homology::calculateSimilarity(const gene_tr gene1, const gene_tr gene2) const {
         return (
-                gene1.getAlphabetLength() < gene2.getAlphabetLength()*discard_
-                || gene2.getAlphabetLength() < gene1.getAlphabetLength()*discard_
-                ) ? 
-                0
-                :
-                calculateSimilarity(
-                    gene1.getKmersNum() < gene2.getKmersNum() ? *gene1.getKmerContainer() : *gene2.getKmerContainer(),
-                    gene1.getKmersNum() < gene2.getKmersNum() ? *gene2.getKmerContainer() : *gene1.getKmerContainer()
-                );
+            gene1.getAlphabetLength() < gene2.getCut()
+            || gene2.getAlphabetLength() < gene1.getCut()
+            ) ? 
+            0
+            :
+            calculateSimilarity(
+                gene1.getKmersNum() < gene2.getKmersNum() ? *gene1.getKmerContainer() : *gene2.getKmerContainer(),
+                gene1.getKmersNum() < gene2.getKmersNum() ? *gene2.getKmerContainer() : *gene1.getKmerContainer()
+        );
     }
 
 
@@ -336,13 +334,11 @@ namespace homology {
 
     inline Homology::score_t
     Homology::calculateSimilarityGrid(const gene_tr gene1, const gene_tr gene2) const {
-        kmersContainer_tr shortestContainer = 
-            gene1.getKmersNum() < gene2.getKmersNum() ? *gene1.getKmerContainer() : *gene2.getKmerContainer();
-        kmersContainer_tr longestContainer =
-            gene1.getKmersNum() < gene2.getKmersNum() ? *gene2.getKmerContainer() : *gene1.getKmerContainer();
-        
 
-        return calculateSimilarity(shortestContainer, longestContainer);
+        return calculateSimilarity(
+            gene1.getKmersNum() < gene2.getKmersNum() ? *gene1.getKmerContainer() : *gene2.getKmerContainer(),
+            gene1.getKmersNum() < gene2.getKmersNum() ? *gene2.getKmerContainer() : *gene1.getKmerContainer()
+        );
     }
 
 
@@ -644,8 +640,8 @@ namespace homology {
                         auto& colGene = genes[col];
                         
                         if (
-                            rowGene.getAlphabetLength() < colGene.getAlphabetLength()*discard_
-                            || colGene.getAlphabetLength() < rowGene.getAlphabetLength()*discard_
+                            rowGene.getAlphabetLength() < colGene.getCut()
+                            || colGene.getAlphabetLength() < rowGene.getCut()
                             // || colGene.getKmerContainer()->getSmallerKey() > rowGene.getKmerContainer()->getBiggerKey()
                             // || colGene.getKmerContainer()->getBiggerKey() < rowGene.getKmerContainer()->getSmallerKey()
                             )
@@ -849,8 +845,8 @@ namespace homology {
                     for(index_t col = 0; col < colGenes.size(); ++col) {
                         auto& colGene = colGenes[col];
                         if (
-                            rowGene.getAlphabetLength() < colGene.getAlphabetLength()*discard_
-                            || colGene.getAlphabetLength() < rowGene.getAlphabetLength()*discard_
+                            rowGene.getAlphabetLength() < colGene.getCut()
+                            || colGene.getAlphabetLength() < rowGene.getCut()
                             // || colGene.getKmerContainer()->getSmallerKey() > rowGene.getKmerContainer()->getBiggerKey()
                             // || colGene.getKmerContainer()->getBiggerKey() < rowGene.getKmerContainer()->getSmallerKey()
                             )
@@ -1002,14 +998,16 @@ namespace homology {
         ScoresContainer &scores
     ) {
         
+        auto& poolRef = *pool_;
 
-        auto matchp = candidates.getPossibleMatch(rowGenes.size()); 
+        // auto matchp = candidates.getPossibleMatch(rowGenes.size());
+        auto matchp = candidates.getPossibleMatch(colGenes.size(), poolRef);
+
         auto& match = *matchp; 
         
         // BBHcandidatesContainer_t::set_tr matchRef = *match;
         // bbh::BidirectionalBestHitContainer& bbhContainerRef = *bbh;
         // passo per tutte le colonne "candidate"
-        auto& poolRef = *pool_;
         for(auto col = match.begin(); col != match.end(); ++col) {
             const auto& currentColRef = *col;
             
@@ -1022,7 +1020,8 @@ namespace homology {
                         
                         std::unordered_set<index_t> currentBestIndexs;
 
-                        index_t colGeneId = currentColRef.first;
+                        // index_t colGeneId = currentColRef.first;
+                        index_t colGeneId = currentColRef;;
                         gene_tr currentColGene = colGenes[colGeneId];
                         // estrae le migliori righe per la colonna corrente
                         // e li memorizza in current best indexs
@@ -1078,12 +1077,14 @@ namespace homology {
         BBHcandidatesContainer_tr candidates,
         ScoresContainer& scores
     ) {
-        auto matchp = candidates.getPossibleMatch(genes.size()); 
+        auto& poolRef = *pool_;
+
+        auto matchp = candidates.getPossibleMatch(genes.size(), poolRef);
+        // auto matchp = candidates.getPossibleMatch(genes.size());
         auto& match = *matchp; 
         // BBHcandidatesContainer_t::set_tr matchRef = *match;
         
         // bbh::BidirectionalBestHitContainer& bbhContainerRef = *bbh;
-        auto& poolRef = *pool_;
         
         // passo per tutte le colonne "candidate"
         for(auto col = match.begin(); col != match.end(); ++col) {
@@ -1094,7 +1095,8 @@ namespace homology {
                     score_t bestScore = -1;
 
                     std::unordered_set<index_t> currentBestIndexs;
-                    index_t colGeneId = currentColRef.first;
+                    // index_t colGeneId = currentColRef.first;
+                    index_t colGeneId = currentColRef;
                     gene_tr currentColGene = genes[colGeneId];
                     // estrae le migliori righe per la colonna corrente
                     // e li memorizza in current best indexs

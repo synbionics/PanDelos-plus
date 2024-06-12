@@ -4,12 +4,14 @@
 #include <cstddef>
 #include <utility>
 #include <iostream>
+#include <mutex>
 #include <vector>
 #include <unordered_set>
 #include <ext/pb_ds/assoc_container.hpp>
 #include <ext/pb_ds/hash_policy.hpp>
 #include "../VariablesTypes.hh"
 #include "BBHCandidate.hh"
+#include "../../threads/ThreadPool.hh"
 
 
 
@@ -44,10 +46,14 @@ namespace bbh{
             index_t capacity_;
             candidates_t candidates_;
             using set_t = __gnu_pbds::gp_hash_table<index_t, BBHCandidatesSet>;
+            using setShared_t = std::vector<bool>;
+            using set_mutexs = std::vector<std::mutex>;
 
         public:
+            using setShared_tp = setShared_t*;
             using set_tp = set_t*;
             using set_tr = set_t&;
+            using setShared_tr = setShared_t&;
         
 
         public:
@@ -110,6 +116,7 @@ namespace bbh{
              * @return Pointer to the map of possible matches.
              */
             inline set_tp getPossibleMatch(size_t maxSize) const;
+            inline BBHCandidatesSet* getPossibleMatch(size_t maxSize, threads::ThreadPool& pool) const;
             
             /**
              * @brief Retrieves the capacity of the container.
@@ -161,12 +168,49 @@ namespace bbh{
     // returned obj is not deallocated, return std::pair* with match max index, and a list og pairs, where:
     // - first contains colums (secondary indexes)
     // - second contains cadidates rows (main indexes)
+    inline BBHCandidatesContainer::BBHCandidatesSet*
+    BBHCandidatesContainer::getPossibleMatch(size_t maxSize, threads::ThreadPool& pool) const {
+        
+        setShared_t bools(maxSize, false);
+        // setShared_tr mapRef = *map;
+        set_mutexs mutex_v(maxSize);
+
+        for(index_t i = 0; i < capacity_; ++i){
+
+            pool.execute(
+                [i, this, &bools, &mutex_v] {
+                    const auto& list = candidates_[i].getCandidateList();
+                    for(auto k = list.begin(); k != list.end(); ++k) {
+                        index_t key = *k;
+                        if(!bools[key]) {
+                            std::unique_lock<std::mutex> lock(mutex_v[key]);
+                            if(!bools[key])
+                                bools[key] = true;
+                        }
+                    }
+                }
+            );
+        }
+
+        while(!pool.tasksCompleted()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
+
+        BBHCandidatesSet* map = new BBHCandidatesSet();
+        BBHCandidatesSet& mapRef = *map;
+        mapRef.reserve(maxSize);
+        for(index_t i = 0; i < maxSize; ++i){
+            if(bools[i])
+                mapRef.insert(i);
+        }
+        return map;
+    }
     inline BBHCandidatesContainer::set_tp
     BBHCandidatesContainer::getPossibleMatch(size_t maxSize) const {
         
         set_tp map = new set_t();
         set_tr mapRef = *map;
-
+        
         for(index_t i = 0; i < capacity_; ++i){
             
             const auto& list = candidates_[i].getCandidateList();
