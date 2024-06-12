@@ -579,11 +579,11 @@ namespace homology {
                 }
             );
         }
-        // poolRef.waitTasks();
+        poolRef.waitTasks();
 
-        while(!poolRef.tasksCompleted()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
+        // while(!poolRef.tasksCompleted()) {
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // }
     }
 
     inline void
@@ -606,10 +606,10 @@ namespace homology {
                 }
             );
         }
-        // poolRef.waitTasks();
-        while(!poolRef.tasksCompleted()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
+        poolRef.waitTasks();
+        // while(!poolRef.tasksCompleted()) {
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // }
     }
 
 
@@ -655,9 +655,10 @@ namespace homology {
         }
 
         // std::cerr<<"\n main waiting";
-        while(!poolRef.tasksCompleted()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
+        poolRef.waitTasks();
+        // while(!poolRef.tasksCompleted()) {
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // }
 
         unsigned long validCells = ((genesNumber * genesNumber) - genesNumber)/2;
         for(index_t row = 0; row < genes.size(); ++row){
@@ -793,9 +794,11 @@ namespace homology {
         //     std::cerr<<"\n}";
         // }
         // std::cerr<<"\n main waiting";
-        while(!poolRef.tasksCompleted()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
+        // while(!poolRef.tasksCompleted()) {
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // }
+        poolRef.waitTasks();
+
         }
 
 
@@ -815,10 +818,10 @@ namespace homology {
         }
 
         // std::cerr<<"\n main waiting";
-        while(!poolRef.tasksCompleted()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-        // std::cerr<<"\n main waited";
+        // while(!poolRef.tasksCompleted()) {
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // }
+        poolRef.waitTasks();
     }
 
     inline void
@@ -859,10 +862,11 @@ namespace homology {
                 }
             );
         }
+        poolRef.waitTasks();
         
-        while(!poolRef.tasksCompleted()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
+        // while(!poolRef.tasksCompleted()) {
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // }
         unsigned long validCells = rowGenes.size() * colGenes.size();
         for(index_t row = 0; row < rows; ++row)
             validCells -= lines[row].discarded;
@@ -965,9 +969,10 @@ namespace homology {
         }
 
 
-        while(!poolRef.tasksCompleted()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
+        // while(!poolRef.tasksCompleted()) {
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // }
+        poolRef.waitTasks();
 
         }
         // std::cerr<<"\n------------------------";
@@ -986,9 +991,10 @@ namespace homology {
             );
         }
 
-        while(!poolRef.tasksCompleted()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
+        // while(!poolRef.tasksCompleted()) {
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // }
+        poolRef.waitTasks();
     }
 
     inline void
@@ -1065,9 +1071,10 @@ namespace homology {
         }
         // poolRef.waitTasks();
 
-        while(!poolRef.tasksCompleted()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
+        // while(!poolRef.tasksCompleted()) {
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // }
+        poolRef.waitTasks();
         delete matchp;
     }
 
@@ -1140,11 +1147,11 @@ namespace homology {
                 }
             );
         }
-        // poolRef.waitTasks();
+        poolRef.waitTasks();
 
-        while(!poolRef.tasksCompleted()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
+        // while(!poolRef.tasksCompleted()) {
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // }
         delete matchp;
     }
     

@@ -172,7 +172,6 @@ namespace bbh{
     BBHCandidatesContainer::getPossibleMatch(size_t maxSize, threads::ThreadPool& pool) const {
         
         setShared_t bools(maxSize, false);
-        // setShared_tr mapRef = *map;
         set_mutexs mutex_v(maxSize);
 
         for(index_t i = 0; i < capacity_; ++i){
@@ -180,8 +179,8 @@ namespace bbh{
             pool.execute(
                 [i, this, &bools, &mutex_v] {
                     const auto& list = candidates_[i].getCandidateList();
-                    for(auto k = list.begin(); k != list.end(); ++k) {
-                        index_t key = *k;
+                    for(const auto& key : list) {
+                        // index_t key = *k;
                         if(!bools[key]) {
                             std::unique_lock<std::mutex> lock(mutex_v[key]);
                             if(!bools[key])
@@ -201,7 +200,7 @@ namespace bbh{
         mapRef.reserve(maxSize);
         for(index_t i = 0; i < maxSize; ++i){
             if(bools[i])
-                mapRef.insert(i);
+                mapRef.emplace(i);
         }
         return map;
     }

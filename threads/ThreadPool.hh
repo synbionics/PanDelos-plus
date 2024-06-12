@@ -45,6 +45,8 @@ namespace threads {
             std::condition_variable workDone_;
             mutex_t workMutex_;
             mutex_t queueMutex_;
+            mutex_t mainWaitMutex_;
+
             thread_ct threads_;
             queue_t taskQueue_;
             bool shutdown_;
@@ -182,20 +184,19 @@ namespace threads {
         }
     }
 
-    // inline void
-    // ThreadPool::waitTasks() {
-    //     std::unique_lock<mutex_t> lock(queueMutex_);
-    //     if(tasksNumber_ != 0) {
-    //         std::unique_lock<mutex_t> wLock(workMutex_);
-    //         lock.unlock();
-
-    //         workDone_.wait(
-    //             wLock, [this] {
-    //                 return shutdown_;
-    //             }
-    //         );
-    //     }
-    // }
+    inline void
+    ThreadPool::waitTasks() {
+        std::unique_lock<mutex_t> lock(mainWaitMutex_);
+        
+        if(!tasksCompleted()) {
+            // std::cerr<<"\nMain wait";
+            workDone_.wait(lock,
+            [this] {
+                return tasksCompleted() || shutdown_;
+            }
+            );
+        }
+    }
 
     ThreadPool::~ThreadPool() {
         stop();

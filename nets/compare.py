@@ -21,6 +21,6 @@ def confronta_file(file1, file2, file_out):
 
     righe_mancanti.to_csv(file_out, sep='\t', header=None, index=False)
 
-confronta_file('oldMatch.net', 'parallelMatch.net', 'short.csv')
-confronta_file('parallelMatch.net', 'oldMatch.net', 'shortRev.csv')
+confronta_file('newWait.net', 'parallelMatch.net', 'short.csv')
+confronta_file('newWait.net', 'oldMatch.net', 'shortRev.csv')
     
