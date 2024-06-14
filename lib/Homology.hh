@@ -984,7 +984,7 @@ namespace homology {
                         score_t score = scores.getScoreAt(row, col);
                         
                         // std::cerr<<"\nAdding: "<< score <<" to: "<<row<<", "<<col;
-                        if(score > 0)
+                        if(score > 0.0)
                             bestRows.addCandidate(row, scores.getScoreAt(row, col), col);
                     }
                 }
@@ -1035,11 +1035,11 @@ namespace homology {
                         for(index_t row = 0; row < rowGenes.size(); ++row) {
                             score_t currentScore = scores.getScoreAt(row, colGeneId);
 
-                            if(currentScore > bestScore && currentScore != 0) {
+                            if(currentScore > bestScore && currentScore > 0.0) {
                                 bestScore = currentScore;
                                 currentBestIndexs.clear();
                                 currentBestIndexs.emplace(row);
-                            } else if(currentScore == bestScore) {
+                            } else if(currentScore == bestScore && currentScore > 0.0) {
                                 currentBestIndexs.emplace(row);
                             }
                         }
@@ -1047,7 +1047,7 @@ namespace homology {
                         // passa per tutte le righe con il punteggio migliore
                         // e se quel punteggio è il migliore anche per la riga
                         // crea il bbh
-                        if(bestScore > 0) {
+                        if(bestScore > 0.0) {
                             index_t currentColGeneFileLine = currentColGene.getGeneFilePosition();
                             for(auto index = currentBestIndexs.begin(); index != currentBestIndexs.end(); ++index) {
                                 index_t currentIndex = *index;
@@ -1075,6 +1075,7 @@ namespace homology {
         //     std::this_thread::sleep_for(std::chrono::milliseconds(1));
         // }
         poolRef.waitTasks();
+
         delete matchp;
     }
 
@@ -1112,11 +1113,11 @@ namespace homology {
                     for(index_t row = 0; row < colGeneId; ++row) {
                         score_t currentScore = scores.getScoreAt(row, colGeneId);
 
-                        if(currentScore > bestScore && currentScore != 0) {
+                        if(currentScore > bestScore && currentScore > 0.0) {
                             bestScore = currentScore;
                             currentBestIndexs.clear();
                             currentBestIndexs.insert(row);
-                        } else if(currentScore == bestScore) {
+                        } else if(currentScore == bestScore && currentScore > 0.0) {
                             currentBestIndexs.insert(row);
                         }
                     }
@@ -1125,7 +1126,7 @@ namespace homology {
                     // e se quel punteggio è il migliore anche per la riga
                     // crea il bbh
 
-                    if(bestScore > 0) {
+                    if(bestScore > 0.0) {
                         index_t currentColGeneFileLine = currentColGene.getGeneFilePosition();
                         for(auto index = currentBestIndexs.begin(); index != currentBestIndexs.end(); ++index) {
                             index_t currentIndex = *index;

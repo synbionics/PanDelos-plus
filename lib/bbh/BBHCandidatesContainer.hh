@@ -5,6 +5,7 @@
 #include <utility>
 #include <iostream>
 #include <mutex>
+#include <atomic>
 #include <vector>
 #include <unordered_set>
 #include <ext/pb_ds/assoc_container.hpp>
@@ -46,7 +47,7 @@ namespace bbh{
             index_t capacity_;
             candidates_t candidates_;
             using set_t = __gnu_pbds::gp_hash_table<index_t, BBHCandidatesSet>;
-            using setShared_t = std::vector<bool>;
+            using setShared_t = std::vector<std::atomic<bool>>;
             using set_mutexs = std::vector<std::mutex>;
 
         public:
@@ -171,7 +172,10 @@ namespace bbh{
     inline BBHCandidatesContainer::BBHCandidatesSet*
     BBHCandidatesContainer::getPossibleMatch(size_t maxSize, threads::ThreadPool& pool) const {
         
-        setShared_t bools(maxSize, false);
+        setShared_t bools(maxSize);
+        for (auto& b : bools) {
+            b.store(false, std::memory_order_relaxed);
+        }
         set_mutexs mutex_v(maxSize);
 
         for(index_t i = 0; i < capacity_; ++i){
@@ -181,25 +185,26 @@ namespace bbh{
                     const auto& list = candidates_[i].getCandidateList();
                     for(const auto& key : list) {
                         // index_t key = *k;
-                        if(!bools[key]) {
+                        if(!bools[key].load(std::memory_order_acquire)) {
                             std::unique_lock<std::mutex> lock(mutex_v[key]);
-                            if(!bools[key])
-                                bools[key] = true;
+                            if(!bools[key].load(std::memory_order_acquire)) {
+                                bools[key].store(true, std::memory_order_release);
+                            }
                         }
                     }
                 }
             );
         }
 
-        while(!pool.tasksCompleted()) {
-            std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        }
-
+        pool.waitTasks();
+        // while(!pool.tasksCompleted()) {
+        //     std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        // }
         BBHCandidatesSet* map = new BBHCandidatesSet();
         BBHCandidatesSet& mapRef = *map;
         mapRef.reserve(maxSize);
         for(index_t i = 0; i < maxSize; ++i){
-            if(bools[i])
+            if(bools[i].load(std::memory_order_relaxed))
                 mapRef.emplace(i);
         }
         return map;
