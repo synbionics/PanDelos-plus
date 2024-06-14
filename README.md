@@ -3,7 +3,7 @@ ParPanDelos: a dictionary-based method for pan-genome content discovery
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [](#lang-en)
 
----
+<br><br>
 
 ## Description
 ParPanDelos a dictionary-based method for pan-genome content discovery. It's the C++ revisitation of [PanDelos](https://github.com/InfOmics/PanDelos).
@@ -71,7 +71,8 @@ Make sure that gene identifiers are unique within the input file. A suggested fo
 ### Output format
 The execution of ParPanDelos produces 2 output files named `[prefix_input_file].clus` and `[prefix_input_file].json` that reports the gene families discovered during the analysis.
 
----
+
+<br><br>
 
 ## Installation
 
@@ -91,7 +92,19 @@ pip install biopython
 pip install networkx
 pip install matplotlib
 ```
-
+If you are running latest version of Ubuntu, you may probably get this error:
+```bash
+× This environment is externally managed
+╰─> To install Python packages system-wide, try apt install
+    python3-xyz, where xyz is the package you are trying to
+    install.
+```
+So you need to install the package using `apt` as follow
+```bash
+sudo apt install python3-biopython
+sudo apt install python3-networkx
+sudo apt install python3-matplotlib
+```
 
 ### Compilation
 
@@ -114,7 +127,8 @@ The current repository contains a bash script `execute.sh` that takes an argumen
 bash execute.sh -i <path_to_input_file.faa>
 ```
 
----
+
+<br><br>
 
 ## Running the examples
 
@@ -130,6 +144,20 @@ sudo apt-get -y install gzip curl bash python3 python3-pip build-essential time
 pip install biopython
 pip install networkx
 pip install matplotlib
+```
+
+As in the installation section, if you are running latest version of Ubuntu, you may probably get this error:
+```bash
+× This environment is externally managed
+╰─> To install Python packages system-wide, try apt install
+    python3-xyz, where xyz is the package you are trying to
+    install.
+```
+So you need to install the package using `apt` as follow
+```bash
+sudo apt install python3-biopython
+sudo apt install python3-networkx
+sudo apt install python3-matplotlib
 ```
 
 ### Run examples
@@ -198,15 +226,13 @@ Usage:
 -m to activate specific mode with lower RAM cost (0 default)
 -d to select a discard value (0 <= d <= 1) for similarity computation (0.5 default, a grater value implies a more aggressive discard)
 ```
-
----
-
+<br><br>
 
 ## License
 
 ParPanDelos is distributed under the MIT license. This means that it is free for both academic and commercial use. Note however that some third party components in ParPanDelos require that you reference certain works in scientific publications. You are free to link or use ParPanDelos inside the source code of your own program. If do so, please reference (cite) ParPanDelos and this website. Bug fixes and collaboration for improvements are appreciated. 
 
----
+<br><br>
 
 ## Citation
 
