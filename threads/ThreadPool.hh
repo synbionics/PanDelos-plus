@@ -57,7 +57,7 @@ namespace threads {
             inline void loop();
         public:
 
-            inline void waitTasks();
+            // inline void waitTasks();
 
             /**
              * @brief Checks if all tasks in the pool have been completed.
@@ -137,10 +137,10 @@ namespace threads {
             {
                 std::unique_lock<mutex_t> lock(queueMutex_);
                 --tasksNumber_;
-                if(tasksNumber_ == 0) {
-                    std::unique_lock<mutex_t> lock(workMutex_);
-                    workDone_.notify_all();
-                }
+                // if(tasksNumber_ == 0) {
+                //     std::unique_lock<mutex_t> lock(workMutex_);
+                //     workDone_.notify_all();
+                // }
             }
         }
     }
@@ -184,19 +184,19 @@ namespace threads {
         }
     }
 
-    inline void
-    ThreadPool::waitTasks() {
-        std::unique_lock<mutex_t> lock(mainWaitMutex_);
+    // inline void
+    // ThreadPool::waitTasks() {
         
-        if(!tasksCompleted()) {
-            // std::cerr<<"\nMain wait";
-            workDone_.wait(lock,
-            [this] {
-                return tasksCompleted() || shutdown_;
-            }
-            );
-        }
-    }
+    //     if(!tasksCompleted()) {
+    //         std::unique_lock<mutex_t> lock(mainWaitMutex_);
+    //         // std::cerr<<"\nMain wait";
+    //         workDone_.wait(lock,
+    //         [this] {
+    //             return tasksCompleted() || shutdown_;
+    //         }
+    //         );
+    //     }
+    // }
 
     ThreadPool::~ThreadPool() {
         stop();

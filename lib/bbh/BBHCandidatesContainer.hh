@@ -196,10 +196,10 @@ namespace bbh{
             );
         }
 
-        pool.waitTasks();
-        // while(!pool.tasksCompleted()) {
-        //     std::this_thread::sleep_for(std::chrono::milliseconds(1));
-        // }
+        // pool.waitTasks();
+        while(!pool.tasksCompleted()) {
+            std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        }
         BBHCandidatesSet* map = new BBHCandidatesSet();
         BBHCandidatesSet& mapRef = *map;
         mapRef.reserve(maxSize);

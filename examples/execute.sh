@@ -96,7 +96,7 @@ for ((t = 1; t <= $maxT; t*=2)); do
     echo "" >> $tmp;
     currentOutName+="_m"
 
-    mainCommand="../main -i $inFile -k $k -o $currentOutName -t $t"
+    mainCommand="../main -i $inFile -k $k -o $currentOutName -t $t -m"
     echo "Running $mainCommand"
 
     echo "# mode" >> $tmp;
