@@ -44,11 +44,14 @@ with open(filePath, "r") as file:
 x = list(genomes.keys())
 y = list(genome_genes.values())
 
+print(genomes.keys())
+print(genome_genes)
+
 # print(x)
 # print(y)
 
-plt.title("Genes distributions")
-plt.ylabel("Genes number")
+plt.title("Genes distribution")
+plt.ylabel("Number of protein-coding genes")
 plt.xlabel("Genomes")
 plt.bar(x, y)
 

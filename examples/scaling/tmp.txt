@@ -1,0 +1,51 @@
+
+-> {1,10,71.51,1049612}
+-> {1,20,263.33,1024212}
+-> {1,30,561.71,1148508}
+-> {1,40,978.55,1185236}
+-> {1,50,1433.55,1247564}
+-> {1,60,1997.00,1280408}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/70_m -t 96 -m
+-> {1,70,3103.35,1794712}
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/80_m -t 96 -m
+-> {1,80,3683.22,1320764}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/90_m -t 96 -m
+-> {1,90,5025.57,2006312}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/100_m -t 96 -m
+-> {1,100,6179.45,2031348}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/200_m -t 96 -m
+-> {1,200,24363.09,2273220}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/300_m -t 96 -m
+-> {1,300,55277.87,2465988}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/400_m -t 96 -m
+-> {1,400,102809.36,2676560}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/500_m -t 96 -m
+
+
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/10 -t 96
+-> {0,10,41.71,1007560}
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/20 -t 96
+-> {0,20,137.70,1363480}
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/30 -t 96
+-> {0,30,314.67,1760940}
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/40 -t 96
+-> {0,40,546.84,2061024}
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/50 -t 96
+-> {0,50,767.52,2351640}
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/60 -t 96
+-> {0,60,1208.13,2701828}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/70 -t 96
+-> {0,70,1883.57,3373012}
+../../main -i tmpFaa.faa -k 5 -o ./tmpNets/80 -t 96
+-> {0,80,2159.74,3351852}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/90 -t 96
+-> {0,90,2957.23,4014272}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/100 -t 96
+-> {0,100,3607.75,4337820}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/200 -t 96
+-> {0,200,14819.27,7511376}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/300 -t 96
+-> {0,300,33956.27,10765736}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/400 -t 96
+-> {0,400,63732.41,14140148}
+../../main -i tmpFaa.faa -k 6 -o ./tmpNets/500 -t 96

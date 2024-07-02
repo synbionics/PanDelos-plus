@@ -13,22 +13,16 @@
 #include "genx/Gene.hh"
 #include "genx/GenomesContainer.hh"
 #include "bbh/BBHCandidatesContainer.hh"
-#include <math.h>
+#include "bbh/MinBBHContainer.hh"
+#include <cmath>
 #include <unordered_set>
 #include <iomanip>
-
 
 #include "kmers/KmerMapper.hh"
 #include "ScoresContainer.hh"
 
 #include "./../utils/FileWriter.hh"
 #include "./../utils/StopWatch.hh"
-
-
-// #define matrixPrint
-// #define candidatePrint
-// #define bbhPrint
-
 
 
 /**
@@ -56,6 +50,9 @@ namespace homology {
             using index_t = shared::indexType;
             using score_t = shared::scoreType;
             using multiplicity_t = shared::multiplicityType;
+            using minBBH_t = bbh::MinBBHContainer;
+
+
             
             using kmersContainer_t = kmers::KmersContainer;
             using kmersContainer_tr = const kmersContainer_t&;
@@ -87,9 +84,8 @@ namespace homology {
             std::fstream outStream_;
             thread_ptp pool_;
             std::string inFile_;
-            double discard_;
-
-
+            minBBH_t mins_;
+            
             
             /**
              * @brief Calculates the similarity values for a row using the Generalized Jaccard index.
@@ -105,6 +101,7 @@ namespace homology {
                 BBHcandidatesContainer_tr bestRows, ScoresContainer& scores
             ) const;
 
+            
             /**
              * @brief Calculates the similarity values for a row using the Generalized Jaccard index.
              *        Parallel computation is performed by sending each row as a task to the ThreadPool,
@@ -114,9 +111,8 @@ namespace homology {
              * @param bestRows The bestRows object containing candidates columns for Bidirectional Best Hit (BBH).
              * @param scores The container for storing similarity scores.
              */
-            inline void calculateRowSame(genome_t::gene_ctr colGene, 
+            inline void calculateRowSame(index_t genomeId, genome_t::gene_ctr colGene, 
             BBHcandidatesContainer_tr bestRows, ScoresContainer& scores) const;
-            
 
             /**
              * @brief Extracts Bidirectional Best Hits (BBH) using the similarity values calculated by calculateRow.
@@ -125,7 +121,7 @@ namespace homology {
              * @param candidates The container of BBH candidates (bestRows param.of calculateRow).
              * @param scores The container for storing similarity scores.
              */
-            inline void
+            inline score_t
             checkForBBH(
                 const genome_t::gene_ctr colGenes,
                 const genome_t::gene_ctr rowGenes,
@@ -165,7 +161,7 @@ namespace homology {
              */
             inline score_t
             calculateSimilarity(kmersContainer_tr gene1Container, kmersContainer_tr gene2Container) const;
-    
+
             /**
              * @brief Calculates Bidirectional Best Hits (BBH) between genes of different genomes.
              * @param genome1 The first genome.
@@ -178,7 +174,6 @@ namespace homology {
              * @param genome The genome.
              */
             inline void calculateBidirectionalBestHitSameGenome(genome_tr genome);
-
         public:
             Homology() = delete;
             
@@ -188,7 +183,7 @@ namespace homology {
              * @param fileName The name of the output file.
              * @param threadNumber The number of threads to use.
              */
-            inline explicit Homology(k_t k, std::string fileName, ushort threadNumber, double discard);
+            inline explicit Homology(k_t k, std::string fileName, ushort threadNumber);
             
             
             /**
@@ -196,7 +191,7 @@ namespace homology {
              * @param k The length of kmers.
              * @param fileName The name of the output file.
              */
-            inline explicit Homology(k_t k, std::string fileName, double discard);
+            inline explicit Homology(k_t k, std::string fileName);
             
             Homology(const Homology&) = delete;
             Homology operator=(const Homology&) = delete;
@@ -222,8 +217,8 @@ namespace homology {
     };
 
     inline
-    Homology::Homology(k_t k, std::string fileName, ushort threadNumber, double discard) 
-    : k_(k), discard_(discard) {
+    Homology::Homology(k_t k, std::string fileName, ushort threadNumber) 
+    : k_(k){
         if(k <= 0)
             throw std::runtime_error("k <= 0");
         pool_ = new thread_pt(threadNumber);
@@ -233,8 +228,8 @@ namespace homology {
     }
 
     inline
-    Homology::Homology(k_t k, std::string fileName, double discard)
-    : k_(k), discard_(discard){
+    Homology::Homology(k_t k, std::string fileName)
+    : k_(k){
         if(k <= 0)
             throw std::runtime_error("k <= 0");
         pool_ = new thread_pt();
@@ -247,29 +242,18 @@ namespace homology {
     // all kmers must be calculated before
 
 
-    // gene1 = row gene
     inline Homology::score_t
     Homology::calculateSimilarity(const gene_tr gene1, const gene_tr gene2) const {
-        
-
-        if(
-            gene1.getAlphabetLength() < gene2.getAlphabetLength()*discard_
-            || gene2.getAlphabetLength() < gene1.getAlphabetLength()*discard_
-        ) {
-            return 0;
-        }
-
-        kmersContainer_tr shortestContainer = 
-            gene1.getKmersNum() < gene2.getKmersNum() ? *gene1.getKmerContainer() : *gene2.getKmerContainer();
-        kmersContainer_tr longestContainer =
-            gene1.getKmersNum() < gene2.getKmersNum() ? *gene2.getKmerContainer() : *gene1.getKmerContainer();
-        
-
-        return
-            // shortestContainer.getMultiplicityNumber() < longestContainer.getMultiplicityNumber()/10 ||
-            // longestContainer.getMultiplicityNumber() < shortestContainer.getMultiplicityNumber()/10 ||
-            // longestContainer.getSmallerKey() > shortestContainer.getBiggerKey()
-            calculateSimilarity(shortestContainer, longestContainer);
+        return (
+            gene1.getAlphabetLength() < gene2.getCut()
+            || gene2.getAlphabetLength() < gene1.getCut()
+            ) ? 
+            0
+            :
+            calculateSimilarity(
+                gene1.getKmersNum() < gene2.getKmersNum() ? *gene1.getKmerContainer() : *gene2.getKmerContainer(),
+                gene1.getKmersNum() < gene2.getKmersNum() ? *gene2.getKmerContainer() : *gene1.getKmerContainer()
+        );
     }
 
 
@@ -327,9 +311,10 @@ namespace homology {
     }
 
 
-
     
     void Homology::calculateBidirectionalBestHit(genome::GenomesContainer& gc, bool mode) {
+        mins_.resize(gc.size());
+
         if(mode) {
             genome::GenomesContainer::genome_ctr genomes = gc.getGenomes();
             auto& pool = *pool_;
@@ -338,7 +323,6 @@ namespace homology {
                 
                 auto& rowRef = *rowGenome;
                 rowRef.createAndCalculateAllKmers(k_, mapper);
-                calculateBidirectionalBestHitSameGenome(rowRef);
                 
                 auto colGenome = rowGenome;
                 ++colGenome;
@@ -349,9 +333,24 @@ namespace homology {
                     colGenome->deleteAllKmers(pool);
                 }
 
+                calculateBidirectionalBestHitSameGenome(rowRef);
+
                 rowRef.deleteAllKmers(pool);
             }
+            
+            mins_.computeMins(pool);
+            mins_.print();
+
+            for(auto rowGenome = genomes.begin(); rowGenome != genomes.end(); ++rowGenome) {
+                kmers::KmerMapper mapper;
+                auto& rowRef = *rowGenome;
+                rowRef.createAndCalculateAllKmers(k_, mapper);
+                calculateBidirectionalBestHitSameGenome(rowRef);
+                rowRef.deleteAllKmers(pool);
+            }
+
         } else {
+
             genome::GenomesContainer::genome_ctr genomes = gc.getGenomes();
             
             // Create and calculate kmers for each genome
@@ -366,17 +365,27 @@ namespace homology {
             // Compare each genome with every other genome to find BBH
             for(auto rowGenome = genomes.begin(); rowGenome != genomes.end(); ++rowGenome) {
                 auto& rowRef = *rowGenome;
-                calculateBidirectionalBestHitSameGenome(rowRef);
                 
                 auto colGenome = rowGenome;
                 ++colGenome;
                 
-                for(; colGenome != genomes.end(); ++colGenome)
+                for(; colGenome != genomes.end(); ++colGenome) {
                     calculateBidirectionalBestHitDifferentGenomes(*colGenome, rowRef);
+                }
                 
+
+            }
+            mins_.computeMins(pool);
+            mins_.print();
+            for(auto rowGenome = genomes.begin(); rowGenome != genomes.end(); ++rowGenome) {
+                auto& rowRef = *rowGenome;
+                calculateBidirectionalBestHitSameGenome(rowRef);
                 rowRef.deleteAllKmers(pool);
             }
+            
         }
+    
+        
 
     }
 
@@ -387,6 +396,7 @@ namespace homology {
         genome_tr colGenome, genome_tr rowGenome
     ) {
         // std::cerr<<"\ncomparing different";
+        std::cerr<<"\nComparing genomes <col, row> "<<colGenome.getId()<<" - "<<rowGenome.getId();
 
         // genes in genome1 rapresents the width of the matrix (cols), genes in genome2 rapresents the height(rows)
         genome_t::gene_ctr colGenes = colGenome.getGenes();
@@ -402,65 +412,24 @@ namespace homology {
             rowGenes, colGenes,
             bestRows, scores
         );
-        // std::cerr<<"\npost row";
-        #ifdef candidatePrint
-            FileWriter fwRows("", std::to_string(rowGenome.getId())+"_"+std::to_string(colGenome.getId())+"_candidates", ".csv", false);
-            auto fileRow = fwRows.openAppend();
-            fwRows.write("row,col,score", fileRow);
-            for(index_t i = 0; i < rowGenes.size(); ++i) {
-                auto& bestCols = bestRows.getCandidateAt(i);
-                auto& list = bestCols.getCandidateList();
-                
-                for(auto l = list.begin(); l != list.end(); ++l) {
-                    fwRows.write(
-                        std::to_string(rowGenes[i].getGeneFilePosition()) + "," + std::to_string(colGenes[*l].getGeneFilePosition()) + "," + std::to_string(bestCols.getBestScore()), fileRow
-                    );
-                }
-            }
-            fwRows.close(fileRow);
-        
-        #endif
-        
 
-        #ifdef matrixPrint
-        utilities::FileWriter fw("", std::to_string(rowGenome.getId())+"_"+std::to_string(colGenome.getId())+"_matrix", ".csv", false);
-        auto file = fw.openAppend();
-
-        for(index_t col = 0; col < colGenes.size(); ++col) {
-            gene_tr gene = colGenes[col];
-            file<<gene.getGeneFilePosition();
-            if(col != colGenes.size()-1)
-                file<<",";
-        }
-        
-        file<<"\n";
-        for(index_t row = 0; row < rowGenes.size(); ++row){
-            gene_tr rowGene = rowGenes[row];
-            file<<rowGene.getGeneFilePosition()<<",";
-            for(index_t col = 0; col < colGenes.size(); ++col) {
-                // gene_tr colGene = colGenes.at(col);
-                file<<scores.getScoreAt(row, col);
-                if(col != colGenes.size()-1)
-                    file<<",";
-            }
-            file<<"\n";
-        }
-
-        fw.close(file);
-        #endif
-
-        checkForBBH(
+        score_t minBBH = checkForBBH(
             colGenes, rowGenes,
             bestRows,
             scores
         );
+
+        mins_.setVal(rowGenome.getId(), colGenome.getId(), minBBH);
     }
+
+    
 
     // inline Homology::containerTypePointer
     inline void
     Homology::calculateBidirectionalBestHitSameGenome(
         genome_tr genome
     ) {
+        std::cerr<<"\nComparing genomes "<<genome.getId()<<" - "<<genome.getId();
         // std::cerr<<"\ncomparing same";
         genome_t::gene_ctr genes = genome.getGenes();
         // genome_t::gene_ctr rowGenes = genome.getGenes();
@@ -469,77 +438,40 @@ namespace homology {
         ScoresContainer scores(genome.size(), genome.size());
 
         calculateRowSame(
+            genome.getId(),
             genes,
             bestRows, scores
         );
 
-        #ifdef candidatePrint
-            FileWriter fwRows("", std::to_string(rowGenome.getId())+"_"+std::to_string(colGenome.getId())+"_candidates", ".csv", false);
-            auto fileRow = fwRows.openAppend();
-            fwRows.write("row,col,score", fileRow);
-            for(index_t i = 0; i < rowGenes.size(); ++i) {
-                auto& bestCols = bestRows.getCandidateAt(i);
-                auto& list = bestCols.getCandidateList();
-                
-                for(auto l = list.begin(); l != list.end(); ++l) {
-                    fwRows.write(
-                        std::to_string(rowGenes[i].getGeneFilePosition()) + "," +
-                        std::to_string(colGenes[*l].getGeneFilePosition()) + "," +
-                        std::to_string(bestCols.getBestScore()), fileRow
-                    );
-                }
-            }
-            fwRows.close(fileRow);
-        
-        #endif
-
-        #ifdef matrixPrint
-        utilities::FileWriter fw("", std::to_string(genome.getId())+"_"+std::to_string(genome.getId())+"_matrix", ".csv", false);
-        auto file = fw.openAppend();
-        
-        for(index_t col = 0; col < genes.size(); ++col) {
-            gene_tr gene = genes[col];
-            file<<gene.getGeneFilePosition();
-            if(col != genes.size()-1)
-                file<<",";
-        }
-
-        file<<"\n";
-        for(index_t row = 0; row < genes.size(); ++row){
-            gene_tr rowGene = genes[row];
-            file<<rowGene.getGeneFilePosition()<<",";
-            for(index_t col = 0; col < genes.size(); ++col) {
-                // gene_tr colGene = genes.at(col);
-                file<<scores.getScoreAt(row, col);
-                if(col != genes.size()-1)
-                    file<<",";
-            }
-            file<<"\n";
-        }
-
-        fw.close(file);
-        #endif
-        
         checkForBBHSame(
             genes,
             bestRows,
             scores
         );
     }
+    
 
     inline void
     Homology::calculateRowSame(
+        index_t genomeId,
         genome_t::gene_ctr genes,
         BBHcandidatesContainer_tr bestRows, ScoresContainer& scores
     ) const {
         thread_ptr poolRef = *pool_; 
+        score_t minScore = mins_.getMin(genomeId);
+
         for(index_t row = 0; row < genes.size(); ++row){
             poolRef.execute(
-                [row, &scores, this, &genes, &bestRows] {
+                [row, &scores, this, &genes, &bestRows, minScore] {
                     for(index_t col = row+1; col < genes.size(); ++col) {
-                        score_t currentScore = calculateSimilarity(genes[row], genes[col]);
-                        scores.setScoreAt(row, col, currentScore);
-                        bestRows.addCandidate(row, currentScore, col);
+                        const auto& g = genes[row];
+                        score_t currentScore = calculateSimilarity(g, genes[col]);
+                        if(currentScore >= minScore) {
+                            scores.setScoreAt(row, col, currentScore);
+                            bestRows.addCandidate(row, currentScore, col);
+                        }
+                        // scores.setScoreAt(row, col, currentScore);
+                        // bestRows.addCandidate(row, currentScore, col);
                     }
                 }
             );
@@ -550,7 +482,7 @@ namespace homology {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
     }
-    
+
     inline void
     Homology::calculateRow(
         genome_t::gene_ctr rowGenes, genome_t::gene_ctr colGenes,
@@ -564,9 +496,7 @@ namespace homology {
                 [row, &scores, this, &colGenes, &bestRows, &rowGenes] {
                     gene_tr rowGene = rowGenes[row];
                     for(index_t col = 0; col < colGenes.size(); ++col) {
-                        gene_tr colGene = colGenes[col];
-
-                        score_t currentScore = calculateSimilarity(rowGene, colGene);
+                        score_t currentScore = calculateSimilarity(rowGene, colGenes[col]);
                         scores.setScoreAt(row, col, currentScore);
                         bestRows.addCandidate(row, currentScore, col);
                     }
@@ -579,95 +509,44 @@ namespace homology {
         }
     }
 
-    inline void
+
+    
+    inline Homology::score_t
     Homology::checkForBBH (
         const genome_t::gene_ctr colGenes, const genome_t::gene_ctr rowGenes,
         BBHcandidatesContainer_tr candidates,
         ScoresContainer &scores
     ) {
-        #ifdef bbhPrint
-        FileWriter fw("", std::to_string(rowGenes[0].getGenomeId())+"_"+std::to_string(colGenes[0].getGenomeId())+"_bbh", ".csv", false);
-        auto file = fw.openAppend();
-        fw.write("row,col,score",file);
-        #endif
+        
+        score_t sharedMin = 2;
+        std::mutex minMutex;
 
-        auto matchp = candidates.getPossibleMatch(rowGenes.size()); 
+        auto& poolRef = *pool_;
+
+        // auto matchp = candidates.getPossibleMatch(rowGenes.size());
+        auto matchp = candidates.getPossibleMatch(colGenes.size(), poolRef);
+
         auto& match = *matchp; 
         
         // BBHcandidatesContainer_t::set_tr matchRef = *match;
         // bbh::BidirectionalBestHitContainer& bbhContainerRef = *bbh;
         // passo per tutte le colonne "candidate"
-        auto& poolRef = *pool_;
+
         for(auto col = match.begin(); col != match.end(); ++col) {
             const auto& currentColRef = *col;
             
-            #ifdef bbhPrint
-
+            
                 poolRef.execute(
-                    [&currentColRef, &colGenes, &rowGenes, &scores, &candidates, &bbhContainerRef, &fw, &file] {
-                        
-                        score_t bestScore = -1;
-                        
-                        std::unordered_set<index_t> currentBestIndexs;
-                        index_t colGeneId = currentColRef.first;
-                        gene_tr currentColGene = colGenes[colGeneId];
-                        // estrae le migliori righe per la colonna corrente
-                        // e li memorizza in current best indexs
-
-                        for(index_t row = 0; row < rowGenes.size(); ++row) {
-                            score_t currentScore = scores.getScoreAt(row, colGeneId);
-
-                            if(currentScore > bestScore) {
-                                bestScore = currentScore;
-                                currentBestIndexs.clear();
-                                currentBestIndexs.insert(row);
-                            } else if(currentScore == bestScore) {
-                                currentBestIndexs.insert(row);
-                            }
-                        }
-
-                        // passa per tutte le righe con il punteggio migliore
-                        // e se quel punteggio è il migliore anche per la riga
-                        // crea il bbh
-                        if(bestScore > 0) {
-                            for(auto index = currentBestIndexs.begin(); index != currentBestIndexs.end(); ++index) {
-                                index_t currentIndex = *index;
-                                
-                                if(bestScore == candidates.getBestScoreForCandidate(currentIndex)) {
-                                    
-                                    bbhContainerRef.add (
-                                        currentColGene.getGenomeId(),
-                                        rowGenes[currentIndex].getGenomeId(),
-                                        colGeneId, currentIndex, bestScore,
-                                        colGenes[colGeneId].getGeneFilePosition(),
-                                        rowGenes[currentIndex].getGeneFilePosition()
-                                    );
-                                    
-                                    if(colGenes[colGeneId].getGeneFilePosition() != rowGenes[currentIndex].getGeneFilePosition())
-                                        fw.write(
-                                            std::to_string(rowGenes[currentIndex].getGeneFilePosition()) + "," +
-                                            std::to_string(colGenes[colGeneId].getGeneFilePosition()) + "," +
-                                            std::to_string(bestScore),
-                                            file
-                                        );
-                                }
-                            }
-                        }
-                    }
-                );
-            #endif
-
-
-            #ifndef bbhPrint
-                poolRef.execute(
-                    [&currentColRef, &colGenes, &rowGenes, &scores, &candidates, this] {
+                    [&currentColRef, &colGenes, &rowGenes, &scores, &candidates, this, &sharedMin, &minMutex] {
                         
                         auto& fwRef = *fw;
                         score_t bestScore = -1;
                         
+
                         std::unordered_set<index_t> currentBestIndexs;
 
-                        index_t colGeneId = currentColRef.first;
+                        // index_t colGeneId = currentColRef.first;
+                        index_t colGeneId = currentColRef;;
                         gene_tr currentColGene = colGenes[colGeneId];
                         // estrae le migliori righe per la colonna corrente
                         // e li memorizza in current best indexs
@@ -675,11 +554,11 @@ namespace homology {
                         for(index_t row = 0; row < rowGenes.size(); ++row) {
                             score_t currentScore = scores.getScoreAt(row, colGeneId);
 
-                            if(currentScore > bestScore) {
+                            if(currentScore > bestScore && currentScore > 0.0) {
                                 bestScore = currentScore;
                                 currentBestIndexs.clear();
                                 currentBestIndexs.emplace(row);
-                            } else if(currentScore == bestScore) {
+                            } else if(currentScore == bestScore && currentScore > 0.0) {
                                 currentBestIndexs.emplace(row);
                             }
                         }
@@ -687,39 +566,48 @@ namespace homology {
                         // passa per tutte le righe con il punteggio migliore
                         // e se quel punteggio è il migliore anche per la riga
                         // crea il bbh
-                        index_t currentColGeneFileLine = currentColGene.getGeneFilePosition();
-                        for(auto index = currentBestIndexs.begin(); index != currentBestIndexs.end(); ++index) {
-                            index_t currentIndex = *index;
-                            
-                            if(bestScore == candidates.getBestScoreForCandidate(currentIndex)) {
-                                fwRef.write(
-                                    std::to_string(
-                                        rowGenes[currentIndex].getGeneFilePosition()
-                                    ) + "," +
-                                    std::to_string(
-                                        currentColGeneFileLine
-                                    ) + "," +
-                                    std::to_string(bestScore)
-                                    , outStream_);
+                        if(bestScore > 0.0) {
+
+                            score_t minBBH = 2;
+                    
+                            index_t currentColGeneFileLine = currentColGene.getGeneFilePosition();
+                    
+                            for(auto index = currentBestIndexs.begin(); index != currentBestIndexs.end(); ++index) {
+                                index_t currentIndex = *index;
+                                
+                                if(bestScore == candidates.getBestScoreForCandidate(currentIndex)) {
+                                    fwRef.write(
+                                        std::to_string(
+                                            rowGenes[currentIndex].getGeneFilePosition()
+                                        ) + "," +
+                                        std::to_string(
+                                            currentColGeneFileLine
+                                        ) + "," +
+                                        std::to_string(bestScore)
+                                        , outStream_);
+                                    minBBH = bestScore < minBBH ? bestScore : minBBH;
+                                }
+                            }
+                            if(minBBH < sharedMin) {
+                                std::unique_lock<std::mutex> lock(minMutex);
+                                sharedMin = minBBH < sharedMin ? minBBH : sharedMin;
                             }
                         }
-                        // if(bestScore > 0) {
-                        // }
+
+                        
                     }
                 );
-            #endif
-            
         }
         // poolRef.waitTasks();
 
         while(!poolRef.tasksCompleted()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
+        
+        // poolRef.waitTasks();
 
-        #ifdef bbhPrint
-        fw.close(file);
-        #endif
         delete matchp;
+        return sharedMin;
     }
 
     inline void
@@ -728,106 +616,48 @@ namespace homology {
         BBHcandidatesContainer_tr candidates,
         ScoresContainer& scores
     ) {
-        #ifdef bbhPrint
-        FileWriter fw("", std::to_string(genes[0].getGenomeId())+"_"+std::to_string(genes[0].getGenomeId())+"_bbh", ".csv", false);
-        auto file = fw.openAppend();
-        fw.write("row,col,score",file);
-        #endif
-        
-        auto matchp = candidates.getPossibleMatch(genes.size()); 
+        auto& poolRef = *pool_;
+
+        auto matchp = candidates.getPossibleMatch(genes.size(), poolRef);
+        // auto matchp = candidates.getPossibleMatch(genes.size());
         auto& match = *matchp; 
         // BBHcandidatesContainer_t::set_tr matchRef = *match;
         
         // bbh::BidirectionalBestHitContainer& bbhContainerRef = *bbh;
-        auto& poolRef = *pool_;
         
         // passo per tutte le colonne "candidate"
         for(auto col = match.begin(); col != match.end(); ++col) {
             const auto& currentColRef = *col;
-            #ifdef bbhPrint
+            poolRef.execute(
+                [&currentColRef, &genes, &scores, &candidates, this] {
+                    auto& fwRef = *fw;
+                    score_t bestScore = -1;
 
-                poolRef.execute(
-                    [&currentColRef, &genes, &scores, &candidates, &bbhContainerRef, &file, &fw] {
-                        score_t bestScore = -1;
-                
-                        std::unordered_set<index_t> currentBestIndexs;
-                        index_t colGeneId = currentColRef.first;
-                        gene_tr currentColGene = genes[colGeneId];
-                        // estrae le migliori righe per la colonna corrente
-                        // e li memorizza in current best indexs
+                    std::unordered_set<index_t> currentBestIndexs;
+                    // index_t colGeneId = currentColRef.first;
+                    index_t colGeneId = currentColRef;
+                    gene_tr currentColGene = genes[colGeneId];
+                    // estrae le migliori righe per la colonna corrente
+                    // e li memorizza in current best indexs
 
-                        // le prime righe fino alla diagonale
-                        for(index_t row = 0; row < colGeneId; ++row) {
-                            score_t currentScore = scores.getScoreAt(row, colGeneId);
+                    // le prime righe fino alla diagonale
+                    for(index_t row = 0; row < colGeneId; ++row) {
+                        score_t currentScore = scores.getScoreAt(row, colGeneId);
 
-                            if(currentScore > bestScore) {
-                                bestScore = currentScore;
-                                currentBestIndexs.clear();
-                                currentBestIndexs.insert(row);
-                            } else if(currentScore == bestScore) {
-                                currentBestIndexs.insert(row);
-                            }
+                        if(currentScore > bestScore && currentScore > 0.0) {
+                            bestScore = currentScore;
+                            currentBestIndexs.clear();
+                            currentBestIndexs.insert(row);
+                        } else if(currentScore == bestScore && currentScore > 0.0) {
+                            currentBestIndexs.insert(row);
                         }
-
-                        // passa per tutte le righe con il punteggio migliore
-                        // e se quel punteggio è il migliore anche per la riga
-                        // crea il bbh
-
-                        if(bestScore > 0)
-                            for(auto index = currentBestIndexs.begin(); index != currentBestIndexs.end(); ++index) {
-                                index_t currentIndex = *index;
-
-                                if(bestScore == candidates.getBestScoreForCandidate(currentIndex)) {
-                                    bbhContainerRef.add (
-                                        currentColGene.getGenomeId(),
-                                        genes[currentIndex].getGenomeId(),
-                                        colGeneId, currentIndex, bestScore,
-                                        genes[colGeneId].getGeneFilePosition(),
-                                        genes[currentIndex].getGeneFilePosition()
-                                    );
-                                    if(genes[colGeneId].getGeneFilePosition() != genes[currentIndex].getGeneFilePosition())
-                                        fw.write(
-                                            std::to_string(genes[currentIndex].getGeneFilePosition()) + "," +
-                                            std::to_string(genes[colGeneId].getGeneFilePosition()) + "," +
-                                            std::to_string(bestScore),
-                                            file
-                                        );
-                                }
-                            }
                     }
-                );
-            #endif
-            
-            #ifndef bbhPrint
-                poolRef.execute(
-                    [&currentColRef, &genes, &scores, &candidates, this] {
-                        auto& fwRef = *fw;
-                        score_t bestScore = -1;
 
-                        std::unordered_set<index_t> currentBestIndexs;
-                        index_t colGeneId = currentColRef.first;
-                        gene_tr currentColGene = genes[colGeneId];
-                        // estrae le migliori righe per la colonna corrente
-                        // e li memorizza in current best indexs
+                    // passa per tutte le righe con il punteggio migliore
+                    // e se quel punteggio è il migliore anche per la riga
+                    // crea il bbh
 
-                        // le prime righe fino alla diagonale
-                        for(index_t row = 0; row < colGeneId; ++row) {
-                            score_t currentScore = scores.getScoreAt(row, colGeneId);
-
-                            if(currentScore > bestScore) {
-                                bestScore = currentScore;
-                                currentBestIndexs.clear();
-                                currentBestIndexs.insert(row);
-                            } else if(currentScore == bestScore) {
-                                currentBestIndexs.insert(row);
-                            }
-                        }
-
-                        // passa per tutte le righe con il punteggio migliore
-                        // e se quel punteggio è il migliore anche per la riga
-                        // crea il bbh
-
-                        // if(bestScore > 0)
+                    if(bestScore > 0.0) {
                         index_t currentColGeneFileLine = currentColGene.getGeneFilePosition();
                         for(auto index = currentBestIndexs.begin(); index != currentBestIndexs.end(); ++index) {
                             index_t currentIndex = *index;
@@ -846,17 +676,14 @@ namespace homology {
                             }
                         }
                     }
-                );
-            #endif
+                }
+            );
         }
         // poolRef.waitTasks();
 
         while(!poolRef.tasksCompleted()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
-        #ifdef bbhPrint
-        fw.close(file);
-        #endif
         delete matchp;
     }
     

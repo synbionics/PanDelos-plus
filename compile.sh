@@ -6,6 +6,7 @@ g++ -std=c++11 \
 -fcse-skip-blocks \
 -fdelete-null-pointer-checks \
 -fgcse \
+-lpthread \
 -fipa-bit-cp  -fipa-cp  -fipa-icf \
 -fipa-ra  -fipa-sra  -fipa-vrp \
 -fisolate-erroneous-paths-dereference \

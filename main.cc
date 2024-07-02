@@ -52,7 +52,7 @@ void printHelp() {
         <<"-k to indicate the size of kmers\n"
         <<"-t to indicate the number of threads\n"
         <<"-m to activate specific mode with lower RAM cost (0 default)\n"
-        <<"-d to select a discard value (0 <= d <= 1) for similarity computation (0.5 default, a grater value implys a more aggressive discard)\n";
+        <<"-d to select a discard value (0 <= d <= 1) for similarity computation (0.5 default, a grater value implies a more aggressive discard)\n";
     #endif
 }
 /**
@@ -70,9 +70,9 @@ void printHelp() {
  * @param mode Reference to a boolean to indicate a specific mode.
  * @param discard Reference to a float to indicate a discard value during similarity computation.
 */
-void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& outFile, ushort& threadNum, bool& mode, float& discard) {
+void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& outFile, ushort& threadNum, bool& mode, float& discard, bool& grid) {
     int option;
-    while ((option = getopt(argc, argv, "d:i:o:k:t:hm")) != -1) {
+    while ((option = getopt(argc, argv, "d:i:o:k:t:hmg")) != -1) {
         switch (option) {
             case 'i':
                 inFile = optarg;
@@ -88,6 +88,7 @@ void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& ou
                 break;
             case 'd':
                 discard = atof(optarg);
+                shared::cut = discard;
                 if(discard > 1 || discard < 0) {
                     printTitle();
                     printHelp();
@@ -97,6 +98,7 @@ void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& ou
             case 'm':
                 mode = true;
                 break;
+            
             case 'h':
                 printTitle();
                 printHelp();
@@ -125,8 +127,8 @@ int main(int argc, char *argv[]){
     std::string outFile = "";
     bool mode = false;
     float discard = 0.5;
-
-    parser(argc, argv, k, inFile, outFile, threadNum, mode, discard);
+    bool grid = false;
+    parser(argc, argv, k, inFile, outFile, threadNum, mode, discard, grid);
 
     #ifndef DEV_MODE
         std::cerr<<"\nDiscard value: "<<discard;
@@ -147,16 +149,22 @@ int main(int argc, char *argv[]){
     if(inFile == "" || outFile == "" || k == 0) {
         exit(1);
     }
+
     GenomesContainer gh;
     FileLoader fl(inFile);
     fl.loadFile(gh);
-    
+    std::cerr<<"\nStarting";
+    try{
     if(threadNum == 0 || threadNum > std::thread::hardware_concurrency()) {
-        Homology hd(k, outFile, discard);
+        Homology hd(k, outFile);
         hd.calculateBidirectionalBestHit(gh, mode);
     } else {
-        Homology hd(k, outFile, threadNum, discard);
+        Homology hd(k, outFile, threadNum);
         hd.calculateBidirectionalBestHit(gh, mode);
+    }
+
+    } catch (std::exception& e) {
+        throw e;
     }
     std::cerr<<"\n";
     return 0;
