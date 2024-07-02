@@ -98,9 +98,7 @@ void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& ou
             case 'm':
                 mode = true;
                 break;
-            case 'g':
-                grid = true;
-                break;
+            
             case 'h':
                 printTitle();
                 printHelp();
@@ -139,7 +137,6 @@ int main(int argc, char *argv[]){
         std::cerr<<"\nMode: "<<mode;
         std::cerr<<"\nThread number: "<<threadNum;
         std::cerr<<"\nK: "<<k;
-        std::cerr<<"\nGrid: "<<grid;
     #else
         std::cout<<"\nDiscard value: "<<discard;
         std::cout<<"\nInput File: "<<inFile;
@@ -160,10 +157,10 @@ int main(int argc, char *argv[]){
     try{
     if(threadNum == 0 || threadNum > std::thread::hardware_concurrency()) {
         Homology hd(k, outFile);
-        hd.calculateBidirectionalBestHit(gh, mode, grid);
+        hd.calculateBidirectionalBestHit(gh, mode);
     } else {
         Homology hd(k, outFile, threadNum);
-        hd.calculateBidirectionalBestHit(gh, mode, grid);
+        hd.calculateBidirectionalBestHit(gh, mode);
     }
 
     } catch (std::exception& e) {
