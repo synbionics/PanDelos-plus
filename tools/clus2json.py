@@ -35,16 +35,16 @@ def read_gbk(gbks):
                         direction = "?"
                         strand = feature.location.strand
                         if strand == 1:
-                            direction = "1"
+                            direction = "+"
                         elif strand == -1:
-                            direction = "-1"
+                            direction = "-"
                         tag = (genome_id, sequence_id, feature.qualifiers['locus_tag'][0])
                         
                         genome_cdslist.append(tag)
                         cdstag2genome[tag] = genome_id
                         cdstag2product[tag] = (feature.qualifiers['product'][0]).replace('\t','')
                         genesCoords[tag] = {
-                            "direction": direction,
+                            "strand": direction,
                             "start": feature.location.start,
                             "end": feature.location.end
                         }
