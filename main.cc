@@ -17,7 +17,7 @@ using namespace utilities;
  * @brief Prints the title.
  *
  * This function prints the title in ASCII art format.
- * The title consists of the string "ParPandelos" surrounded by ASCII art borders.
+ * The title consists of the string "PanDelos" surrounded by ASCII art borders.
  * The output is sent to either std::cerr or std::cout based on the DEV_MODE macro.
  * 
  * If DEV_MODE is defined:
@@ -27,13 +27,13 @@ using namespace utilities;
 */
 void printTitle() {
     #ifdef DEV_MODE
-        std::cerr<<" +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+\n";
-        std::cerr<<" |P| |a| |r| |P| |a| |n| |D| |e| |l| |o| |s|\n";
-        std::cerr<<" +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+\n";
+        std::cerr<<" +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ \n";
+        std::cerr<<" |P| |a| |n| |D| |e| |l| |o| |s| |+|\n";
+        std::cerr<<" +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ \n";
     #else
-        std::cout<<" +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+\n";
-        std::cout<<" |P| |a| |r| |P| |a| |n| |D| |e| |l| |o| |s|\n";
-        std::cout<<" +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+\n";
+        std::cout<<" +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ \n";
+        std::cout<<" |P| |a| |n| |D| |e| |l| |o| |s| |+|\n";
+        std::cout<<" +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ \n";
     #endif
 }
 void printHelp() {
