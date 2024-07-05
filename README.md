@@ -1,13 +1,13 @@
-# ParPanDelos
-ParPanDelos: a dictionary-based method for pan-genome content discovery
+# PanDelos+
+PanDelos+: a dictionary-based method for pan-genome content discovery
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [](#lang-en)
 
 <br><br>
 
 ## Description
-ParPanDelos a dictionary-based method for pan-genome content discovery. It's the C++ revisitation of [PanDelos](https://github.com/InfOmics/PanDelos).
-It's structured into different python modules and C++ library, piped together by a bash script, `execute.sh`, that provides the access point to the ParPanDelos pipeline.
+PanDelos+ a dictionary-based method for pan-genome content discovery. It's the C++ revisitation of [PanDelos](https://github.com/InfOmics/PanDelos).
+It's structured into different python modules and C++ library, piped together by a bash script, `execute.sh`, that provides the access point to the PanDelos+ pipeline.
 
 Simple usage
 ```bash
@@ -41,7 +41,7 @@ In case of this pair the gene identified by `NC_000913:NC_000913.3:b0001:1` has 
 
 
 ### Input format
-ParPanDelos takes as imput a complete set of gene sequence stored in a `.faa` text file, belonging to any of the studied genomes.
+PanDelos+ takes as imput a complete set of gene sequence stored in a `.faa` text file, belonging to any of the studied genomes.
 
 This file must have a "2 line pattern" where:
 - First line represents the idetification line, composed of 3 parts (genome identifier, the gene identifier and gene product) separated by a tabulation character.
@@ -69,7 +69,7 @@ MTHPHDNIRVGAITFVYSVTKRGWVFHGLSVIRNPLKAQRLAEEINNKRGAVCTKHLLLS
 Make sure that gene identifiers are unique within the input file. A suggested format to build unique gene identifier is `genome_identifier:gene_identifier:unque_integer`.
 
 ### Output format
-The execution of ParPanDelos produces 2 output files named `[prefix_input_file].clus` and `[prefix_input_file].json` that reports the gene families discovered during the analysis.
+The execution of PanDelos+ produces 2 output files named `[prefix_input_file].clus` and `[prefix_input_file].json` that reports the gene families discovered during the analysis.
 
 
 <br><br>
@@ -78,7 +78,7 @@ The execution of ParPanDelos produces 2 output files named `[prefix_input_file].
 
 ### System requirements
 
-ParPanDelos can run on any operating system where Bash, Python3 (or higher), C++11 and [GCC](https://gcc.gnu.org) are installed.
+PanDelos+ can run on any operating system where Bash, Python3 (or higher), C++11 and [GCC](https://gcc.gnu.org) are installed.
 
 
 ```bash
@@ -162,7 +162,7 @@ sudo apt install python3-matplotlib
 
 ### Run examples
 
-To run all examples for ParPanDelos' benchmarks
+To run all examples for PanDelos+' benchmarks
 
 ```bash
 cd examples
@@ -230,7 +230,7 @@ Usage:
 
 ## License
 
-ParPanDelos is distributed under the MIT license. This means that it is free for both academic and commercial use. Note however that some third party components in ParPanDelos require that you reference certain works in scientific publications. You are free to link or use ParPanDelos inside the source code of your own program. If do so, please reference (cite) ParPanDelos and this website. Bug fixes and collaboration for improvements are appreciated. 
+PanDelos+ is distributed under the MIT license. This means that it is free for both academic and commercial use. Note however that some third party components in PanDelos+ require that you reference certain works in scientific publications. You are free to link or use PanDelos+ inside the source code of your own program. If do so, please reference (cite) PanDelos+ and this website. Bug fixes and collaboration for improvements are appreciated. 
 
 <br><br>
 
@@ -243,6 +243,6 @@ Original PanDelos software:
      BMC bioinformatics 19.15 (2018): 437.
 
 
-If you have used any of the ParPanDelos project software, please cite the the following paper:
+If you have used any of the PanDelos+ project software, please cite the the following paper:
 
 <!-- TODO add citation -->

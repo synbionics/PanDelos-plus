@@ -3,8 +3,11 @@
 #include <thread>
 
 #include "lib/Homology.hh"
+#include "lib/FragHomology.hh"
 #include "lib/genx/GenomesContainer.hh"
+#include "lib/genx-frags/FragGenomesContainer.hh"
 #include "utils/FileLoader.hh"
+#include "utils/FragsFileLoader.hh"
 #include "utils/StopWatch.hh"
 
 
@@ -17,7 +20,7 @@ using namespace utilities;
  * @brief Prints the title.
  *
  * This function prints the title in ASCII art format.
- * The title consists of the string "ParPandelos" surrounded by ASCII art borders.
+ * The title consists of the string "PanDelos" surrounded by ASCII art borders.
  * The output is sent to either std::cerr or std::cout based on the DEV_MODE macro.
  * 
  * If DEV_MODE is defined:
@@ -27,13 +30,13 @@ using namespace utilities;
 */
 void printTitle() {
     #ifdef DEV_MODE
-        std::cerr<<" +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+\n";
-        std::cerr<<" |P| |a| |r| |P| |a| |n| |D| |e| |l| |o| |s|\n";
-        std::cerr<<" +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+\n";
+        std::cerr<<" +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ \n";
+        std::cerr<<" |P| |a| |n| |D| |e| |l| |o| |s| |+|\n";
+        std::cerr<<" +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ \n";
     #else
-        std::cout<<" +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+\n";
-        std::cout<<" |P| |a| |r| |P| |a| |n| |D| |e| |l| |o| |s|\n";
-        std::cout<<" +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+\n";
+        std::cout<<" +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ \n";
+        std::cout<<" |P| |a| |n| |D| |e| |l| |o| |s| |+|\n";
+        std::cout<<" +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ +-+ \n";
     #endif
 }
 void printHelp() {
@@ -45,6 +48,7 @@ void printHelp() {
             <<"-t per indicare il numero di thread\n"
             <<"-m per attivare la modalità con un costo minore in ram (0 default)\n"
             <<"-d per selezionare un valore di scarto (0 <= d <= 1) per il calcolo della similarità (0.5 default, un valore maggiore corrisponde a un scarto più aggressivo)\n";
+            <<"-f per i geni frammentanti\n";
     #else
     std::cout<<"Usage:\n"
         <<"-i to select the input file (path_to_file/file.faa)\n"
@@ -52,7 +56,8 @@ void printHelp() {
         <<"-k to indicate the size of kmers\n"
         <<"-t to indicate the number of threads\n"
         <<"-m to activate specific mode with lower RAM cost (0 default)\n"
-        <<"-d to select a discard value (0 <= d <= 1) for similarity computation (0.5 default, a grater value implies a more aggressive discard)\n";
+        <<"-d to select a discard value (0 <= d <= 1) for similarity computation (0.5 default, a grater value implies a more aggressive discard)\n"
+        <<"-f to for fragmented genes\n";
     #endif
 }
 /**
@@ -70,9 +75,9 @@ void printHelp() {
  * @param mode Reference to a boolean to indicate a specific mode.
  * @param discard Reference to a float to indicate a discard value during similarity computation.
 */
-void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& outFile, ushort& threadNum, bool& mode, float& discard, bool& grid) {
+void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& outFile, ushort& threadNum, bool& mode, float& discard, bool& frags) {
     int option;
-    while ((option = getopt(argc, argv, "d:i:o:k:t:hmg")) != -1) {
+    while ((option = getopt(argc, argv, "d:i:o:k:t:hmf")) != -1) {
         switch (option) {
             case 'i':
                 inFile = optarg;
@@ -98,7 +103,9 @@ void parser(int argc, char *argv[], int& k, std::string& inFile, std::string& ou
             case 'm':
                 mode = true;
                 break;
-            
+            case 'f':
+                frags = true;
+                break;
             case 'h':
                 printTitle();
                 printHelp();
@@ -127,8 +134,8 @@ int main(int argc, char *argv[]){
     std::string outFile = "";
     bool mode = false;
     float discard = 0.5;
-    bool grid = false;
-    parser(argc, argv, k, inFile, outFile, threadNum, mode, discard, grid);
+    bool frags = false;
+    parser(argc, argv, k, inFile, outFile, threadNum, mode, discard, frags);
 
     #ifndef DEV_MODE
         std::cerr<<"\nDiscard value: "<<discard;
@@ -150,22 +157,37 @@ int main(int argc, char *argv[]){
         exit(1);
     }
 
-    GenomesContainer gh;
-    FileLoader fl(inFile);
-    fl.loadFile(gh);
-    std::cerr<<"\nStarting";
-    try{
-    if(threadNum == 0 || threadNum > std::thread::hardware_concurrency()) {
-        Homology hd(k, outFile);
-        hd.calculateBidirectionalBestHit(gh, mode);
+    if(frags) {
+        FragGenomesContainer gh;
+        FragsFileLoader fl(inFile);
+        fl.loadFile(gh);
+        auto& genomes = gh.getGenomes();
+        // std::cerr<<"\nPrinting genomes\n";
+        // for(auto g = genomes.begin(); g != genomes.end(); ++g) {
+        //     g->print(std::cerr);
+        // }
+        if(threadNum == 0 || threadNum > std::thread::hardware_concurrency()) {
+            FragHomology hd(k, outFile);
+            hd.calculateBidirectionalBestHit(gh, mode);
+        } else {
+            FragHomology hd(k, outFile, threadNum);
+            hd.calculateBidirectionalBestHit(gh, mode);
+        }
+
     } else {
-        Homology hd(k, outFile, threadNum);
-        hd.calculateBidirectionalBestHit(gh, mode);
+        GenomesContainer gh;
+        FileLoader fl(inFile);
+        fl.loadFile(gh);
+        std::cerr<<"\nStarting";
+        if(threadNum == 0 || threadNum > std::thread::hardware_concurrency()) {
+            Homology hd(k, outFile);
+            hd.calculateBidirectionalBestHit(gh, mode);
+        } else {
+            Homology hd(k, outFile, threadNum);
+            hd.calculateBidirectionalBestHit(gh, mode);
+        }
     }
 
-    } catch (std::exception& e) {
-        throw e;
-    }
-    std::cerr<<"\n";
+    std::cerr<<"\nDone";
     return 0;
 }

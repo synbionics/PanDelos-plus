@@ -4,6 +4,7 @@ threadNum=""
 inFile=""
 outFile=""
 mode=""
+frags=""
 discard=""
 path2gbks=""
 
@@ -15,11 +16,12 @@ function usage() {
     echo "  -t: Number of threads"
     echo "  -m: Enable a different mode"
     echo "  -d: Discard value (0 <= d <= 1, default 0.5)"
-    echo "  -h: Display this help message"
     echo "  -g: Path to gbk folder"
+    echo "  -f: For fragmented genes"
+    echo "  -h: Display this help message"
 }
 
-while getopts ":i:o:t:md:g:h" opt; do
+while getopts ":i:o:t:mfd:g:h" opt; do
     case ${opt} in
         i )
             inFile=$OPTARG
@@ -32,6 +34,9 @@ while getopts ":i:o:t:md:g:h" opt; do
             ;;
         m )
             mode="1"
+            ;;
+        f )
+            frags="1"
             ;;
         d )
             discard=$OPTARG
@@ -85,6 +90,9 @@ fi
 if [ -n "$mode" ]; then
     mainCommand+=" -m"
 fi
+if [ -n "$frags" ]; then
+    mainCommand+=" -f"
+fi
 if [ -n "$discard" ]; then
     mainCommand+=" -d $discard"
 fi
@@ -112,7 +120,7 @@ if [ -z "$path2gbks" ]; then
     echo "Missing gbk folder" >> $tmp
     usage
     usage >> $tmp
-    exit(1)
+    exit1
 fi
 
 

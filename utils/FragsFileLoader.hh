@@ -1,32 +1,32 @@
-#ifndef FILE_LOADER_INCLUDE_GUARD
-#define FILE_LOADER_INCLUDE_GUARD 1
+#ifndef FRAGS_FILE_LOADER_INCLUDE_GUARD
+#define FRAGS_FILE_LOADER_INCLUDE_GUARD 1
 
 #include <fstream>
 #include <stdexcept>
 
-#include "./../lib/genx/GenomesContainer.hh"
-#include "./../lib/genx/Genome.hh"
+#include "./../lib/genx-frags/FragGenomesContainer.hh"
+#include "./../lib/genx-frags/FragGenome.hh"
 
 // #define DEBUG 1
 
 namespace utilities {
     
-    class FileLoader {
+    class FragsFileLoader {
         private:
             
-            using genome_ct = genome::GenomesContainer;
+            using genome_ct = genome::FragGenomesContainer;
             using genome_ctr = genome_ct&;
             
             std::string fileName_;
         public:
-            FileLoader(std::string fileName);
+            FragsFileLoader(std::string fileName);
             void loadFile(genome_ctr genomeContainer);
-            ~FileLoader();
+            ~FragsFileLoader();
     };
 
-    FileLoader::FileLoader(std::string fileName) : fileName_(fileName) { }
+    FragsFileLoader::FragsFileLoader(std::string fileName) : fileName_(fileName) { }
 
-    void FileLoader::loadFile(genome_ctr genomeContainer) {
+    void FragsFileLoader::loadFile(genome_ctr genomeContainer) {
         // open
 
         std::fstream file;
@@ -49,10 +49,11 @@ namespace utilities {
         unsigned long genomeId = 0;
         unsigned long geneId = 0;
         unsigned long geneLine = 0;
+        unsigned long valueUL = 0;
 
         bool info = true;
         bool firstLine = true;
-
+        
         std::string delimiter = "\t";
 
         while(std::getline(file, lastLine)){
@@ -65,16 +66,35 @@ namespace utilities {
             if(info){
 
                 lastGenome = lastLine.substr(0, lastLine.find(delimiter));
+                
                 lastLine.erase(0, lastLine.find(delimiter) + delimiter.length());
 
                 lastGene = lastLine.substr(0, lastLine.find(delimiter));
 
+                // std::cerr<<"\nlast line: "<<lastLine;
+                
+                lastLine.erase(0, lastLine.find(delimiter) + delimiter.length());
+
+                std::string product = lastLine.substr(0, lastLine.find(delimiter));
+                lastLine.erase(0, lastLine.find(delimiter) + delimiter.length());
+
+                std::string value = lastLine;
+                try {
+                    valueUL = std::stoul(value);
+                } catch (const std::exception& e) {
+                    std::cerr<<"\nError during frag input loading on genome-gene: "<<lastGenome<<"- "<<lastGene;
+                    valueUL = 0;
+                    
+                }
+
                 #ifdef DEBUG
-                std::cerr<<"\n"<<prevGenome;
-                std::cerr<<"\n"<<prevGene;
-                std::cerr<<"\n"<<lastGenome;
-                std::cerr<<"\n"<<lastGene;
+                std::cerr<<"\nprev genome: "<<prevGenome;
+                std::cerr<<"\nprev gene:"<<prevGene;
+                std::cerr<<"\nlast genome: "<<lastGenome;
+                std::cerr<<"\nlast gene: "<<lastGene;
+                std::cerr<<"\nvalue: "<<valueUL;
                 #endif
+
 
                 if(lastGenome != prevGenome){
                     if(!firstLine){
@@ -85,6 +105,7 @@ namespace utilities {
                     prevGene = "";
 
                     genomeContainer.addGenome(genomeId);
+
                     if(firstLine){
                         firstLine = false;
                     }
@@ -94,7 +115,7 @@ namespace utilities {
                 prevGenome = lastGenome;
             }else{
                 if(lastGene != prevGene){
-                    genomeContainer.addGeneToGenome(genomeId, geneId, lastLine, geneLine);
+                    genomeContainer.addGeneToGenome(genomeId, geneId, valueUL, lastLine, geneLine);
                     prevGene = lastGene;
                     ++geneLine;
                 }
@@ -108,7 +129,7 @@ namespace utilities {
     }
 
 
-    FileLoader::~FileLoader() {
+    FragsFileLoader::~FragsFileLoader() {
     }
 }
 
