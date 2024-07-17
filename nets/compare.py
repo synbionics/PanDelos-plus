@@ -10,6 +10,7 @@ def confronta_file(file1, file2, file_out):
     df1 = pd.read_csv(file1, sep='\t', header=None, names=['rowGene', 'colGene','score'])
     # df1 = pd.read_csv(file1, sep=',', header=None, names=['rowGene', 'colGene','score'])
     df2 = pd.read_csv(file2, sep=',', header=None, names=['rowGene', 'colGene','score'])
+    # df2 = pd.read_csv(file2, sep='\t', header=None, names=['rowGene', 'colGene','score'])
 
     df1['score'] = df1['score'].apply(lambda x: round(x, 6))
     df2['score'] = df2['score'].apply(lambda x: round(x, 6))
@@ -22,8 +23,8 @@ def confronta_file(file1, file2, file_out):
 
 def confronta_file_rev(file1, file2, file_out):
 
-    # df1 = pd.read_csv(file1, sep='\t', header=None, names=['rowGene', 'colGene','score'])
     df1 = pd.read_csv(file1, sep=',', header=None, names=['rowGene', 'colGene','score'])
+    # df1 = pd.read_csv(file1, sep='\t', header=None, names=['rowGene', 'colGene','score'])
     df2 = pd.read_csv(file2, sep='\t', header=None, names=['rowGene', 'colGene','score'])
     # df2 = pd.read_csv(file2, sep=',', header=None, names=['rowGene', 'colGene','score'])
 

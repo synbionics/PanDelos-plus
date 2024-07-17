@@ -85,6 +85,7 @@ namespace homology {
             thread_ptp pool_;
             std::string inFile_;
             minBBH_t mins_;
+            score_t similarityMinVal_;
             
             
             /**
@@ -215,10 +216,9 @@ namespace homology {
              */
             inline void calculateBidirectionalBestHit(genome::FragGenomesContainer& g, bool mode);
     };
-
     inline
     FragHomology::FragHomology(k_t k, std::string fileName, ushort threadNumber) 
-    : k_(k){
+    : k_(k), similarityMinVal_(1.0/(k*2)){
         if(k <= 0)
             throw std::runtime_error("k <= 0");
         pool_ = new thread_pt(threadNumber);
@@ -229,7 +229,7 @@ namespace homology {
 
     inline
     FragHomology::FragHomology(k_t k, std::string fileName)
-    : k_(k){
+    : k_(k), similarityMinVal_(1.0/(k*2)){
         if(k <= 0)
             throw std::runtime_error("k <= 0");
         pool_ = new thread_pt();
@@ -307,7 +307,19 @@ namespace homology {
             }
         }
         
-        return 1.0*num/(den + ((shortestContainer.getMultiplicityNumber() - currentShortestMultiplicity) + (longestContainer.getMultiplicityNumber() - currentLongestMultiplicity)));
+            
+        return
+            (
+                (
+                    ((1.0* currentShortestMultiplicity) / (shortestContainer.getAlphabetLength() - k_ +1)) < similarityMinVal_
+                ) ||
+                (
+                    ((1.0* currentLongestMultiplicity) / (longestContainer.getAlphabetLength() - k_ +1)) < similarityMinVal_
+                )
+            ) ? 
+            0 : (
+                1.0*num/(den + ((shortestContainer.getMultiplicityNumber() - currentShortestMultiplicity) + (longestContainer.getMultiplicityNumber() - currentLongestMultiplicity)))
+            );
     }
 
 
@@ -386,8 +398,6 @@ namespace homology {
             
         }
     
-        
-
     }
 
     
