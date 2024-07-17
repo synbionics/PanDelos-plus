@@ -85,7 +85,7 @@ namespace homology {
             thread_ptp pool_;
             std::string inFile_;
             minBBH_t mins_;
-            
+            score_t similarityMinVal_;
             
             /**
              * @brief Calculates the similarity values for a row using the Generalized Jaccard index.
@@ -218,7 +218,7 @@ namespace homology {
 
     inline
     Homology::Homology(k_t k, std::string fileName, ushort threadNumber) 
-    : k_(k){
+    : k_(k), similarityMinVal_(1.0/(k*2.0)){
         if(k <= 0)
             throw std::runtime_error("k <= 0");
         pool_ = new thread_pt(threadNumber);
@@ -229,7 +229,7 @@ namespace homology {
 
     inline
     Homology::Homology(k_t k, std::string fileName)
-    : k_(k){
+    : k_(k), similarityMinVal_(1.0/(k*2.0)){
         if(k <= 0)
             throw std::runtime_error("k <= 0");
         pool_ = new thread_pt();
@@ -244,7 +244,13 @@ namespace homology {
 
     inline Homology::score_t
     Homology::calculateSimilarity(const gene_tr gene1, const gene_tr gene2) const {
-        return (
+        // if(gene1.getGeneFilePosition() == 29745 && gene2.getGeneFilePosition() == 29747
+        // || gene2.getGeneFilePosition() == 29745 && gene1.getGeneFilePosition() == 29747) {
+        //     std::cerr<<gene1.getGeneFilePosition()<<": "<<gene1.getAlphabetLength()<<"\n"<<gene1.getAlphabet();
+        //     std::cerr<<gene2.getGeneFilePosition()<<": "<<gene2.getAlphabetLength()<<"\n"<<gene2.getAlphabet();
+        // }
+        return
+            (
             gene1.getAlphabetLength() < gene2.getCut()
             || gene2.getAlphabetLength() < gene1.getCut()
             ) ? 
@@ -267,6 +273,9 @@ namespace homology {
         
         std::size_t num = 0;
         std::size_t den = 0;
+
+        // std::size_t shortestIntersectionMultip = 0;
+        // std::size_t longestIntersectionMultip = 0;
 
         multiplicity_t currentShortestMultiplicity = 0;
         multiplicity_t currentLongestMultiplicity = 0;
@@ -307,14 +316,27 @@ namespace homology {
             }
         }
         
-        return 1.0*num/(den + ((shortestContainer.getMultiplicityNumber() - currentShortestMultiplicity) + (longestContainer.getMultiplicityNumber() - currentLongestMultiplicity)));
+
+        return
+            (
+                (
+                    ((1.0* currentShortestMultiplicity) / (shortestContainer.getAlphabetLength() - k_ +1)) < similarityMinVal_
+                ) ||
+                (
+                    ((1.0* currentLongestMultiplicity) / (longestContainer.getAlphabetLength() - k_ +1)) < similarityMinVal_
+                )
+            ) ? 
+            0 : (
+                1.0*num/(den + ((shortestContainer.getMultiplicityNumber() - currentShortestMultiplicity) + (longestContainer.getMultiplicityNumber() - currentLongestMultiplicity)))
+            );
+            
     }
 
 
     
     void Homology::calculateBidirectionalBestHit(genome::GenomesContainer& gc, bool mode) {
         mins_.resize(gc.size());
-
+        // std::cerr<<"\nsimilarityMinVal_: "<<similarityMinVal_<<"\n";
         if(mode) {
             genome::GenomesContainer::genome_ctr genomes = gc.getGenomes();
             auto& pool = *pool_;

@@ -57,7 +57,7 @@ void printHelp() {
         <<"-t to indicate the number of threads\n"
         <<"-m to activate specific mode with lower RAM cost (0 default)\n"
         <<"-d to select a discard value (0 <= d <= 1) for similarity computation (0.5 default, a grater value implies a more aggressive discard)\n"
-        <<"-f to for fragmented genes\n";
+        <<"-f for fragmented genes\n";
     #endif
 }
 /**
@@ -144,6 +144,8 @@ int main(int argc, char *argv[]){
         std::cerr<<"\nMode: "<<mode;
         std::cerr<<"\nThread number: "<<threadNum;
         std::cerr<<"\nK: "<<k;
+        std::cerr<<"\nFrags: "<<frags;
+
     #else
         std::cout<<"\nDiscard value: "<<discard;
         std::cout<<"\nInput File: "<<inFile;
@@ -151,6 +153,7 @@ int main(int argc, char *argv[]){
         std::cout<<"\nMode: "<<mode;
         std::cout<<"\nThread number: "<<threadNum;
         std::cout<<"\nK: "<<k;
+        std::cout<<"\nFrags: "<<frags;
     #endif
 
     if(inFile == "" || outFile == "" || k == 0) {
@@ -188,6 +191,6 @@ int main(int argc, char *argv[]){
         }
     }
 
-    std::cerr<<"\nDone";
+    std::cerr<<"\nDone\n";
     return 0;
 }
