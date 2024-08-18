@@ -58,12 +58,6 @@ for gbk in gbkfiles:
 	read_gbk(idir + gbk, re.sub('\.gbk$', '', gbk))
 
 
-gbffiles = [f for f in listdir(idir) if isfile(join(idir, f)) and re.match('^.+\.gbff$', f)]
-print(gbffiles)
-for gbff in gbffiles:
-	print(gbff)
-	read_gbk(idir + gbff, re.sub('\.gbff$', '', gbff))
-
 uniques = dict()
 
 
