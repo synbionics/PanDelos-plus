@@ -7,9 +7,8 @@
 #include <vector>
 #include <iostream>
 #include <functional>
-#include <thread>
 #include <chrono>
-
+#include <cstddef>
 
 namespace bbh{
 
@@ -44,15 +43,16 @@ inline MinBBHContainer::MinBBHContainer() : rows_(0) {
 
 inline void
 MinBBHContainer::resize(const index_t rows) {
-    // std::cerr<<"resizing";
+    std::cerr<<"resizing, new rows: "<<rows<<"\n";
     index_t maxCols = rows - 1;
+    std::cerr<<"resizing, new maxCols: "<<maxCols<<"\n";
     for(index_t i = 0; i < rows; ++i) {
-        halfMatrix_.emplace_back(
-            line_t(maxCols - i, 1)
+        halfMatrix_.push_back(
+            line_t(maxCols - i, 0)
             );
     }
     rows_ = rows;
-    mins_ = line_t(rows, 1);
+    mins_ = line_t(rows, 0);
 }
 
 
@@ -62,6 +62,7 @@ MinBBHContainer::~MinBBHContainer()
 
 inline void
 MinBBHContainer::print() const {
+
     std::cerr<<"\n";
     for (size_t i = 0; i < rows_; i++) {
         std::cerr<<"\n"<<i<<": ";
@@ -93,8 +94,13 @@ MinBBHContainer::getVal(const index_t row, const index_t col) const{
 
 inline void
 MinBBHContainer::computeMins(pool_tr pool) {
+    
     index_t effectiveRows = rows_ - 1;
-
+    if(effectiveRows == 0) {
+        mins_[0] = 0;
+        return;
+    }
+    
     pool.execute(
         [this] {
             auto c = halfMatrix_[0].begin();

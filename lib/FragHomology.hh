@@ -407,7 +407,7 @@ namespace homology {
         genome_tr colGenome, genome_tr rowGenome
     ) {
         // std::cerr<<"\ncomparing different";
-        std::cerr<<"\nComparing genomes <col, row> "<<colGenome.getId()<<" - "<<rowGenome.getId();
+        std::cerr<<"\nComparing different genomes <col, row> "<<colGenome.getId()<<" - "<<rowGenome.getId();
 
         // genes in genome1 rapresents the width of the matrix (cols), genes in genome2 rapresents the height(rows)
         genome_t::gene_ctr colGenes = colGenome.getGenes();
@@ -440,7 +440,7 @@ namespace homology {
     FragHomology::calculateBidirectionalBestHitSameGenome(
         genome_tr genome
     ) {
-        std::cerr<<"\nComparing genomes "<<genome.getId()<<" - "<<genome.getId();
+        std::cerr<<"\nComparing same genomes "<<genome.getId()<<" - "<<genome.getId();
         // std::cerr<<"\ncomparing same";
         genome_t::gene_ctr genes = genome.getGenes();
         // genome_t::gene_ctr rowGenes = genome.getGenes();

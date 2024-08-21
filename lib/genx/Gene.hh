@@ -313,7 +313,7 @@ namespace gene {
     Gene::print(std::ostream& os) const {
         os<<"\ngene id: "<<geneId_;
         os<<"\nfile pos: "<<geneFilePosition_;
-        os<<"\nalph: "<<alphabet_;
+        os<<"\nalph: '"<<alphabet_<<"'";
         os<<"\nalphlength: "<<alphabetLength_;
     }
 
