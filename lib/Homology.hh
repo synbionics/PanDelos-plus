@@ -407,10 +407,10 @@ namespace homology {
                 
 
             }
-            std::cerr<<"\npre computing mins";
+            // std::cerr<<"\npre computing mins";
 
             mins_.computeMins(pool);
-            std::cerr<<"\npost computing mins";
+            // std::cerr<<"\npost computing mins";
 
             mins_.print();
             for(auto rowGenome = genomes.begin(); rowGenome != genomes.end(); ++rowGenome) {

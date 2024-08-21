@@ -43,9 +43,9 @@ inline MinBBHContainer::MinBBHContainer() : rows_(0) {
 
 inline void
 MinBBHContainer::resize(const index_t rows) {
-    std::cerr<<"resizing, new rows: "<<rows<<"\n";
+    // std::cerr<<"resizing, new rows: "<<rows<<"\n";
     index_t maxCols = rows - 1;
-    std::cerr<<"resizing, new maxCols: "<<maxCols<<"\n";
+    // std::cerr<<"resizing, new maxCols: "<<maxCols<<"\n";
     for(index_t i = 0; i < rows; ++i) {
         halfMatrix_.push_back(
             line_t(maxCols - i, 0)

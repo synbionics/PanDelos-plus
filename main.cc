@@ -181,7 +181,6 @@ int main(int argc, char *argv[]){
         GenomesContainer gh;
         FileLoader fl(inFile);
         fl.loadFile(gh);
-        std::cerr<<"\nStarting";
 
         // auto& genomes = gh.getGenomes();
         // std::cerr<<"\nPrinting genomes\n";
@@ -198,6 +197,5 @@ int main(int argc, char *argv[]){
         }
     }
 
-    std::cerr<<"\nDone\n";
     return 0;
 }
