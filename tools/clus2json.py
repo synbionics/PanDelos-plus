@@ -17,11 +17,12 @@ def read_gbk(gbks):
     cdstag2genome = dict()
     cdstag2product = dict()
     genesCoords = dict()
+    sequences = dict()
 
     for genome_id in gbks.keys():
         ifile = gbks[genome_id]
-        print("genome_id:", genome_id)
-        print("ifile:", ifile)
+        # print("genome_id:", genome_id)
+        # print("ifile:", ifile)
 
         genome_cdslist = genome2cdstag.get(genome_id, list())
 
@@ -48,6 +49,8 @@ def read_gbk(gbks):
                             "start": feature.location.start,
                             "end": feature.location.end
                         }
+                        # todo: save sequence
+                        sequences[tag] = feature.qualifiers['translation'][0]
 
         genome2cdstag[genome_id] = genome_cdslist
 
@@ -74,7 +77,8 @@ def read_gbk(gbks):
             "locus-version": k[1],
             "locus-tag": k[2],
             "product": cdstag2product[k],
-            "coordinates": genesCoords[k]
+            "coordinates": genesCoords[k],
+            "sequence": sequences[k]
         }
         allGenesWithCoords[acc] = current
         # print(current)

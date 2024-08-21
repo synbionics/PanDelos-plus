@@ -335,16 +335,25 @@ namespace homology {
 
     
     void Homology::calculateBidirectionalBestHit(genome::GenomesContainer& gc, bool mode) {
+        // std::cerr<<"\npre resize";
         mins_.resize(gc.size());
+        // std::cerr<<"\npost resize";
+
         // std::cerr<<"\nsimilarityMinVal_: "<<similarityMinVal_<<"\n";
         if(mode) {
             genome::GenomesContainer::genome_ctr genomes = gc.getGenomes();
+
             auto& pool = *pool_;
+            
             for(auto rowGenome = genomes.begin(); rowGenome != genomes.end(); ++rowGenome) {
+                // std::cerr<<"\npre mapper";
+                
                 kmers::KmerMapper mapper;
                 
                 auto& rowRef = *rowGenome;
+                // std::cerr<<"\npre mapping";
                 rowRef.createAndCalculateAllKmers(k_, mapper);
+                // std::cerr<<"\npost mapping";
                 
                 auto colGenome = rowGenome;
                 ++colGenome;
@@ -355,12 +364,13 @@ namespace homology {
                     colGenome->deleteAllKmers(pool);
                 }
 
-                calculateBidirectionalBestHitSameGenome(rowRef);
+                // calculateBidirectionalBestHitSameGenome(rowRef);
 
                 rowRef.deleteAllKmers(pool);
             }
-            
+            // std::cerr<<"\ncomputing mins";
             mins_.computeMins(pool);
+            // std::cerr<<"\npost computing mins";
             mins_.print();
 
             for(auto rowGenome = genomes.begin(); rowGenome != genomes.end(); ++rowGenome) {
@@ -397,7 +407,11 @@ namespace homology {
                 
 
             }
+            // std::cerr<<"\npre computing mins";
+
             mins_.computeMins(pool);
+            // std::cerr<<"\npost computing mins";
+
             mins_.print();
             for(auto rowGenome = genomes.begin(); rowGenome != genomes.end(); ++rowGenome) {
                 auto& rowRef = *rowGenome;
@@ -418,7 +432,7 @@ namespace homology {
         genome_tr colGenome, genome_tr rowGenome
     ) {
         // std::cerr<<"\ncomparing different";
-        std::cerr<<"\nComparing genomes <col, row> "<<colGenome.getId()<<" - "<<rowGenome.getId();
+        std::cerr<<"\nComparing different genomes <col, row> "<<colGenome.getId()<<" - "<<rowGenome.getId();
 
         // genes in genome1 rapresents the width of the matrix (cols), genes in genome2 rapresents the height(rows)
         genome_t::gene_ctr colGenes = colGenome.getGenes();
@@ -451,7 +465,7 @@ namespace homology {
     Homology::calculateBidirectionalBestHitSameGenome(
         genome_tr genome
     ) {
-        std::cerr<<"\nComparing genomes "<<genome.getId()<<" - "<<genome.getId();
+        std::cerr<<"\nComparing same genomes "<<genome.getId()<<" - "<<genome.getId();
         // std::cerr<<"\ncomparing same";
         genome_t::gene_ctr genes = genome.getGenes();
         // genome_t::gene_ctr rowGenes = genome.getGenes();

@@ -164,7 +164,7 @@ int main(int argc, char *argv[]){
         FragGenomesContainer gh;
         FragsFileLoader fl(inFile);
         fl.loadFile(gh);
-        auto& genomes = gh.getGenomes();
+        // auto& genomes = gh.getGenomes();
         // std::cerr<<"\nPrinting genomes\n";
         // for(auto g = genomes.begin(); g != genomes.end(); ++g) {
         //     g->print(std::cerr);
@@ -181,7 +181,13 @@ int main(int argc, char *argv[]){
         GenomesContainer gh;
         FileLoader fl(inFile);
         fl.loadFile(gh);
-        std::cerr<<"\nStarting";
+
+        // auto& genomes = gh.getGenomes();
+        // std::cerr<<"\nPrinting genomes\n";
+        // for(auto g = genomes.begin(); g != genomes.end(); ++g) {
+        //     g->print(std::cerr);
+        // }
+        
         if(threadNum == 0 || threadNum > std::thread::hardware_concurrency()) {
             Homology hd(k, outFile);
             hd.calculateBidirectionalBestHit(gh, mode);
@@ -191,6 +197,5 @@ int main(int argc, char *argv[]){
         }
     }
 
-    std::cerr<<"\nDone\n";
     return 0;
 }

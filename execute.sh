@@ -128,4 +128,4 @@ json="$outFile.json"
 python3 "$clus2json_path" "$path2gbks" "$clus" "$json" >> $tmp
 
 
-# rm $tmp
+rm $tmp
