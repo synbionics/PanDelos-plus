@@ -74,7 +74,7 @@ echo "$inFile"
 calculate_k_path="./tools/calculate_k.py"
 genes_distribution_path="./tools/genesDistribution.py"
 net_clug_path="./tools/netclu_ng.py"
-# clus2json_path="./tools/clus2json.py"
+clus2json_path="./tools/clus2json.py"
 
 if [ -z "$outFile" ]; then
     outFile="$(echo "$(basename $inFile)" | sed 's/\.faa//').net" 
@@ -114,18 +114,14 @@ clus="$outFile.clus"
 grep "F{ " $tmp | sed s/F{\ //g | sed s/}//g | sed s/\ \;//g | sort | uniq > "$clus"
 
 
-
-if [ -z "$path2gbks" ]; then
+if [ -n "$path2gbks" ]; then
+    json="$outFile.json"
+    python3 "$clus2json_path" "$path2gbks" "$clus" "$json" >> $tmp
+    rm $tmp
+else 
     echo "Missing gbk folder"
     echo "Missing gbk folder" >> $tmp
     usage
     usage >> $tmp
-    exit1
+    exit 1
 fi
-
-
-json="$outFile.json"
-python3 "$clus2json_path" "$path2gbks" "$clus" "$json" >> $tmp
-
-
-rm $tmp
