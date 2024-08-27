@@ -102,9 +102,11 @@ tmp="tmp.txt"
 echo "$mainCommand" >> $tmp
 
 # plot genes distribution
-python3 "$genes_distribution_path" "$inFile"
+# python3 "$genes_distribution_path" "$inFile"
 
 /usr/bin/time -f "time(seconds): %e user time(seconds): %U memory(KB): %M" $mainCommand > $tmp 2>&1
+
+cat $tmp
 
 echo "" >> $tmp;
 python3 "$net_clug_path" "$inFile" "$outFile.net" >> $tmp
