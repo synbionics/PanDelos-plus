@@ -13,7 +13,6 @@ function usage() {
     echo "Options:"
     echo "  -i: Input file path"
     echo "  -o: Output file path"
-    echo "  -t: Number of threads"
     echo "  -m: Enable a different mode"
     echo "  -d: Discard value (0 <= d <= 1, default 0.5)"
     echo "  -g: Path to gbk folder"
@@ -21,16 +20,13 @@ function usage() {
     echo "  -h: Display this help message"
 }
 
-while getopts ":i:o:t:mfd:g:h" opt; do
+while getopts ":i:o:mfd:g:h" opt; do
     case ${opt} in
         i )
             inFile=$OPTARG
             ;;
         o )
             outFile=$OPTARG
-            ;;
-        t )
-            threadNum=$OPTARG
             ;;
         m )
             mode="1"
@@ -84,9 +80,6 @@ echo "k = $k";
 
 mainCommand="./main -i $inFile -k $k -o $outFile"
 
-if [ -n "$threadNum" ]; then
-    mainCommand+=" -t $threadNum"
-fi
 if [ -n "$mode" ]; then
     mainCommand+=" -m"
 fi
