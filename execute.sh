@@ -1,5 +1,21 @@
 #! bin/bash
 
+
+wd="$(pwd)"
+scripts_path="$wd/scripts/"
+
+echo "$wd"
+echo "$scripts_path"
+
+
+faa_checker_path="$scripts_path\faa_checker.py"
+calculate_k_path="$scripts_path\calculate_k.py"
+genes_distribution_path="$scripts_path\genesDistribution.py"
+net_clug_path="$scripts_path\netclu_ng.py"
+clus2json_path="$scripts_path\clus2json.py"
+
+
+
 threadNum=""
 inFile=""
 outFile=""
@@ -44,7 +60,6 @@ while getopts ":i:o:t:mfd:g:h" opt; do
         g )
             path2gbks=$OPTARG
             ;;
-        
         h )
             usage
             exit 0
@@ -71,16 +86,21 @@ fi
 
 echo "$inFile"
 
-calculate_k_path="./tools/calculate_k.py"
-genes_distribution_path="./tools/genesDistribution.py"
-net_clug_path="./tools/netclu_ng.py"
-clus2json_path="./tools/clus2json.py"
+
+
+
 
 if [ -z "$outFile" ]; then
     outFile="$(echo "$(basename $inFile)" | sed 's/\.faa//').net" 
 fi
 k=$(python3 $calculate_k_path $inFile)
 echo "k = $k";
+
+
+echo "Checking input file"
+
+python3 "$faa_checker_path" "$inFile" "$k"
+
 
 mainCommand="./main -i $inFile -k $k -o $outFile"
 
@@ -119,7 +139,6 @@ grep "F{ " $tmp | sed s/F{\ //g | sed s/}//g | sed s/\ \;//g | sort | uniq > "$c
 if [ -n "$path2gbks" ]; then
     json="$outFile.json"
     python3 "$clus2json_path" "$path2gbks" "$clus" "$json" >> $tmp
-    rm $tmp
 else 
     echo "Missing gbk folder"
     echo "Missing gbk folder" >> $tmp
@@ -127,3 +146,5 @@ else
     usage >> $tmp
     exit 1
 fi
+
+rm $tmp
