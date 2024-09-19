@@ -13,19 +13,18 @@ wrongFile = False
 def check_sequences():
     seq = False
     last = ""
-    for line in ifile:
-        if seq:
-            if len(line.strip() < k):
-                wrongFile = True
-                print("Sequence too short")
-                print(last)
-                print(line)
-            seq = False
-        else:
-            seq = True
-            last = line
-
-
+    with open(ifile, "r") as file:
+        for line in file:
+            if seq:
+                if len(line.strip())< k:
+                    wrongFile = True
+                    print("Sequence too short")
+                    print(last)
+                    print(line)
+                seq = False
+            else:
+                seq = True
+                last = line
 
 
 

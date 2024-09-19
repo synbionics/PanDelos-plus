@@ -7,12 +7,11 @@ scripts_path="$wd/scripts/"
 echo "$wd"
 echo "$scripts_path"
 
-
-faa_checker_path="$scripts_path\faa_checker.py"
-calculate_k_path="$scripts_path\calculate_k.py"
-genes_distribution_path="$scripts_path\genesDistribution.py"
-net_clug_path="$scripts_path\netclu_ng.py"
-clus2json_path="$scripts_path\clus2json.py"
+faa_checker_path="${scripts_path}faa_checker.py"
+calculate_k_path="${scripts_path}calculate_k.py"
+genes_distribution_path="${scripts_path}genesDistribution.py"
+net_clug_path="${scripts_path}netclu_ng.py"
+clus2json_path="${scripts_path}clus2json.py"
 
 
 
