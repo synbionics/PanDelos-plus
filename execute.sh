@@ -117,7 +117,7 @@ fi
 echo "Executing main"
 
 
-mainCommand="./main -i $inFile -k $k -o $outFile"
+mainCommand="$sdir/./main -i $inFile -k $k -o $outFile"
 
 if [ -n "$threadNum" ]; then
     mainCommand+=" -t $threadNum"

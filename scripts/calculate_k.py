@@ -23,12 +23,13 @@ def main():
     totLength = 0
 
 
-    with open(file, 'r') as file:
-        for i, line in enumerate(file):
-            if i % 2 != 0:
-                totLength += len(line.strip())
-                for s in line.strip():
-                    alphabet.add(s)
+    i = 0
+    for line in open(file, "r"):
+        if i % 2 != 0:
+            totLength += len(line.strip())
+            for s in line.strip():
+                alphabet.add(s)
+        i+=1
     # Calcola il logaritmo base del numero totale di caratteri nel file
     result = math.floor(math.log(totLength, len(alphabet)))
     print(result)
