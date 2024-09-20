@@ -1,6 +1,5 @@
 #! bin/bash
 
-
 sdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 sdir=`dirname $sdir`
 
@@ -80,6 +79,8 @@ while getopts ":i:o:t:mfd:g:h" opt; do
 done
 
 
+date
+
 if [ -z "$inFile" ]; then
     echo "Missing input file"
     usage
@@ -113,6 +114,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
+echo "Executing main"
 
 
 mainCommand="./main -i $inFile -k $k -o $outFile"
@@ -145,7 +147,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-
+echo "Computing clusters"
 
 cat $tmp
 
@@ -163,7 +165,10 @@ clus="$outFile.clus"
 grep "F{ " $tmp | sed s/F{\ //g | sed s/}//g | sed s/\ \;//g | sort | uniq > "$clus"
 
 
+
 if [ -n "$path2gbks" ]; then
+    echo "Converting clusters to json"
+
     json="$outFile.json"
     python3 "$clus2json_path" "$path2gbks" "$clus" "$json" >> $tmp
     if [ $? -ne 0 ]; then
@@ -172,12 +177,13 @@ if [ -n "$path2gbks" ]; then
         exit 1
     fi
 else 
-    echo "Missing gbk folder"
-    echo "Missing gbk folder" >> $tmp
+    echo "Missing gbk folder unable to convert clusters to json"
+    echo "Missing gbk folder unable to convert clusters to json" >> $tmp
     usage
     usage >> $tmp
-    exit 1
 fi
 
 
 rm $tmp
+
+date
