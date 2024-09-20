@@ -1,11 +1,14 @@
 #! bin/bash
 
 
-wd="$(pwd)"
-scripts_path="$wd/scripts/"
+sdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+sdir=`dirname $sdir`
 
-echo "$wd"
-echo "$scripts_path"
+scripts_path="$sdir/scripts/"
+
+echo "Using scripts at path: $scripts_path"
+
+
 
 faa_checker_path="${scripts_path}faa_checker.py"
 calculate_k_path="${scripts_path}calculate_k.py"
@@ -88,17 +91,28 @@ echo "$inFile"
 
 
 
-
 if [ -z "$outFile" ]; then
     outFile="$(echo "$(basename $inFile)" | sed 's/\.faa//').net" 
 fi
+
 k=$(python3 $calculate_k_path $inFile)
+
+if [ $? -ne 0 ]; then
+    echo "Error running calculate_k.py"
+    exit 1
+fi
+
 echo "k = $k";
 
 
 echo "Checking input file"
 
 python3 "$faa_checker_path" "$inFile" "$k"
+if [ $? -ne 0 ]; then
+    echo "Error running faa_checker.py"
+    exit 1
+fi
+
 
 
 mainCommand="./main -i $inFile -k $k -o $outFile"
@@ -125,10 +139,24 @@ echo "$mainCommand" >> $tmp
 
 /usr/bin/time -f "time(seconds): %e user time(seconds): %U memory(KB): %M" $mainCommand > $tmp 2>&1
 
+if [ $? -ne 0 ]; then
+    echo "Error running main command"
+    cat $tmp
+    exit 1
+fi
+
+
+
 cat $tmp
 
 echo "" >> $tmp;
 python3 "$net_clug_path" "$inFile" "$outFile.net" >> $tmp
+
+if [ $? -ne 0 ]; then
+    echo "Error running netclu_ng.py"
+    cat $tmp
+    exit 1
+fi
 
 clus="$outFile.clus"
 
@@ -138,6 +166,11 @@ grep "F{ " $tmp | sed s/F{\ //g | sed s/}//g | sed s/\ \;//g | sort | uniq > "$c
 if [ -n "$path2gbks" ]; then
     json="$outFile.json"
     python3 "$clus2json_path" "$path2gbks" "$clus" "$json" >> $tmp
+    if [ $? -ne 0 ]; then
+        echo "Error running clus2json.py"
+        cat $tmp
+        exit 1
+    fi
 else 
     echo "Missing gbk folder"
     echo "Missing gbk folder" >> $tmp
@@ -145,5 +178,6 @@ else
     usage >> $tmp
     exit 1
 fi
+
 
 rm $tmp
