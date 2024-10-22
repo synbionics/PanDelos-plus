@@ -106,7 +106,7 @@ fi
 echo "k = $k";
 
 
-echo "Checking input file"
+echo "Checking input file (.faa)"
 
 python3 "$faa_checker_path" "$inFile" "$k"
 if [ $? -ne 0 ]; then
