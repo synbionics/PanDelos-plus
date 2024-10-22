@@ -1,5 +1,22 @@
 #! bin/bash
 
+sdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
+sdir=`dirname $sdir`
+
+scripts_path="$sdir/scripts/"
+
+echo "Using scripts at path: $scripts_path"
+
+
+
+faa_checker_path="${scripts_path}faa_checker.py"
+calculate_k_path="${scripts_path}calculate_k.py"
+genes_distribution_path="${scripts_path}genesDistribution.py"
+net_clug_path="${scripts_path}netclu_ng.py"
+clus2json_path="${scripts_path}clus2json.py"
+
+
+
 threadNum=""
 inFile=""
 outFile=""
@@ -44,7 +61,6 @@ while getopts ":i:o:t:mfd:g:h" opt; do
         g )
             path2gbks=$OPTARG
             ;;
-        
         h )
             usage
             exit 0
@@ -63,6 +79,8 @@ while getopts ":i:o:t:mfd:g:h" opt; do
 done
 
 
+date
+
 if [ -z "$inFile" ]; then
     echo "Missing input file"
     usage
@@ -71,18 +89,35 @@ fi
 
 echo "$inFile"
 
-calculate_k_path="./tools/calculate_k.py"
-genes_distribution_path="./tools/genesDistribution.py"
-net_clug_path="./tools/netclu_ng.py"
-# clus2json_path="./tools/clus2json.py"
+
+
 
 if [ -z "$outFile" ]; then
     outFile="$(echo "$(basename $inFile)" | sed 's/\.faa//').net" 
 fi
+
 k=$(python3 $calculate_k_path $inFile)
+
+if [ $? -ne 0 ]; then
+    echo "Error running calculate_k.py"
+    exit 1
+fi
+
 echo "k = $k";
 
-mainCommand="./main -i $inFile -k $k -o $outFile"
+
+echo "Checking input file (.faa)"
+
+python3 "$faa_checker_path" "$inFile" "$k"
+if [ $? -ne 0 ]; then
+    echo "Error running faa_checker.py"
+    exit 1
+fi
+
+echo "Executing main"
+
+
+mainCommand="$sdir/./main -i $inFile -k $k -o $outFile"
 
 if [ -n "$threadNum" ]; then
     mainCommand+=" -t $threadNum"
@@ -102,12 +137,28 @@ tmp="tmp.txt"
 echo "$mainCommand" >> $tmp
 
 # plot genes distribution
-python3 "$genes_distribution_path" "$inFile"
+# python3 "$genes_distribution_path" "$inFile"
 
 /usr/bin/time -f "time(seconds): %e user time(seconds): %U memory(KB): %M" $mainCommand > $tmp 2>&1
 
+if [ $? -ne 0 ]; then
+    echo "Error running main command"
+    cat $tmp
+    exit 1
+fi
+
+echo "Computing clusters"
+
+cat $tmp
+
 echo "" >> $tmp;
 python3 "$net_clug_path" "$inFile" "$outFile.net" >> $tmp
+
+if [ $? -ne 0 ]; then
+    echo "Error running netclu_ng.py"
+    cat $tmp
+    exit 1
+fi
 
 clus="$outFile.clus"
 
@@ -115,17 +166,24 @@ grep "F{ " $tmp | sed s/F{\ //g | sed s/}//g | sed s/\ \;//g | sort | uniq > "$c
 
 
 
-if [ -z "$path2gbks" ]; then
-    echo "Missing gbk folder"
-    echo "Missing gbk folder" >> $tmp
+if [ -n "$path2gbks" ]; then
+    echo "Converting clusters to json"
+
+    json="$outFile.json"
+    python3 "$clus2json_path" "$path2gbks" "$clus" "$json" >> $tmp
+    if [ $? -ne 0 ]; then
+        echo "Error running clus2json.py"
+        cat $tmp
+        exit 1
+    fi
+else 
+    echo "Missing gbk folder unable to convert clusters to json"
+    echo "Missing gbk folder unable to convert clusters to json" >> $tmp
     usage
     usage >> $tmp
-    exit1
 fi
 
 
-json="$outFile.json"
-python3 "$clus2json_path" "$path2gbks" "$clus" "$json" >> $tmp
-
-
 rm $tmp
+
+date

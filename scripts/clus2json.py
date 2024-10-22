@@ -92,20 +92,20 @@ def read_gbk(gbks):
 
 
 requiredFiles = dict()
-encodedOut = {}
+encodedOut = []
 
 with open(path2clus, "r") as clus:
     for line in clus.readlines():
         lineGenes = line.strip().split(" ")
         # print(lineGenes)
 
-        familyName = "family_" + lineGenes[0]
+        # familyName = "family_" + lineGenes[0]
         currentFamily = dict()
         
         for gene in lineGenes:
             if "family-name" not in currentFamily:
                 currentFamily["family-name"] = gene
-                currentFamily["genes"] = {}
+                currentFamily["genes"] = list()
             
             splittedGene = gene.strip().split(":")
 
@@ -114,27 +114,38 @@ with open(path2clus, "r") as clus:
             # print(splittedGene)
 
             requiredFiles[splittedGene[0]] = path2gbks + splittedGene[0] + ".gbk"
-            currentFamily["genes"][gene] = dict()
+            currentFamily["genes"].append(gene)
 
-        encodedOut[familyName] = currentFamily
+        # encodedOut[familyName] = currentFamily
+        encodedOut.append(currentFamily)
+
 
 # print(json.dump(requiredFiles))
-print(json.dumps(encodedOut, indent=4))
+# print(json.dumps(encodedOut, indent=4))
 
-print("Required files:", json.dumps(requiredFiles, indent=4))
+# print("Required files:", json.dumps(requiredFiles, indent=4))
 
 allGenes = read_gbk(requiredFiles)
-print("All genes:", allGenes)
+# print("All genes:", allGenes)
 
-print(json.dumps(allGenes, indent=4))
+# print(json.dumps(allGenes, indent=4))
+
+
+
 
 for family in encodedOut:
-    print(family)
-    print(encodedOut[family]["genes"])
-    for geneKey in encodedOut[family]["genes"]:
-        # print(geneKey)
+    # print(family)
+    # print(family["genes"])
 
-        encodedOut[family]["genes"][geneKey] = allGenes[geneKey]
+    genesTmp = list()
+    for geneKey in family["genes"]:
+        genesTmp.append(allGenes[geneKey])
+
+    family["genes"] = genesTmp
+    # for geneKey in encodedOut[family]["genes"]:
+    #     # print(geneKey)
+
+    #     encodedOut[family]["genes"][geneKey] = allGenes[geneKey]
 
 print("Writing to", outFilePath)
 with open(outFilePath, "w") as f:
