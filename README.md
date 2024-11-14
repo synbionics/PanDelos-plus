@@ -1,6 +1,6 @@
 # PanDelos-plus
 
-PanDelos-plus: a dictionary-based method for pan-genome content discovery
+PanDelos-plus: a parallel algorithm for computing sequence homology in pangenomic analysis
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT) [](#lang-en)
 
