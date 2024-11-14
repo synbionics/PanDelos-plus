@@ -293,6 +293,8 @@ PanDelos-plus is distributed under the MIT license. This means that it is free f
 
 ## Citation
 
+PanDelos-Plus will be presented at BBCC2024 -  the 19th annual edition of the conference, November 27-29, 2024, in Naples, Italy. <be>
+
 Original PanDelos software:
 
      Bonnici, V., Giugno, R., Manca, V.
