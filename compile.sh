@@ -1,12 +1,22 @@
 #!bin/bash
 
+echo "int main() { return 0; }" > test.cpp
+g++ -pthread test.cpp -o test_pthread 2>/dev/null
+if [ $? -eq 0 ]; then
+    PTHREAD_FLAG="-pthread"
+else
+    PTHREAD_FLAG="-lpthread"
+fi
+rm -f test.cpp test_pthread
+
+
 g++ -std=c++11 \
 -O1 \
 -fcrossjumping \
 -fcse-skip-blocks \
 -fdelete-null-pointer-checks \
 -fgcse \
--lpthread \
+${PTHREAD_FLAG} \
 -fipa-bit-cp  -fipa-cp  -fipa-icf \
 -fipa-ra  -fipa-sra  -fipa-vrp \
 -fisolate-erroneous-paths-dereference \
