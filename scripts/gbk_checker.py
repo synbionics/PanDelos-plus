@@ -16,6 +16,7 @@ def read_gbk(ifile, genome_id):
         has_source = False
         has_cds = False
         has_translation = False
+        has_locus = False
 
         for feature in record.features:
             if feature.type == 'source':
@@ -24,6 +25,9 @@ def read_gbk(ifile, genome_id):
                 has_cds = True
                 if 'translation' in feature.qualifiers:
                     has_translation = True
+                    
+                if 'locus_tag' in feature.qualifiers: #error not detected
+                    has_locus = True
 
         if not has_source:
             raise Exception("'source' feature not found")
@@ -31,6 +35,8 @@ def read_gbk(ifile, genome_id):
             raise Exception("'CDS' feature not found")
         if not has_translation:
             raise Exception("'translation' feature.qualifier not found")
+        if not has_locus:
+            raise Exception("'locus_tag' not found")
 
 
 idir = sys.argv[1]
@@ -42,7 +48,7 @@ print(f"Files found: {gbkfiles}")
 try:
     for gbk in gbkfiles:
         print(f"Processing file: {gbk}")
-        read_gbk(idir + gbk, re.sub('\.gbk$', '', gbk))
+        read_gbk(idir + gbk, re.sub(r'\.gbk$', '', gbk))
     print("All files processed successfully")
 except Exception as e:
     print(f"Error processing a gbk file: {e}")

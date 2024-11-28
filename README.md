@@ -117,6 +117,43 @@ The execution of PanDelos-plus produces 2 output files named `[prefix_input_file
 
 <br><br>
 
+## Quick Start User Guide
+
+1. Follow installation steps using docker
+2. Create a folder inside the `input` folder. `gbff_input` in this case.
+3. Put `.gbff` inside `input/gbff_input` folder.
+4. Run `gbff2gbk.py` script to convert `.gbff` to `.gbk`
+5. Run `gbk_checker.py` check `.gbk` files
+6. Run `gbk2ig.py` script to generate input file
+7. Run start the analysis using the `execute.sh` script
+
+### Overview of the commands
+
+After the installation with docker
+
+```bash
+mkdir -r input/gbff_input
+```
+
+Put your `.gbff` files inside
+
+```bash
+python3 scripts/gbff2gbk.py input/gbff_input/ input/gbff_input/
+python3 scripts/gbk_checker.py input/gbff_input/
+```
+
+> You can face some errors like `Error processing a gbk file: 'locus_tag' not found`, in this case the genome can't be processed, so it must be removed from the dataset.
+
+```bash
+python3 examples/gbk2ig.py input/gbff_input/ input/input.faa
+```
+
+```bash
+bash execute.sh -i input/input.faa -o output/out -g input/gbff_input/
+```
+
+At the end you will found inside the output folder `.json` and `.clus` file containing computed gene families
+
 ## Docker installation
 
 We decided to prepare a docker container to make the usage of the tool easier.
@@ -147,8 +184,8 @@ mkdir output
 ```
 
 ```bash
-chmod 766 input
-chmod 766 output
+chmod 777 input
+chmod 777 output
 ```
 
 **Important**
@@ -167,7 +204,7 @@ docker compose build --no-cache
 To run the container
 
 ```bash
-docker compose run pandelosplus
+docker compose run pandelosplus --remove-orphans
 ```
 
 ### Usage
@@ -328,6 +365,8 @@ This repository has a folder (`tools`) that contains a set of tools concatenated
 -   `netclu_ng_plot.py`, that takes (in this order) `path_to_file.faa` file and the respective `path_to_file.net` calculated by cpp software, and generate `.clus` and a `.pdf` file
 -   `clus2json.py` that takes a `path_to_file.clus` and generate a `.json` file.
 -   `genesDistributions.py` that takes `path_to_file.faa` and generate a bar plot with the distribution of genes for each genome (`file.png`).
+-   `gbk_checker.py` that check if `.gbk` files are accepted.
+-   `gbff2gbk.py` that convert `.gbff` to `.gbk` files.
 
 ### Installation
 
