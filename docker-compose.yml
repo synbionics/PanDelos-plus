@@ -1,0 +1,11 @@
+services:
+    pandelosplus:
+        hostname: pandelosplus
+        container_name: pandelosplus
+        image: pandelosplus
+        build:
+            context: .
+            dockerfile: Dockerfile
+        volumes:
+            - ./input:/home/pdp/workdir/input
+            - ./output:/home/pdp/workdir/output
