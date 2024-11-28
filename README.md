@@ -117,9 +117,87 @@ The execution of PanDelos-plus produces 2 output files named `[prefix_input_file
 
 <br><br>
 
-## Installation
+## Docker installation
+
+We decided to prepare a docker container to make the usage of the tool easier.
 
 ### System requirements
+
+To create and run the container make sure to have installed the following packages:
+
+-   [Docker](https://docs.docker.com/engine/install/).
+-   [Docker Compose](https://docs.docker.com/compose/install/).
+
+If you what to check the installation of this packages you can run:
+
+```bash
+docker --version
+docker compose version
+```
+
+### Directory setup
+
+To share data with the container you have to create 2 folders, one the input, one for the outputs.
+
+If you are on linux you can use this command
+
+```bash
+mkdir input
+mkdir output
+```
+
+```bash
+chmod 766 input
+chmod 766 output
+```
+
+**Important**
+Share folders must have r/w permissions set all users
+
+### Container build & run
+
+You can build the container using
+
+```bash
+docker compose build --no-cache
+```
+
+> Note that `docker compose` command may raise some errors so try also with `docker-compose`
+
+To run the container
+
+```bash
+docker compose run pandelosplus
+```
+
+### Usage
+
+If you are inside the container you can run the analysis as described in the following section pay attentions to input and output paths:
+
+```bash
+bash execute.sh -i <input/input_filename.faa> -o <output/filename>
+```
+
+#### Example of execution
+
+The input folder contains a file called `salmonella.faa` and output folder is empty so you can run the analysis as follow
+
+```bash
+bash execute.sh -i <input/salmonella.faa> -o <output/salmonella>
+```
+
+The output folder will contains 2 file:
+
+-   `salmonella.net`
+-   `salmonella.clus`
+
+<br><br>
+
+## Local installation
+
+### System requirements
+
+> We suggest to run the pipeline on a linux based machine.
 
 PanDelos-plus can run on any operating system where Bash, Python3 (or higher), C++11 and [GCC](https://gcc.gnu.org) are installed.
 
@@ -293,7 +371,7 @@ PanDelos-plus is distributed under the MIT license. This means that it is free f
 
 ## Citation
 
-PanDelos-Plus will be presented at BBCC2024 -  the 19th annual edition of the conference, November 27-29, 2024, in Naples, Italy. <be>
+PanDelos-Plus will be presented at BBCC2024 - the 19th annual edition of the conference, November 27-29, 2024, in Naples, Italy. <be>
 
 Original PanDelos software:
 
