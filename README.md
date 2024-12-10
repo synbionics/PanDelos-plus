@@ -54,7 +54,7 @@ This file must have a "2 line pattern" where:
 - The second line consists of the complete gene sequence in FASTA amino acid format reported in a single line.
 
 **_IMPORTANT_**
-No black lines are admitted in the entire file.
+No blank lines are admitted in the entire file.
 
 Example of valid file composed of 5 genes grouped in 2 genomes
 
@@ -81,7 +81,7 @@ This file must have a "2 line pattern" where:
 - The second line consists of the complete gene sequence in FASTA amino acid format reported in a single line.
 
 **_IMPORTANT_**
-No black lines are admitted in the entire file.
+No blank lines are admitted in the entire file.
 
 Example of valid file composed of 5 genes grouped in 2 genomes for fragmented genes
 
