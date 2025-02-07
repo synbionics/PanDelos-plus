@@ -508,8 +508,11 @@ namespace homology {
                     gene_tr rowGene = rowGenes[row];
                     for(index_t col = 0; col < colGenes.size(); ++col) {
                         score_t currentScore = calculateSimilarity(rowGene, colGenes[col]);
+                        currentScore = currentScore >= shared::cut ? currentScore : 0;
                         scores.setScoreAt(row, col, currentScore);
-                        bestRows.addCandidate(row, currentScore, col);
+                        if (currentScore > 0) {
+                            bestRows.addCandidate(row, currentScore, col);
+                        }
                     }
                 }
             );
