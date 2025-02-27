@@ -184,7 +184,7 @@ namespace homology {
          * @param fileName The name of the output file.
          * @param threadNumber The number of threads to use.
          */
-        inline explicit FragHomology(k_t k, std::string fileName, ushort threadNumber);
+        inline explicit FragHomology(k_t k, std::string fileName, ushort threadNumber, bool sensibilityParameter);
 
 
         /**
@@ -192,7 +192,7 @@ namespace homology {
          * @param k The length of kmers.
          * @param fileName The name of the output file.
          */
-        inline explicit FragHomology(k_t k, std::string fileName);
+        inline explicit FragHomology(k_t k, std::string fileName, bool sensibilityParameter);
 
         FragHomology(const FragHomology&) = delete;
         FragHomology operator=(const FragHomology&) = delete;
@@ -217,10 +217,17 @@ namespace homology {
         inline void calculateBidirectionalBestHit(genome::FragGenomesContainer& g, bool mode);
     };
     inline
-        FragHomology::FragHomology(k_t k, std::string fileName, ushort threadNumber)
-        : k_(k), similarityMinVal_(1.0 / (k * 2)) {
+        FragHomology::FragHomology(k_t k, std::string fileName, ushort threadNumber, bool sensibilityParameter)
+        : k_(k) {
         if (k <= 0)
             throw std::runtime_error("k <= 0");
+
+        if (sensibilityParameter) {
+            similarityMinVal_ = (2.0 / k);
+        }
+        else {
+            similarityMinVal_ = 1.0 / (k * 2.0);
+        }
         pool_ = new thread_pt(threadNumber);
         pool_->start();
         fw = new utilities::FileWriter("", fileName, ".net", false);
@@ -228,10 +235,16 @@ namespace homology {
     }
 
     inline
-        FragHomology::FragHomology(k_t k, std::string fileName)
-        : k_(k), similarityMinVal_(1.0 / (k * 2)) {
+        FragHomology::FragHomology(k_t k, std::string fileName, bool sensibilityParameter)
+        : k_(k) {
         if (k <= 0)
             throw std::runtime_error("k <= 0");
+        if (sensibilityParameter) {
+            similarityMinVal_ = (2.0 / k);
+        }
+        else {
+            similarityMinVal_ = 1.0 / (k * 2.0);
+        }
         pool_ = new thread_pt();
         pool_->start();
         fw = new utilities::FileWriter("", fileName, ".net", false);
@@ -307,18 +320,21 @@ namespace homology {
             }
         }
 
+        // getMultiplicityNumber() returns the number of all possible kmers. it is computed during the construction of the kmer container
+        index_t shortestMultiplityNumber = shortestContainer.getMultiplicityNumber();
+        index_t longestMultiplityNumber = longestContainer.getMultiplicityNumber();
 
         return
             (
                 (
-                    ((1.0 * currentShortestMultiplicity) / (shortestContainer.getAlphabetLength() - k_ + 1)) < similarityMinVal_
+                    ((1.0 * num) / shortestMultiplityNumber) < similarityMinVal_
                     ) ||
                 (
-                    ((1.0 * currentLongestMultiplicity) / (longestContainer.getAlphabetLength() - k_ + 1)) < similarityMinVal_
+                    ((1.0 * num) / longestMultiplityNumber) < similarityMinVal_
                     )
                 ) ?
             0 : (
-                1.0 * num / (den + ((shortestContainer.getMultiplicityNumber() - currentShortestMultiplicity) + (longestContainer.getMultiplicityNumber() - currentLongestMultiplicity)))
+                1.0 * num / (den + ((shortestMultiplityNumber - currentShortestMultiplicity) + (longestMultiplityNumber - currentLongestMultiplicity)))
                 );
     }
 
@@ -532,7 +548,7 @@ namespace homology {
             ScoresContainer& scores
         ) {
 
-        score_t sharedMin = 2;
+        score_t sharedMin = 1;
         std::mutex minMutex;
 
         auto& poolRef = *pool_;

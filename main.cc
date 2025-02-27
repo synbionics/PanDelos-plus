@@ -57,7 +57,8 @@ void printHelp() {
         << "-t to indicate the number of threads\n"
         << "-m to activate specific mode with lower RAM cost (0 default)\n"
         << "-d to select a discard value (0 <= d <= 1) for similarity computation (0.5 default, a grater value implies a more aggressive discard)\n"
-        << "-f for fragmented genes\n";
+        << "-f for fragmented genes\n"
+        << "-p to enable a stronger threshold (sensibility parameter)\n";
 #endif
 }
 /**
@@ -75,9 +76,10 @@ void printHelp() {
  * @param mode Reference to a boolean to indicate a specific mode.
  * @param discard Reference to a float to indicate a discard value during similarity computation.
 */
-void parser(int argc, char* argv[], int& k, std::string& inFile, std::string& outFile, ushort& threadNum, bool& mode, float& discard, bool& frags) {
+void
+parser(int argc, char* argv[], int& k, std::string& inFile, std::string& outFile, ushort& threadNum, bool& mode, float& discard, bool& frags, bool& sensibilityParameter) {
     int option;
-    while ((option = getopt(argc, argv, "d:i:o:k:t:hmf")) != -1) {
+    while ((option = getopt(argc, argv, "d:i:o:k:t:hmfp")) != -1) {
         switch (option) {
         case 'i':
             inFile = optarg;
@@ -105,6 +107,9 @@ void parser(int argc, char* argv[], int& k, std::string& inFile, std::string& ou
             break;
         case 'f':
             frags = true;
+            break;
+        case 'p':
+            sensibilityParameter = true;
             break;
         case 'h':
             printTitle();
@@ -135,7 +140,8 @@ int main(int argc, char* argv[]) {
     bool mode = false;
     float discard = 0.5;
     bool frags = false;
-    parser(argc, argv, k, inFile, outFile, threadNum, mode, discard, frags);
+    bool sensibilityParameter = false;
+    parser(argc, argv, k, inFile, outFile, threadNum, mode, discard, frags, sensibilityParameter);
 
 #ifndef DEV_MODE
     std::cerr << "\nDiscard value: " << discard;
@@ -145,7 +151,7 @@ int main(int argc, char* argv[]) {
     std::cerr << "\nThread number: " << threadNum;
     std::cerr << "\nK: " << k;
     std::cerr << "\nFrags: " << frags;
-
+    std::cerr << "\nSensibility paramenter: " << sensibilityParameter;
 #else
     std::cout << "\nDiscard value: " << discard;
     std::cout << "\nInput File: " << inFile;
@@ -154,6 +160,7 @@ int main(int argc, char* argv[]) {
     std::cout << "\nThread number: " << threadNum;
     std::cout << "\nK: " << k;
     std::cout << "\nFrags: " << frags;
+    std::cerr << "\nSensibility paramenter: " << frags;
 #endif
 
     if (inFile == "" || outFile == "" || k == 0) {
@@ -170,11 +177,11 @@ int main(int argc, char* argv[]) {
         //     g->print(std::cerr);
         // }
         if (threadNum == 0 || threadNum > std::thread::hardware_concurrency()) {
-            FragHomology hd(k, outFile);
+            FragHomology hd(k, outFile, sensibilityParameter);
             hd.calculateBidirectionalBestHit(gh, mode);
         }
         else {
-            FragHomology hd(k, outFile, threadNum);
+            FragHomology hd(k, outFile, threadNum, sensibilityParameter);
             hd.calculateBidirectionalBestHit(gh, mode);
         }
 
@@ -191,11 +198,11 @@ int main(int argc, char* argv[]) {
         // }
 
         if (threadNum == 0 || threadNum > std::thread::hardware_concurrency()) {
-            Homology hd(k, outFile);
+            Homology hd(k, outFile, sensibilityParameter);
             hd.calculateBidirectionalBestHit(gh, mode);
         }
         else {
-            Homology hd(k, outFile, threadNum);
+            Homology hd(k, outFile, threadNum, sensibilityParameter);
             hd.calculateBidirectionalBestHit(gh, mode);
         }
     }

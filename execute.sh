@@ -24,6 +24,7 @@ mode=""
 frags=""
 discard=""
 path2gbks=""
+similarityParameter=""
 
 function usage() {
     echo "Usage: $0 [-i input_file] [-o output_file] [-t thread_num] [-m] [-d discard_value] [-g path to gbks][-h]"
@@ -35,10 +36,11 @@ function usage() {
     echo "  -d: Discard value (0 <= d <= 1, default 0.5)"
     echo "  -g: Path to gbk folder"
     echo "  -f: For fragmented genes"
+    echo "  -p: For a stronger threshold (similarity parameter)"
     echo "  -h: Display this help message"
 }
 
-while getopts ":i:o:t:mfd:g:h" opt; do
+while getopts ":i:o:t:mfpd:g:h" opt; do
     case ${opt} in
         i )
             inFile=$OPTARG
@@ -60,6 +62,9 @@ while getopts ":i:o:t:mfd:g:h" opt; do
             ;;
         g )
             path2gbks=$OPTARG
+            ;;
+        p) 
+            similarityParameter="1"
             ;;
         h )
             usage
@@ -128,6 +133,9 @@ fi
 if [ -n "$frags" ]; then
     mainCommand+=" -f"
 fi
+if [ -n "$similarityParameter" ]; then
+    mainCommand+=" -p"
+fi
 if [ -n "$discard" ]; then
     mainCommand+=" -d $discard"
 fi
@@ -177,10 +185,11 @@ if [ -n "$path2gbks" ]; then
         exit 1
     fi
 else 
+    
     echo "Missing gbk folder unable to convert clusters to json"
-    echo "Missing gbk folder unable to convert clusters to json" >> $tmp
-    usage
-    usage >> $tmp
+    # echo "Missing gbk folder unable to convert clusters to json" >> $tmp
+    # usage
+    # usage >> $tmp
 fi
 
 

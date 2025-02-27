@@ -20,7 +20,7 @@ bash execute.sh -i <path_to_input_file.faa>
 Custom usage (`bash execute.sh -h`)
 
 ```bash
-Usage: execute.sh [-i input_file] [-o output_file] [-t thread_num] [-m] [-d discard_value] [-g path to gbks][-h]
+Usage: execute.sh [-i input_file] [-o output_file] [-t thread_num] [-m] [-d discard_value] [-g path to gbks] [-h] [-p]
 Options:
   -i: Input file path
   -o: Output file path
@@ -30,6 +30,7 @@ Options:
   -h: Display this help message
   -g: Path to gbk files folder
   -f: for fragmented genes\n
+  -p: For a stronger threshold (similarity parameter)
 ```
 
 **_IMPORTANT_**
@@ -50,8 +51,8 @@ PanDelos-plus takes as input a complete set of gene sequences stored in a `.faa`
 
 This file must have a "2 line pattern" where:
 
-- The first line represents the identification line, composed of 3 parts (genome identifier, the gene identifier and the gene product) separated by a **tabulation** character.
-- The second line consists of the complete gene sequence in FASTA amino acid format reported in a single line.
+-   The first line represents the identification line, composed of 3 parts (genome identifier, the gene identifier and the gene product) separated by a **tabulation** character.
+-   The second line consists of the complete gene sequence in FASTA amino acid format reported in a single line.
 
 **_IMPORTANT_**
 No blank lines are admitted in the entire file.
@@ -77,8 +78,8 @@ PanDelos-plus takes as input a complete set of gene sequences stored in a `.faa`
 
 This file must have a "2 line pattern" where:
 
-- The first line represents the identification line, composed of 4 parts (genome identifier, the gene identifier, the gene product and the number of inferred characters) separated by a **tabulation** character.
-- The second line consists of the complete gene sequence in FASTA amino acid format reported in a single line.
+-   The first line represents the identification line, composed of 4 parts (genome identifier, the gene identifier, the gene product and the number of inferred characters) separated by a **tabulation** character.
+-   The second line consists of the complete gene sequence in FASTA amino acid format reported in a single line.
 
 **_IMPORTANT_**
 No blank lines are admitted in the entire file.
@@ -361,7 +362,7 @@ basename
 This repository has a folder (`tools`) that contains a set of tools concatenated by `execute.sh` script. Current tools are:
 
 -   `calculate_k.py` used to calculate kmers length given a `path_to_file.faa` file.
-- `netclu_ng.py`, which takes (in this order) the `path_to_file.faa` file and the respective `path_to_file.net` calculated by cpp software, and generates `.clus`.
+-   `netclu_ng.py`, which takes (in this order) the `path_to_file.faa` file and the respective `path_to_file.net` calculated by cpp software, and generates `.clus`.
 -   `netclu_ng_plot.py`, that takes (in this order) `path_to_file.faa` file and the respective `path_to_file.net` calculated by cpp software, and generate `.clus` and a `.pdf` file
 -   `clus2json.py` that takes a `path_to_file.clus` and generates a `.json` file.
 -   `genesDistributions.py` that takes `path_to_file.faa` and generates a bar plot with the distribution of genes for each genome (`file.png`).
