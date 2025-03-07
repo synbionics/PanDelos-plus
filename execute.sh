@@ -157,7 +157,7 @@ fi
 
 echo "Computing clusters"
 
-cat $tmp
+# cat $tmp
 
 echo "" >> $tmp;
 python3 "$net_clug_path" "$inFile" "$outFile.net" >> $tmp
@@ -181,18 +181,17 @@ if [ -n "$path2gbks" ]; then
     python3 "$clus2json_path" "$path2gbks" "$clus" "$json" >> $tmp
     if [ $? -ne 0 ]; then
         echo "Error running clus2json.py"
-        cat $tmp
+        #cat $tmp
         exit 1
     fi
 else 
-    
     echo "Missing gbk folder unable to convert clusters to json"
     # echo "Missing gbk folder unable to convert clusters to json" >> $tmp
     # usage
     # usage >> $tmp
 fi
 
-
+rm "$outFile.net"
 rm $tmp
 
 date
