@@ -454,9 +454,55 @@ Options:
 
 ### Discard value
 
+The discard value (`-d`) is a threshold that is used to decide whether to compare two genes.
+This type of decision is made based on the length of the genes.
+
+```faa
+NC_000913	NC_000913:NC_000913.3:b0001:1	thr operon leader peptide
+MKRISTTITTTITITTGNGAG
+NC_000913	NC_000913:NC_000913.3:b0018:1	regulatory protein MokC
+MLNTCRVPLTDRKVKEKRAMKQHKAMIVALIVICITAVVAALVTRKDLCEVHIRTGQTEVAVFTAYESE
+```
+
+In the case of this pair the gene identified by `NC_000913:NC_000913.3:b0001:1` has a length equal to $69$ and the other has length equal to $21$ so a discard greater than $0.2$ will skip this comparison
+
 ### Fragmented genes
 
+PanDelos-plus can handle fragmented genes. To use this feature the input file must be formatted as described in the following lines.
+
+This file must have a "2 line pattern" where:
+
+-   The first line represents the identification line, composed of 4 parts (genome identifier, the gene identifier, the gene product and the number of inferred characters) separated by a **tabulation** character.
+-   The second line consists of the complete gene sequence in FASTA amino acid format reported in a single line.
+
+**_IMPORTANT_**
+No blank lines are admitted in the entire file.
+
+Example of valid file composed of 5 genes grouped in 2 genomes for fragmented genes
+
+```faa
+NC_000913	NC_000913:NC_000913.3:b0001:1	thr operon leader peptide   5
+MKRISTTITTTITITTGNGAG
+NC_000913	NC_000913:NC_000913.3:b0005:1	DUF2502 domain-containing protein YaaX  20
+MKKMQSIVLALSLVLVAPMAAQAAEITLVPSVKLQIGDRDNRGYYWDGGHWRDHGWWKQHYEWRGNRWHLHGPPPPPRHHKKAPHDHHGGHGPGKHHR
+NC_000913	NC_000913:NC_000913.3:b0018:1	regulatory protein MokC   30
+MLNTCRVPLTDRKVKEKRAMKQHKAMIVALIVICITAVVAALVTRKDLCEVHIRTGQTEVAVFTAYESE
+NC_007946	NC_007946:NC_007946.1:UTI89_RS06140:1	DUF1382 family protein  10
+MHKASPVELRTSIDLAHSLAQIGVRFVPIPAETDEEFHTLATSLSQKLEMMVAKAEADERDQV
+NC_007946	NC_007946:NC_007946.1:UTI89_RS06145:1	DUF1317 domain-containing protein   5
+MTHPHDNIRVGAITFVYSVTKRGWVFHGLSVIRNPLKAQRLAEEINNKRGAVCTKHLLLS
+```
+
+**_IMPORTANT_**
+Make sure that gene identifiers are unique within the input file. A suggested format to build unique gene identifier is `genome_identifier:gene_identifier:unque_integer`.
+
 ### Similarity parameter
+
+The similarity parameter (`-p`) is a threshold that is used to decide whether keep or discard a value obtained from the comparison of two genes.
+This type of decision is made on the similarity of the two genes, if the similarity is greater than an specific value, the computed value is kept.
+Otherwise, it is discarded.
+
+Using the `-p` flag you will use an higher threshold to make the decision, so more values will not be considered.
 
 ## License
 
