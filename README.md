@@ -221,6 +221,13 @@ The output file will contain the gene families computed by the pipeline.
 
 ## Advanced usage
 
+**Important**
+If you installed pandeslos-plus with docker you must enter inside the container to execute the following steps.
+
+```bash
+docker compose run pandelosplus bash
+```
+
 ### Using gbff files as input
 
 You can generate an input file from a set of `.gbff` files following these steps:
