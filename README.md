@@ -99,10 +99,10 @@ bash compile.sh
 ### Usage
 
 ```bash
-bash execute.sh -i files/faa/mycoplasma5.faa -o mycoplasma5
+bash execute.sh -i files/faa/mycoplasma5.pdi -o mycoplasma5
 ```
 
-This script will run the PanDelos-plus pipeline on the input file `files/faa/mycoplasma5.faa` and save the output in the `mycoplasma5.clus` file.
+This script will run the PanDelos-plus pipeline on the input file `files/faa/mycoplasma5.pdi` and save the output in the `mycoplasma5.clus` file.
 The output file will contain the gene families computed by the pipeline.
 
 ## Use with docker
@@ -151,24 +151,24 @@ Check that the input and output folders are writable by the user running the doc
 Copy file inside the input folder:
 
 ```bash
-cp files/faa/mycoplasma5.faa input/mycoplasma5.faa
+cp files/faa/mycoplasma5.pdi input/mycoplasma5.pdi
 ```
 
 Run the pipeline:
 
 ```bash
-docker compose run pandelosplus bash execute.sh -i input/mycoplasma5.faa -o output/mycoplasma5
+docker compose run pandelosplus bash execute.sh -i input/mycoplasma5.pdi -o output/mycoplasma5
 ```
 
 > Note that `docker compose` command may raise some errors so try also with `docker-compose`
 
-This script will run the PanDelos-plus pipeline inside the docker on the input file `input/mycoplasma5.faa` and save the output in the `output/mycoplasma5.clus` file.
+This script will run the PanDelos-plus pipeline inside the docker on the input file `input/mycoplasma5.pdi` and save the output in the `output/mycoplasma5.clus` file.
 
 The output file will contain the gene families computed by the pipeline.
 
 ## Run with a custom file
 
-PanDelos-plus takes as input a complete set of gene sequences stored in a `.faa` text file belonging to any of the studied genomes.
+PanDelos-plus takes as input a complete set of gene sequences stored in a `.pdi` text file belonging to any of the studied genomes.
 
 This file must have a "2 line pattern" where:
 
@@ -198,25 +198,25 @@ Make sure that gene identifiers are unique within the input file. A suggested fo
 
 ### Local execution with custom file
 
-After you have prepared your input file (supposing it is named as `input.faa`), you can run the pipeline as follows:
+After you have prepared your input file (supposing it is named as `input.pdi`), you can run the pipeline as follows:
 
 ```bash
-bash execute.sh -i input.faa -o output
+bash execute.sh -i input.pdi -o output
 ```
 
 The output file will contain the gene families computed by the pipeline.
 
 ### Docker execution with custom file
 
-After you have prepared your input file (supposing it is in the `input` folder and is named `custom.faa`), you can run the pipeline as follows:
+After you have prepared your input file (supposing it is in the `input` folder and is named `custom.pdi`), you can run the pipeline as follows:
 
 Run the pipeline:
 
 ```bash
-docker compose run pandelosplus bash execute.sh -i input/custom.faa -o output/custom
+docker compose run pandelosplus bash execute.sh -i input/custom.pdi -o output/custom
 ```
 
-This script will run the PanDelos-plus pipeline inside the docker on the input file `input/custom.faa` and save the output in the `output/custom.clus` file.
+This script will run the PanDelos-plus pipeline inside the docker on the input file `input/custom.pdi` and save the output in the `output/custom.clus` file.
 The output file will contain the gene families computed by the pipeline.
 
 ## Advanced usage
@@ -248,7 +248,7 @@ You can generate an input file from a set of `.gbff` files following these steps
     ```
 6.  Run the following command to generate the input file:
     ```bash
-    python3 scripts/gbk2ig.py <path_to_input_folder> <path_to_output_file>
+    python3 scripts/gbk2ig.py <path_to_input_folder> <path_to_output_file>.pdi
     ```
 7.  Now you can use the input file as usual, or you can add `-g <path_to_folder_with_gbk_files>` flag to the execution command to generate a json file in addition to the output file.
 
@@ -302,7 +302,7 @@ All files processed successfully
 Step 6:
 
 ```bash
-python3 scripts/gbk2ig.py gbk_files/ custom.faa
+python3 scripts/gbk2ig.py gbk_files/ custom.pdi
 ```
 
 You will get this output:
@@ -318,22 +318,22 @@ GCA_000006945.2.gbk
 GCA_000006945.2
 	GCA_000006945.2	AE006468.2
 	GCA_000006945.2	AE006471.2
-writing to custom.faa
+writing to custom.pdi
 ```
 
 Step 7:
 
 ```bash
-bash execute.sh -i custom.faa -o custom -g gbk_files/
+bash execute.sh -i custom.pdi -o custom -g gbk_files/
 ```
 
 You will get this output:
 
 ```bash
 ven 7 mar 2025, 16:09:59, CET
-custom.faa
+custom.pdi
 k = 4
-Checking input file (.faa)
+Checking input file (.pdi)
 Executing main
 Computing clusters
 Converting clusters to json

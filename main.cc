@@ -42,7 +42,7 @@ void printTitle() {
 void printHelp() {
 #ifdef DEV_MODE
     std::cerr << "Utilizzo:\n"
-        << "-i per selezionare il file di input (path_to_file/file.faa\n"
+        << "-i per selezionare il file di input (path_to_file/file.pdi\n"
         << "-o per indicare il path/file di output\n"
         << "-k per indicare la dimensione dei kmers (1 default)\n"
         << "-t per indicare il numero di thread\n"
@@ -51,7 +51,7 @@ void printHelp() {
     << "-f per i geni frammentanti\n";
 #else
     std::cout << "Usage:\n"
-        << "-i to select the input file (path_to_file/file.faa)\n"
+        << "-i to select the input file (path_to_file/file.pdi)\n"
         << "-o to specify the file for output(path_to_file/file_name.extension)\n"
         << "-k to indicate the size of kmers\n"
         << "-t to indicate the number of threads\n"

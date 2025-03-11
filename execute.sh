@@ -98,7 +98,7 @@ echo "$inFile"
 
 
 if [ -z "$outFile" ]; then
-    outFile="$(echo "$(basename $inFile)" | sed 's/\.faa//').net" 
+    outFile="$(echo "$(basename $inFile)" | sed 's/\.pdi//').net" 
 fi
 
 k=$(python3 $calculate_k_path $inFile)
@@ -111,7 +111,7 @@ fi
 echo "k = $k";
 
 
-echo "Checking input file (.faa)"
+echo "Checking input file (.pdi)"
 
 python3 "$faa_checker_path" "$inFile" "$k"
 if [ $? -ne 0 ]; then
@@ -185,7 +185,7 @@ if [ -n "$path2gbks" ]; then
         exit 1
     fi
 else 
-    echo "Missing gbk folder unable to convert clusters to json"
+    # echo "Missing gbk folder unable to convert clusters to json"
     # echo "Missing gbk folder unable to convert clusters to json" >> $tmp
     # usage
     # usage >> $tmp

@@ -7,5 +7,5 @@ services:
             context: .
             dockerfile: Dockerfile
         volumes:
-            - ./input:/home/pdp/workdir/input
-            - ./output:/home/pdp/workdir/output
+            - ./input:/home/pdp/PanDelos-plus/input
+            - ./output:/home/pdp/PanDelos-plus/output

@@ -1,17 +1,17 @@
 -> {0,2471.91,1125348,1,0}
 -> {1,2120.16,813392,1,0}
-../main -i ./escherichia20/escherichia20.faa -k 5 -o ./escherichia20/nets/escherichia20_2 -t 2
+../main -i ./escherichia20/escherichia20.pdi -k 5 -o ./escherichia20/nets/escherichia20_2 -t 2
 -> {0,1280.72,1124804,2,0}
 -> {1,1218.43,701292,2,0}
-../main -i ./escherichia20/escherichia20.faa -k 5 -o ./escherichia20/nets/escherichia20_4 -t 4
+../main -i ./escherichia20/escherichia20.pdi -k 5 -o ./escherichia20/nets/escherichia20_4 -t 4
 -> {0,688.98,1117904,4,0}
 -> {1,670.82,813140,4,0}
-../main -i ./escherichia20/escherichia20.faa -k 5 -o ./escherichia20/nets/escherichia20_8 -t 8
+../main -i ./escherichia20/escherichia20.pdi -k 5 -o ./escherichia20/nets/escherichia20_8 -t 8
 -> {0,398.71,1115720,8,0}
 -> {1,456.20,808476,8,0}
-../main -i ./escherichia20/escherichia20.faa -k 5 -o ./escherichia20/nets/escherichia20_16 -t 16
+../main -i ./escherichia20/escherichia20.pdi -k 5 -o ./escherichia20/nets/escherichia20_16 -t 16
 -> {0,228.91,1116420,16,0}
 -> {1,317.61,808580,16,0}
-../main -i ./escherichia20/escherichia20.faa -k 5 -o ./escherichia20/nets/escherichia20_32 -t 32
+../main -i ./escherichia20/escherichia20.pdi -k 5 -o ./escherichia20/nets/escherichia20_32 -t 32
 -> {0,151.02,1092444,32,0}
 -> {1,241.09,808636,32,0}
