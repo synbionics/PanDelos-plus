@@ -39,13 +39,17 @@ PanDelos-plus implements a dictionary-based method for pan-genome content discov
 
 ## Use on your local machine
 
+**Important**
+
 Make sure to have git installed on your machine.
 
-If you don't have git installed, you can install it with the following command:
+If you don't have git installed, you can install it with the following command on Ubuntu machine:
 
 ```bash
 sudo apt-get install git
 ```
+
+> If you don't have an ubuntu machine you can follow the instruction on the [Git website](https://git-scm.com/downloads).
 
 Tool installation:
 
@@ -107,13 +111,15 @@ The output file will contain the gene families computed by the pipeline.
 
 ## Use with docker
 
-Make sure to have git installed on your machine.
+sure to have git installed on your machine.
 
-If you don't have git installed, you can install it with the following command:
+If you don't have git installed, you can install it with the following command on Ubuntu machine:
 
 ```bash
 sudo apt-get install git
 ```
+
+> If you don't have an ubuntu machine you can follow the instruction on the [Git website](https://git-scm.com/downloads).
 
 Tool installation:
 
@@ -127,11 +133,17 @@ Make sure that you have docker installed on your machine.
 
 If you don't have docker installed, you can install it following the instructions on the [Docker](https://docs.docker.com/engine/install/ubuntu/) website.
 
+Move inside the `PanDelos-plus` folder:
+
+```bash
+cd PanDelos-plus
+```
+
 If you are running a linux machine, you probably need to change the permissions of the following folders:
 
 ```bash
-chmod 777 input
-chmod 777 output
+chmod -R 777 input
+chmod -R 777 output
 ```
 
 Build the container:
@@ -154,10 +166,12 @@ Copy file inside the input folder:
 cp files/faa/mycoplasma5.pdi input/mycoplasma5.pdi
 ```
 
+> If you are on windows you probably have to use `cp .\files\faa\mycoplasma5.pdi input\mycoplasma5.pdi`
+
 Run the pipeline:
 
 ```bash
-docker compose run pandelosplus bash execute.sh -i input/mycoplasma5.pdi -o output/mycoplasma5
+docker compose run --rm pandelosplus bash execute.sh -i input/mycoplasma5.pdi -o output/mycoplasma5
 ```
 
 > Note that `docker compose` command may raise some errors so try also with `docker-compose`
@@ -213,7 +227,7 @@ After you have prepared your input file (supposing it is in the `input` folder a
 Run the pipeline:
 
 ```bash
-docker compose run pandelosplus bash execute.sh -i input/custom.pdi -o output/custom
+docker compose run --rm pandelosplus bash execute.sh -i input/custom.pdi -o output/custom
 ```
 
 This script will run the PanDelos-plus pipeline inside the docker on the input file `input/custom.pdi` and save the output in the `output/custom.clus` file.
@@ -225,7 +239,7 @@ The output file will contain the gene families computed by the pipeline.
 If you installed pandeslos-plus with docker you must enter inside the container to execute the following steps.
 
 ```bash
-docker compose run pandelosplus bash
+docker compose run --rm pandelosplus bash
 ```
 
 ### Using gbff files as input
