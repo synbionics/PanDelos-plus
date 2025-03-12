@@ -4,6 +4,9 @@ import json
 from Bio import SeqIO
 
 path2gbks = sys.argv[1]
+if path2gbks[len(path2gbks) - 1] != "/":
+    path2gbks += "/"
+
 path2clus = sys.argv[2]
 outFilePath = sys.argv[3]
 

@@ -15,25 +15,31 @@ RUN apt update && apt-get upgrade -y && \
 
 RUN useradd -ms /bin/bash pdp
 
-ARG WORKDIR="/home/pdp/workdir"
+ARG TOOLNAME="PanDelos-plus"
+ARG PDPGITHUB="https://github.com/vbonnici/${TOOLNAME}.git"
+ARG WORKDIR="/home/pdp"
+ARG TOOLDIR="/home/pdp/${TOOLNAME}"
 RUN mkdir -p ${WORKDIR}
 WORKDIR ${WORKDIR}
 
-COPY . .
+RUN git clone ${PDPGITHUB}
+WORKDIR ${WORKDIR}/${TOOLNAME}
+
+
 RUN bash compile.sh
 COPY pip-requirements.txt pip-requirements.txt
 RUN pip install --break-system-packages -r pip-requirements.txt
 
-ARG OUTDIR="/home/pdp/workdir/input"
+ARG OUTDIR="${TOOLDIR}/input"
 RUN mkdir -p ${OUTDIR}
 WORKDIR ${OUTDIR}
 
-ARG OUTDIR="/home/pdp/workdir/output"
+ARG OUTDIR="${TOOLDIR}/output"
 RUN mkdir -p ${OUTDIR}
 WORKDIR ${OUTDIR}
 
-RUN chown -R pdp:pdp ${WORKDIR}
-RUN chmod -R 755 ${WORKDIR}
+RUN chown -R pdp:pdp ${TOOLDIR}
+RUN chmod -R 755 ${TOOLDIR}
 
 RUN echo 'PS1="\[\033[01;34m\]\u@\h:\[\033[01;32m\]\w\[\033[00m\]\$ "' >> /home/pdp/.bashrc && \
     echo 'alias ll="ls -lh --color=auto"' >> /home/pdp/.bashrc && \
@@ -41,6 +47,6 @@ RUN echo 'PS1="\[\033[01;34m\]\u@\h:\[\033[01;32m\]\w\[\033[00m\]\$ "' >> /home/
     echo 'export LS_COLORS="di=01;34:ln=01;36:so=01;35:pi=33:ex=01;32:bd=40;33;01:cd=40;33;01"' >> /home/pdp/.bashrc
 
 
-WORKDIR ${WORKDIR}
+WORKDIR ${TOOLDIR}
 
 USER pdp

@@ -98,7 +98,7 @@ echo "$inFile"
 
 
 if [ -z "$outFile" ]; then
-    outFile="$(echo "$(basename $inFile)" | sed 's/\.faa//').net" 
+    outFile="$(echo "$(basename $inFile)" | sed 's/\.pdi//').net" 
 fi
 
 k=$(python3 $calculate_k_path $inFile)
@@ -111,7 +111,7 @@ fi
 echo "k = $k";
 
 
-echo "Checking input file (.faa)"
+echo "Checking input file (.pdi)"
 
 python3 "$faa_checker_path" "$inFile" "$k"
 if [ $? -ne 0 ]; then
@@ -157,7 +157,7 @@ fi
 
 echo "Computing clusters"
 
-cat $tmp
+# cat $tmp
 
 echo "" >> $tmp;
 python3 "$net_clug_path" "$inFile" "$outFile.net" >> $tmp
@@ -181,18 +181,17 @@ if [ -n "$path2gbks" ]; then
     python3 "$clus2json_path" "$path2gbks" "$clus" "$json" >> $tmp
     if [ $? -ne 0 ]; then
         echo "Error running clus2json.py"
-        cat $tmp
+        #cat $tmp
         exit 1
     fi
 else 
-    
-    echo "Missing gbk folder unable to convert clusters to json"
+    # echo "Missing gbk folder unable to convert clusters to json"
     # echo "Missing gbk folder unable to convert clusters to json" >> $tmp
     # usage
     # usage >> $tmp
 fi
 
-
+rm "$outFile.net"
 rm $tmp
 
 date
