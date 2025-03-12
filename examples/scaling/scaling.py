@@ -69,7 +69,7 @@ while i < len(lines):
 
     times += 1
 
-    tmpFaa = "tmpFaa.faa"
+    tmpFaa = "tmpFaa.pdi"
     subprocess.call("python3 ../gbk2ig.py ./{}/ ./{}".format(tmpBanks, tmpFaa), shell=True, cwd=cwd)
 
     command = "bash execute.sh -i {} -o {} -g {} -p ./".format(tmpFaa, f"./{tmpNets}/{i}", i)

@@ -32,13 +32,13 @@ for filename in os.listdir(dirPath):
 
         subprocess.call(command, shell=True, cwd=cwd)
 
-        subprocess.call("python3 gbk2ig.py {} {}".format(f"./{fName}/banks/", f"./{fName}/{fName}.faa"), shell=True, cwd=cwd)
+        subprocess.call("python3 gbk2ig.py {} {}".format(f"./{fName}/banks/", f"./{fName}/{fName}.pdi"), shell=True, cwd=cwd)
 
-        command = "python3 ../../tools/genesDistribution.py {} {}".format(f"./{fName}.faa", f"./{fName}")
+        command = "python3 ../../tools/genesDistribution.py {} {}".format(f"./{fName}.pdi", f"./{fName}")
         subprocess.call(command, shell=True, cwd="{}/{}".format(cwd, fName))
         
         os.mkdir("./{}/nets".format(fName))
-        command = "bash execute.sh -i {} -o {} -p {}".format(f"./{fName}/{fName}.faa", f"./{fName}/nets/{fName}", f"./{fName}/")
+        command = "bash execute.sh -i {} -o {} -p {}".format(f"./{fName}/{fName}.pdi", f"./{fName}/nets/{fName}", f"./{fName}/")
         subprocess.call(command, shell=True, cwd=cwd)
 
 

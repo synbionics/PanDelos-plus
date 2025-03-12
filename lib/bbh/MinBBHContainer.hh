@@ -141,7 +141,9 @@ namespace bbh {
             [this, effectiveRows] {
                 index_t p = effectiveRows - 1;
                 score_t currentMin = getVal(p, effectiveRows);
-                --p;
+                if (p > 0) {
+                    --p;
+                }
                 for (; p > 0; --p) {
                     score_t tmp = getVal(p, effectiveRows);
                     currentMin = tmp < currentMin ? tmp : currentMin;

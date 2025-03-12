@@ -24,6 +24,7 @@ mode=""
 frags=""
 discard=""
 path2gbks=""
+similarityParameter=""
 
 function usage() {
     echo "Usage: $0 [-i input_file] [-o output_file] [-t thread_num] [-m] [-d discard_value] [-g path to gbks][-h]"
@@ -35,10 +36,11 @@ function usage() {
     echo "  -d: Discard value (0 <= d <= 1, default 0.5)"
     echo "  -g: Path to gbk folder"
     echo "  -f: For fragmented genes"
+    echo "  -p: For a stronger threshold (similarity parameter)"
     echo "  -h: Display this help message"
 }
 
-while getopts ":i:o:t:mfd:g:h" opt; do
+while getopts ":i:o:t:mfpd:g:h" opt; do
     case ${opt} in
         i )
             inFile=$OPTARG
@@ -60,6 +62,9 @@ while getopts ":i:o:t:mfd:g:h" opt; do
             ;;
         g )
             path2gbks=$OPTARG
+            ;;
+        p) 
+            similarityParameter="1"
             ;;
         h )
             usage
@@ -93,7 +98,7 @@ echo "$inFile"
 
 
 if [ -z "$outFile" ]; then
-    outFile="$(echo "$(basename $inFile)" | sed 's/\.faa//').net" 
+    outFile="$(echo "$(basename $inFile)" | sed 's/\.pdi//').net" 
 fi
 
 k=$(python3 $calculate_k_path $inFile)
@@ -106,7 +111,7 @@ fi
 echo "k = $k";
 
 
-echo "Checking input file (.faa)"
+echo "Checking input file (.pdi)"
 
 python3 "$faa_checker_path" "$inFile" "$k"
 if [ $? -ne 0 ]; then
@@ -127,6 +132,9 @@ if [ -n "$mode" ]; then
 fi
 if [ -n "$frags" ]; then
     mainCommand+=" -f"
+fi
+if [ -n "$similarityParameter" ]; then
+    mainCommand+=" -p"
 fi
 if [ -n "$discard" ]; then
     mainCommand+=" -d $discard"
@@ -149,7 +157,7 @@ fi
 
 echo "Computing clusters"
 
-cat $tmp
+# cat $tmp
 
 echo "" >> $tmp;
 python3 "$net_clug_path" "$inFile" "$outFile.net" >> $tmp
@@ -173,17 +181,17 @@ if [ -n "$path2gbks" ]; then
     python3 "$clus2json_path" "$path2gbks" "$clus" "$json" >> $tmp
     if [ $? -ne 0 ]; then
         echo "Error running clus2json.py"
-        cat $tmp
+        #cat $tmp
         exit 1
     fi
 else 
-    echo "Missing gbk folder unable to convert clusters to json"
-    echo "Missing gbk folder unable to convert clusters to json" >> $tmp
-    usage
-    usage >> $tmp
+    # echo "Missing gbk folder unable to convert clusters to json"
+    # echo "Missing gbk folder unable to convert clusters to json" >> $tmp
+    # usage
+    # usage >> $tmp
 fi
 
-
+rm "$outFile.net"
 rm $tmp
 
 date
