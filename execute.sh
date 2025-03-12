@@ -184,11 +184,6 @@ if [ -n "$path2gbks" ]; then
         #cat $tmp
         exit 1
     fi
-else 
-    # echo "Missing gbk folder unable to convert clusters to json"
-    # echo "Missing gbk folder unable to convert clusters to json" >> $tmp
-    # usage
-    # usage >> $tmp
 fi
 
 rm "$outFile.net"
