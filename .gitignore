@@ -11,6 +11,8 @@
 .history/
 
 
+# python
+*__pycache__/
 
 ### Cpp ###
 
