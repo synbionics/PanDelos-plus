@@ -5,10 +5,11 @@ import sys
 import json
 import matplotlib.pyplot as plt
 import numpy as np
-import seaborn as sns
+
 plt.style.use('ggplot')
 
 from query_dataset.compute_families import compute_genome_families
+from query_dataset.colors import colors
 
 debug_families_diffusivity_output_file = "debug_families_diffusivity.json"
 debug_diffusivity_output_file = "debug_diffusivity.json"
@@ -37,27 +38,41 @@ def compute_diffusivity(families, number_of_genomes):
 def pie(diffs, ofolder, plot_type="png"):
     fig, ax = plt.subplots(figsize=(6, 3), subplot_kw=dict(aspect="equal"))
     
-    note = list()
-    data = list()
+    labels = []
+    data = []
     for dif, content in diffs.items():
-        note.append(f"{dif} genomes")
+        labels.append(dif)
         data.append(content["number_of_families"])
     
-    wedges, texts = ax.pie(data, wedgeprops=dict(width=0.5), startangle=-40)
+    # pie chart, con bordo per ciascuna fetta
+    wedges, texts = ax.pie(
+        data,
+        wedgeprops=dict(width=0.5, edgecolor='black', linewidth=0.3),
+        startangle=-40
+    )
+    
+    total = sum(data)
     bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
     kw = dict(arrowprops=dict(arrowstyle="-"),
-            bbox=bbox_props, zorder=0, va="center")
-
+              bbox=bbox_props, zorder=0, va="center")
+    
+    # per ogni fetta, calcolo della percentuale e creazione label
     for i, p in enumerate(wedges):
-        ang = (p.theta2 - p.theta1)/2. + p.theta1
+        # angolo medio per posizionare la label
+        ang = (p.theta2 - p.theta1) / 2. + p.theta1
         y = np.sin(np.deg2rad(ang))
         x = np.cos(np.deg2rad(ang))
         horizontalalignment = {-1: "right", 1: "left"}[int(np.sign(x))]
         connectionstyle = f"angle,angleA=0,angleB={ang}"
         kw["arrowprops"].update({"connectionstyle": connectionstyle})
-        ax.annotate(note[i], xy=(x, y), xytext=(1.35*np.sign(x), 1.4*y),
+        
+        # percentuale
+        perc = data[i] / total * 100
+        new_label = f"{perc:.2f}% diffusivity {labels[i]}"
+        
+        ax.annotate(new_label, xy=(x, y), xytext=(1.35 * np.sign(x), 1.4 * y),
                     horizontalalignment=horizontalalignment, **kw)
-
+    
     ax.set_title("Family diffusivity")
     plt.savefig(ofolder + "pie_family_diffusivity." + plot_type)
 
@@ -68,8 +83,7 @@ def hist(diffs, ofolder, plot_type="png"):
         x.append(dif)
         y.append(data["number_of_families"])
 
-
-    plt.bar(x, y)
+    plt.bar(x, y, width=0.8, color=colors["med-blue"],linewidth=0.3, edgecolor="black")
     plt.xlabel("Number of genomes")
     plt.ylabel("Number of gene families")
     plt.savefig(ofolder + "hist_family_diffusivity." + plot_type)
