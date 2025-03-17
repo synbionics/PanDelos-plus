@@ -9,31 +9,13 @@ import numpy as np
 plt.style.use('ggplot')
 
 from query_dataset.compute_families import compute_genome_families
+from query_dataset.compute_diffusivity import compute_diffusivity
 from query_dataset.colors import colors
 
 debug_families_diffusivity_output_file = "debug_families_diffusivity.json"
 debug_diffusivity_output_file = "debug_diffusivity.json"
 
-def compute_diffusivity(families, number_of_genomes):
-    fam_diffusivity = dict()
-    diffusivity = dict()
-    for i in range(number_of_genomes + 1):
-        diffusivity[i] = {
-            "number_of_families": 0,
-            "families": list()
-        }
-    
-    # print(type(families))
-    for family_id, families in families.items():
-        d = len(families["genomes"])
-        fam_diffusivity[family_id] = d
-        diffusivity[d]["number_of_families"] += 1
-        diffusivity[d]["families"].append(family_id)
 
-    if diffusivity[0]["number_of_families"] == 0:
-        del diffusivity[0]
-    
-    return [fam_diffusivity, diffusivity]
 
 def pie(diffs, ofolder, plot_type="png"):
     fig, ax = plt.subplots(figsize=(6, 3), subplot_kw=dict(aspect="equal"))
@@ -84,7 +66,7 @@ def hist(diffs, ofolder, plot_type="png"):
         y.append(data["number_of_families"])
 
     plt.bar(x, y, width=0.8, color=colors["med-blue"],linewidth=0.3, edgecolor="black")
-    plt.xlabel("Number of genomes")
+    plt.xlabel("Number of genomes (diffusivity)")
     plt.ylabel("Number of gene families")
     plt.savefig(ofolder + "hist_family_diffusivity." + plot_type)
     
