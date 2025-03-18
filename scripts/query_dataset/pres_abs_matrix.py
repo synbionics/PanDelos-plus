@@ -47,7 +47,7 @@ def main():
     """
     
     if len(sys.argv) < 3:
-        print(f"Usage: python3 {sys.argv[0]} <path_to_input_file>.json <path_to_output_file>.csv")
+        print(f"Usage: python3 {sys.argv[0]} <path_to_input_file>.json <path_to_output_folder>")
         exit(1)
     
     ifile = sys.argv[1]
@@ -55,7 +55,12 @@ def main():
         print("Input file must be a JSON file")
         exit(1)
     
-    ofile = sys.argv[2]
+    
+    ofolder = sys.argv[2]
+    if ofolder[-1] != "/":
+        ofolder += "/"
+    
+    ofile = ofolder + "matrix.csv"
     
     fhandler = FamiliesHandler(ifile)
     
