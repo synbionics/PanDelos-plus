@@ -34,6 +34,7 @@ ${PTHREAD_FLAG} \
 -fmodulo-sched \
 -fmodulo-sched-allow-regmoves \
 -fno-lifetime-dse \
+-w \
 main.cc -o main
 # -Wextra -Wall \
 
