@@ -47,7 +47,7 @@ def pie (parts:dict, ofolder: str, extension: str = "png"):
     colors = ['#4C72B0', '#55A868', '#C44E52']
     msgs = ["", "", ""]
 
-    pie_plot(sizes, labels, colors, msgs, "Core, accessory and singleton pie", ofolder, "pie", extension)
+    pie_plot(sizes, labels, colors, msgs, "Core, accessory and singleton pie", ofolder, "gene_type", extension)
 
 
 def save(parts: dict, ofolder: str, save_type: str, fhandler: FamiliesHandler):
