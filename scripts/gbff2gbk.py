@@ -15,4 +15,4 @@ for file in gbffFiles:
     input_file_path = join(idir, file)
     new_file_name = re.sub(r'\.gbff$', '.gbk', file)
     output_file_path = join(odir, new_file_name)
-    shutil.move(input_file_path, output_file_path)
+    shutil.copy(input_file_path, output_file_path)

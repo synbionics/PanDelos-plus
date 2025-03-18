@@ -8,26 +8,26 @@ PanDelos-plus: a parallel algorithm for computing sequence homology in pangenomi
 
 ## Contents
 
--   [PanDelos-plus](#pandelos-plus)
-    -   [Contents](#contents)
-    -   [Introduction](#introduction)
-    -   [Use on your local machine](#use-on-your-local-machine)
-        -   [Installation](#installation)
-        -   [Usage](#usage)
-    -   [Use with docker](#use-with-docker)
-        -   [Installation](#installation-1)
-        -   [Usage](#usage-1)
-    -   [Run with a custom file](#run-with-a-custom-file)
-        -   [Local execution with custom file](#local-execution-with-custom-file)
-        -   [Docker execution with custom file](#docker-execution-with-custom-file)
-    -   [Advanced usage](#advanced-usage)
-        -   [Using gbff files as input](#using-gbff-files-as-input)
-        -   [Custom execution](#custom-execution)
-        -   [Discard value](#discard-value)
-        -   [Fragmented genes](#fragmented-genes)
-        -   [Similarity parameter](#similarity-parameter)
-    -   [License](#license)
-    -   [Citation](#citation)
+- [PanDelos-plus](#pandelos-plus)
+  - [Contents](#contents)
+  - [Introduction](#introduction)
+  - [Use on your local machine](#use-on-your-local-machine)
+    - [Installation](#installation)
+    - [Usage](#usage)
+  - [Use with docker](#use-with-docker)
+    - [Installation](#installation-1)
+    - [Usage](#usage-1)
+  - [Run with a custom file](#run-with-a-custom-file)
+    - [Local execution with custom file](#local-execution-with-custom-file)
+    - [Docker execution with custom file](#docker-execution-with-custom-file)
+  - [Advanced usage](#advanced-usage)
+    - [Using gbff files as input](#using-gbff-files-as-input)
+    - [Custom execution](#custom-execution)
+    - [Discard value](#discard-value)
+    - [Fragmented genes](#fragmented-genes)
+    - [Similarity parameter](#similarity-parameter)
+  - [License](#license)
+  - [Citation](#citation)
 
 <br>
 
@@ -264,23 +264,7 @@ You can generate an input file from a set of `.gbff` files following these steps
 
 1.  Download the genbank files of your interest.
 2.  Create a folder and copy all `.gbff` files in it.
-3.  Create a folder to store the converted files.
-    ```bash
-    mkdir gbk_files
-    ```
-4.  Run the following command to convert files:
-    ```bash
-    python3 scripts/gbff2gbk.py <path_to_input_folder> <path_to_output_folder>
-    ```
-5.  Run the following command to check converted files:
-    ```bash
-    python3 scripts/gbk_checker.py <path_to_input_folder>
-    ```
-6.  Run the following command to generate the input file:
-    ```bash
-    python3 scripts/gbk2ig.py <path_to_input_folder> <path_to_output_file>.pdi
-    ```
-7.  Now you can use the input file as usual, or you can add `-g <path_to_folder_with_gbk_files>` flag to the execution command to generate a json file in addition to the output file.
+3.  Run the execution script by adding `-g <path_to_folder_with_gbff_files>` flag to the execution command to generate a json file in addition to the output file.
 
 Example:
 
@@ -296,81 +280,53 @@ In this example it will be used files contained in `files/gbff/` folder which co
 Step 3:
 
 ```bash
-mkdir gbk_files
+bash pandelosp.sh -i custom.pdi -o custom -g files/gbff/
 ```
 
-Step 4:
-
-```b
-python3 scripts/gbff2gbk.py files/gbff/ gbk_files/
-```
-
-You will get this output `['GCA_000006945.2.gbff', 'GCA_016028495.1.gbff']`, and 2 files in the `gbk_files` folder.
-
-Step 5:
+If everithing works fine you will get this output:
 
 ```bash
-python3 scripts/gbk_checker.py gbk_files/
-```
-
-You will get this output:
-
-```bash
-Reading gbk files from: gbk_files/
-Files found: ['GCA_016028495.1.gbk', 'GCA_000006945.2.gbk']
-Processing file: GCA_016028495.1.gbk
-Processing genome: GCA_016028495.1
-	Genome ID: GCA_016028495.1	Sequence ID: CP065718.1
-	Genome ID: GCA_016028495.1	Sequence ID: CP065719.1
+mar 18 mar 2025, 10:21:38, CET
+Using files contained in: files/gbff/
+Converting gbff to gbk
+['GCA_000006945.2.gbff', 'GCA_016028495.1.gbff']
+Checking gbk files
+This may take a while
+Reading gbk files from: files/gbff//gbk/
+Files found: ['GCA_000006945.2.gbk', 'GCA_016028495.1.gbk']
 Processing file: GCA_000006945.2.gbk
 Processing genome: GCA_000006945.2
-	Genome ID: GCA_000006945.2	Sequence ID: AE006468.2
-	Genome ID: GCA_000006945.2	Sequence ID: AE006471.2
+        Genome ID: GCA_000006945.2      Sequence ID: AE006468.2
+        Genome ID: GCA_000006945.2      Sequence ID: AE006471.2
+Processing file: GCA_016028495.1.gbk
+Processing genome: GCA_016028495.1
+        Genome ID: GCA_016028495.1      Sequence ID: CP065718.1
+        Genome ID: GCA_016028495.1      Sequence ID: CP065719.1
 All files processed successfully
-```
-
-Step 6:
-
-```bash
-python3 scripts/gbk2ig.py gbk_files/ custom.pdi
-```
-
-You will get this output:
-
-```bash
-reading gbk files from gbk_files/
-['GCA_016028495.1.gbk', 'GCA_000006945.2.gbk']
-GCA_016028495.1.gbk
-GCA_016028495.1
-	GCA_016028495.1	CP065718.1
-	GCA_016028495.1	CP065719.1
+Generating pdi input file
+This may take a while
+reading gbk files from files/gbff//gbk/
+['GCA_000006945.2.gbk', 'GCA_016028495.1.gbk']
 GCA_000006945.2.gbk
 GCA_000006945.2
-	GCA_000006945.2	AE006468.2
-	GCA_000006945.2	AE006471.2
+        GCA_000006945.2 AE006468.2
+        GCA_000006945.2 AE006471.2
+GCA_016028495.1.gbk
+GCA_016028495.1
+        GCA_016028495.1 CP065718.1
+        GCA_016028495.1 CP065719.1
 writing to custom.pdi
-```
-
-Step 7:
-
-```bash
-bash pandelosp.sh -i custom.pdi -o custom -g gbk_files/
-```
-
-You will get this output:
-
-```bash
-ven 7 mar 2025, 16:09:59, CET
 custom.pdi
 k = 4
 Checking input file (.pdi)
+File is correct
 Executing main
 Computing clusters
-Converting clusters to json
-ven 7 mar 2025, 16:10:07, CET
+Converting clusters to json with GeneBank information
+mar 18 mar 2025, 10:21:54, CET
 ```
 
-Now you can check de output file `custom.clus` and the json file `custom.json`.
+Now you can check the output file `custom.clus` and the json file `custom.json`.
 
 > Note that the json file is enriched with the information from the GenBank files.
 
