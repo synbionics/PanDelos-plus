@@ -33,7 +33,7 @@ PanDelos-plus: a parallel algorithm for computing sequence homology in pangenomi
 
 ## Introduction
 
-PanDelos-plus implements a dictionary-based method for pan-genome content discovery. This updated version is a re-engineered and parallelized C++ implementation of the original PanDelos. It integrates several Python modules with a C++ library, coordinated via the `execute.sh` Bash script, which facilitates streamlined access to the complete PanDelos-plus pipeline.
+PanDelos-plus implements a dictionary-based method for pan-genome content discovery. This updated version is a re-engineered and parallelized C++ implementation of the original [PanDelos](https://github.com/InfOmics/PanDelos). It integrates several Python modules with a C++ library, coordinated via the `execute.sh` Bash script, which facilitates streamlined access to the complete PanDelos-plus pipeline.
 
 <br>
 
@@ -54,7 +54,7 @@ sudo apt-get install git
 Tool installation:
 
 ```bash
-git clone https://github.com/vbonnici/PanDelos-plus.git
+git clone https://github.com/synbionics/PanDelos-plus.git
 ```
 
 ### Installation
@@ -65,49 +65,53 @@ Required dependencies:
 
 ```bash
 sudo apt update
-sudo apt-get install -y bash python3 python3-pip build-essential time git
+sudo apt-get install -y bash python3 python3-pip python-virtualenv build-essential time git
 ```
 
-Python packages:
-
-```bash
-pip3 install biopython
-pip3 install networkx
-pip3 install matplotlib
-```
-
-If you are running the one of the latest version of Ubuntu, you may probably get this error:
-
-```bash
-× This environment is externally managed
-╰─> To install Python packages system-wide, try apt install
-    python3-xyz, where xyz is the package you are trying to
-    install.
-```
-
-So you need to install the package using `apt` as follows
-
-```bash
-sudo apt install python3-biopython
-sudo apt install python3-networkx
-sudo apt install python3-matplotlib
-```
-
-Tool compilation:
+Enter the cloned repository:
 
 ```bash
 cd PanDelos-plus
+```
+
+Create and activate the virtual environment:
+
+```bash
+virtualenv -p python3 pdp_env
+source pdp_env/bin/activate
+```
+
+Install required python packages:
+
+```bash
+python3 -m pip install -r requirements.txt
+```
+
+Compile the tool:
+
+```bash
 bash compile.sh
 ```
 
 ### Usage
 
+If you dont have the virtual environment activated, you can activate it with the following command:
+
 ```bash
-bash execute.sh -i files/faa/mycoplasma5.pdi -o mycoplasma5
+source pdp_env/bin/activate
 ```
 
-This script will run the PanDelos-plus pipeline on the input file `files/faa/mycoplasma5.pdi` and save the output in the `mycoplasma5.clus` file.
-The output file will contain the gene families computed by the pipeline.
+```bash
+bash pandelosp.sh -i files/pdi/mycoplasma5.pdi -o mycoplasma5
+```
+
+This script will run the PanDelos-plus pipeline on the input file `files/pdi/mycoplasma5.pdi` and save the output in the `mycoplasma5.clus` and `mycoplasma5.json` files. The output files will contain the gene families computed by the pipeline.
+
+Now you can deactivate the virtual environment with the following command:
+
+```bash
+deactivate
+```
 
 ## Use with docker
 
@@ -124,7 +128,7 @@ sudo apt-get install git
 Tool installation:
 
 ```bash
-git clone https://github.com/vbonnici/PanDelos-plus.git
+git clone https://github.com/synbionics/PanDelos-plus.git
 ```
 
 ### Installation
@@ -163,22 +167,22 @@ Check that the input and output folders are writable by the user running the doc
 Copy file inside the input folder:
 
 ```bash
-cp files/faa/mycoplasma5.pdi input/mycoplasma5.pdi
+cp files/pdi/mycoplasma5.pdi input/mycoplasma5.pdi
 ```
 
-> If you are on windows you probably have to use `cp .\files\faa\mycoplasma5.pdi input\mycoplasma5.pdi`
+> If you are on windows you probably have to use `cp .\files\pdi\mycoplasma5.pdi input\mycoplasma5.pdi`
 
 Run the pipeline:
 
 ```bash
-docker compose run --rm pandelosplus bash execute.sh -i input/mycoplasma5.pdi -o output/mycoplasma5
+docker compose run --rm pandelosplus bash pandelosp.sh -i input/mycoplasma5.pdi -o output/mycoplasma5
 ```
 
 > Note that `docker compose` command may raise some errors so try also with `docker-compose`
 
-This script will run the PanDelos-plus pipeline inside the docker on the input file `input/mycoplasma5.pdi` and save the output in the `output/mycoplasma5.clus` file.
+This script will run the PanDelos-plus pipeline inside the docker on the input file `input/mycoplasma5.pdi` and save the output in the `output/mycoplasma5.clus` and `output/mycoplasma5.json` files.
 
-The output file will contain the gene families computed by the pipeline.
+The output files will contain the gene families computed by the pipeline.
 
 ## Run with a custom file
 
@@ -194,7 +198,7 @@ No blank lines are admitted in the entire file.
 
 Example of valid file composed of 5 genes grouped in 2 genomes
 
-```faa
+```pdi
 NC_000913	NC_000913:NC_000913.3:b0001:1	thr operon leader peptide
 MKRISTTITTTITITTGNGAG
 NC_000913	NC_000913:NC_000913.3:b0005:1	DUF2502 domain-containing protein YaaX
@@ -212,13 +216,25 @@ Make sure that gene identifiers are unique within the input file. A suggested fo
 
 ### Local execution with custom file
 
+Remember to activate the virtual environment:
+
+```bash
+source pdp_env/bin/activate
+```
+
 After you have prepared your input file (supposing it is named as `input.pdi`), you can run the pipeline as follows:
 
 ```bash
-bash execute.sh -i input.pdi -o output
+bash pandelosp.sh -i input.pdi -o output
 ```
 
-The output file will contain the gene families computed by the pipeline.
+The output files will contain the gene families computed by the pipeline.
+
+Remember to deactivate the virtual environment:
+
+```bash
+deactivate
+```
 
 ### Docker execution with custom file
 
@@ -227,11 +243,11 @@ After you have prepared your input file (supposing it is in the `input` folder a
 Run the pipeline:
 
 ```bash
-docker compose run --rm pandelosplus bash execute.sh -i input/custom.pdi -o output/custom
+docker compose run --rm pandelosplus bash pandelosp.sh -i input/custom.pdi -o output/custom
 ```
 
 This script will run the PanDelos-plus pipeline inside the docker on the input file `input/custom.pdi` and save the output in the `output/custom.clus` file.
-The output file will contain the gene families computed by the pipeline.
+The output files will contain the gene families computed by the pipeline.
 
 ## Advanced usage
 
@@ -268,7 +284,7 @@ You can generate an input file from a set of `.gbff` files following these steps
 
 Example:
 
-> Extract files from `fils/gbff.zip`.
+> Extract files from `files/gbff.zip`.
 
 In this example it will be used files contained in `files/gbff/` folder which contains 2 genomes downloaded from NIH Database:
 
@@ -338,7 +354,7 @@ writing to custom.pdi
 Step 7:
 
 ```bash
-bash execute.sh -i custom.pdi -o custom -g gbk_files/
+bash pandelosp.sh -i custom.pdi -o custom -g gbk_files/
 ```
 
 You will get this output:
@@ -355,6 +371,8 @@ ven 7 mar 2025, 16:10:07, CET
 ```
 
 Now you can check de output file `custom.clus` and the json file `custom.json`.
+
+> Note that the json file is enriched with the information from the GenBank files.
 
 ### Custom execution
 
@@ -374,7 +392,7 @@ You can customize the execution of the pipeline by using the following flags:
 You can also check the help message by running:
 
 ```bash
-bash execute.sh -h
+bash pandelosp.sh -h
 ```
 
 You will get this output:
@@ -398,7 +416,7 @@ Options:
 The discard value (`-d`) is a threshold that is used to decide whether to compare two genes.
 This type of decision is made based on the length of the genes.
 
-```faa
+```pdi
 NC_000913	NC_000913:NC_000913.3:b0001:1	thr operon leader peptide
 MKRISTTITTTITITTGNGAG
 NC_000913	NC_000913:NC_000913.3:b0018:1	regulatory protein MokC
@@ -421,7 +439,7 @@ No blank lines are admitted in the entire file.
 
 Example of valid file composed of 5 genes grouped in 2 genomes for fragmented genes
 
-```faa
+```pdi
 NC_000913	NC_000913:NC_000913.3:b0001:1	thr operon leader peptide   5
 MKRISTTITTTITITTGNGAG
 NC_000913	NC_000913:NC_000913.3:b0005:1	DUF2502 domain-containing protein YaaX  20
@@ -436,6 +454,12 @@ MTHPHDNIRVGAITFVYSVTKRGWVFHGLSVIRNPLKAQRLAEEINNKRGAVCTKHLLLS
 
 **_IMPORTANT_**
 Make sure that gene identifiers are unique within the input file. A suggested format to build unique gene identifier is `genome_identifier:gene_identifier:unque_integer`.
+
+This feature will be used inside the following pipelines:
+
+-   [PanDelos-plus-frags](https://github.com/synbionics/PanDelos-plus-frags), not release yet
+
+Another pipeline that will use this feature is [PanDelos-frags](https://github.com/InfOmics/PanDelos-frags)
 
 ### Similarity parameter
 
