@@ -48,9 +48,12 @@ def pie (parts:dict, ofolder: str, extension: str = "png"):
 
     pie_plot(sizes, labels, colors, msgs, "Core, accessory and singleton pie", ofolder, "pie", extension)
 
+def write_files(parts: dict, ofolder: str):
+    pass
+
 def main():
     if len(sys.argv) < 4:
-        print(f"Usage: python3 {sys.argv[0]} <path_to_input_file>.json <path_to_output_folder> <core_threshold>")
+        print(f"Usage: python3 {sys.argv[0]} <path_to_input_file>.json <path_to_output_folder> <core_threshold> [save]")
         exit(1)
 
     ifile = sys.argv[1]
@@ -58,6 +61,12 @@ def main():
     if ofolder[-1] != "/":
         ofolder += "/"
     core_threshold = int(sys.argv[3])
+    if len(sys.argv) == 5 and sys.argv[4] != "save":
+        print("Invalid argument")
+        exit(1)
+    if len(sys.argv) == 5 and sys.argv[4] == "save":
+        save = True
+    
     
     fhandler = FamiliesHandler(ifile)
     genomes = fhandler.get_genomes()
@@ -65,6 +74,10 @@ def main():
     
     parts = compute_parts(families, genomes, core_threshold)
     pie(parts, ofolder, "png")
+    
+    
+    if save:
+        write_files(parts, ofolder)
 
 if __name__ == "__main__":
     main()

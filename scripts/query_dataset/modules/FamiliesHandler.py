@@ -74,3 +74,28 @@ class FamiliesHandler:
                 data[family_id]["genomes"].add(gene["genome-name"])
                 data[family_id]["genes"].add(gene["complete-identifier"])
         return data
+
+    def get_gene_sequence_as_dict(self) -> dict:
+        if not self.families:
+            self.load_families()
+
+        data = dict()
+        for family in self.families:
+            for gene in family["genes"]:
+                data[gene["complete-identifier"]] = gene["sequence"]
+        return data
+    
+    def get_gene_sequence_production_as_dict(self) -> dict:
+        if not self.families:
+            self.load_families()
+
+        data = dict()
+        for family in self.families:
+            for gene in family["genes"]:
+                geneId = gene["complete-identifier"]
+                if geneId not in data:
+                    data[geneId] = {
+                        "sequence": gene["sequence"],
+                        "product": gene["product"],
+                    }
+        return data
