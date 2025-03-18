@@ -14,6 +14,10 @@
 # python
 *__pycache__/
 
+# env
+
+*pdp_env
+
 ### Cpp ###
 
 # Executables

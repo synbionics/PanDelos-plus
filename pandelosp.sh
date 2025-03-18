@@ -95,8 +95,6 @@ fi
 echo "$inFile"
 
 
-
-
 if [ -z "$outFile" ]; then
     outFile="$(echo "$(basename $inFile)" | sed 's/\.pdi//').net" 
 fi
@@ -172,18 +170,22 @@ clus="$outFile.clus"
 
 grep "F{ " $tmp | sed s/F{\ //g | sed s/}//g | sed s/\ \;//g | sort | uniq > "$clus"
 
+json="$outFile.json"
+
+jsonCommand="$clus2json_path $clus $inFile $json"
 
 
 if [ -n "$path2gbks" ]; then
-    echo "Converting clusters to json"
+    echo "Converting clusters to json with GeneBank informations"
+    jsonCommand="$jsonCommand $path2gbks"
+fi
 
-    json="$outFile.json"
-    python3 "$clus2json_path" "$path2gbks" "$clus" "$json" >> $tmp
-    if [ $? -ne 0 ]; then
-        echo "Error running clus2json.py"
-        #cat $tmp
-        exit 1
-    fi
+python3 $jsonCommand >> $tmp
+
+if [ $? -ne 0 ]; then
+    echo "Error running clus2json.py"
+    #cat $tmp
+    exit 1
 fi
 
 rm "$outFile.net"
