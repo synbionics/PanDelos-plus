@@ -6,12 +6,19 @@ plt.style.use("ggplot")
 def pie_plot(data: list, labels: list, colors: list, laber_msg : list, title: str, ofolder: str, filename: str = "pie", extension: str = "png"):
     ig, ax = plt.subplots(figsize=(6, 3), subplot_kw=dict(aspect="equal"))
     
-    wedges, texts = ax.pie(
-        data,
-        wedgeprops=dict(width=0.5, edgecolor='black', linewidth=0.3),
-        startangle=0,
-        colors=colors
-    )
+    if len(colors) == 0:
+        wedges, texts = ax.pie(
+            data,
+            wedgeprops=dict(width=0.5, edgecolor='black', linewidth=0.3),
+            startangle=0,
+        )
+    else:
+        wedges, texts = ax.pie(
+            data,
+            wedgeprops=dict(width=0.5, edgecolor='black', linewidth=0.3),
+            startangle=0,
+            colors=colors
+        )
     
     total = sum(data)
     bbox_props = dict(boxstyle="square,pad=0.3", fc="w", ec="k", lw=0.72)
@@ -46,5 +53,22 @@ def pie_plot(data: list, labels: list, colors: list, laber_msg : list, title: st
                     for label, val, size in zip(labels, data, data)]
     
     plt.legend(legend_labels, loc="best", bbox_to_anchor=(1, 0.5))
+    plt.tight_layout()
+    plt.savefig(f"{ofolder}{filename}.{extension}")
+    
+    
+def hist_plot(x: list, y: list, color: str, xlabel: str, ylabel: str, title: str, ofolder: str, filename: str = "hist", extension: str = "png", xticks: list = None, yticks: list = None):
+    
+    plt.bar(x, y, width=0.8, color = color, linewidth=0.3, edgecolor="black")
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    
+    if xticks is not None:
+        plt.xticks(xticks)
+    
+    if yticks is not None:
+        plt.yticks(yticks)
+    
+    plt.title(title)
     plt.tight_layout()
     plt.savefig(f"{ofolder}{filename}.{extension}")
