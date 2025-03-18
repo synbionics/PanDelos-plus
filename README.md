@@ -84,7 +84,7 @@ source pdp_env/bin/activate
 Install required python packages:
 
 ```bash
-python3 -m pip install -r requirements.txt
+python3 -m pip install -r pip-requirements.txt
 ```
 
 Compile the tool:
