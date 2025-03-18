@@ -1,25 +1,10 @@
 #!/usr/bin/python3
 
-"""
-@file genomes_matrix.py
-@brief Generates a presence/absence matrix for gene families across genomes
-@details This script processes genomic clustering data from a .clus file to
-         generate a presence/absence matrix showing the distribution of gene
-         families across different genomes. The matrix is saved as a CSV file
-         where rows represent gene families and columns represent genomes.
-
-@author [Simone Colli]
-"""
 import sys
 import csv
-import json
-from query_dataset.compute_families import compute_genome_families
-from query_dataset.presence_absence_matrix import compute_matrix
 
-
-DEBUG = True
-debug_families_output_file = "output/debug_families.json"
-debug_matrix_output_file = "output/debug_matrix.csv"
+from modules.FamiliesHandler import FamiliesHandler
+from modules.presence_absence_matrix import compute_matrix
 
 
 def save_matrix(genomes, families, matrix, ofile):
@@ -62,27 +47,25 @@ def main():
     """
     
     if len(sys.argv) < 3:
-        print(f"Usage: python3 {sys.argv[0]} <path_to_input_file>.clus <path_to_output_file>.csv")
+        print(f"Usage: python3 {sys.argv[0]} <path_to_input_file>.json <path_to_output_file>.csv")
         exit(1)
     
     ifile = sys.argv[1]
+    if not ifile.endswith(".json"):
+        print("Input file must be a JSON file")
+        exit(1)
+    
     ofile = sys.argv[2]
     
-    # check input file is a .clus file
-    genomes, families = compute_genome_families(ifile, DEBUG)
+    fhandler = FamiliesHandler(ifile)
     
-    if DEBUG:
-        print(f"founded genomes: {genomes}")
-        with open(debug_families_output_file, "w") as f:
-            json.dump(families, f, indent=4)
-        
-    matrix = compute_matrix(genomes, families, DEBUG)
+    # read json from ifile
+    families = fhandler.get_families_as_dict()
+    genomes = fhandler.get_genomes()
     
-    if DEBUG:
-        with open(debug_matrix_output_file, "w") as f:
-            writer = csv.writer(f, delimiter=" ")
-            writer.writerows(matrix)
-
+    
+    matrix = compute_matrix(genomes, families)
+    
     save_matrix(genomes, families, matrix, ofile)
     
 if __name__ == "__main__":

@@ -3,13 +3,10 @@ import sys
 import matplotlib.pyplot as plt
 import numpy as np
 
+from modules.FamiliesHandler import FamiliesHandler
+from modules.plots import pie_plot
+
 plt.style.use("ggplot")
-
-from query_dataset.compute_families import compute_genome_families
-
-
-DEBUG = False
-
 
 def compute_parts(families: dict, genomes, core_threshold):
     parts = {
@@ -39,26 +36,21 @@ def compute_parts(families: dict, genomes, core_threshold):
             parts["accessory"]["families"].add(key)
     return parts
 
-def pie (parts:dict, ofolder: str, extension = "png"):
+def pie (parts:dict, ofolder: str, extension: str = "png"):
     core_count = parts["core"]["count"]
     accessory_count = parts["accessory"]["count"]
     singleton_count = parts["singleton"]["count"]
     
     labels = ["Core", "Accessory", "Singleton"]
     sizes = [core_count, accessory_count, singleton_count]
-    
-    plt.figure(figsize=(8, 8))
-    plt.pie(sizes, labels=labels, autopct="%1.1f%%", startangle=90)
-    plt.title("Distribuzione delle Famiglie Genomiche")
-    plt.axis("equal")  # Per mantenere il grafico a torta come un cerchio.
-    
-    # Salva il grafico nel folder di output
-    plt.savefig(f"{ofolder}/pie_chart.{extension}")
-    plt.close()
-    
+    colors = ['#4C72B0', '#55A868', '#C44E52']
+    msgs = ["", "", ""]
+
+    pie_plot(sizes, labels, colors, msgs, "Core, accessory and singleton pie", ofolder, "pie", extension)
+
 def main():
     if len(sys.argv) < 4:
-        print(f"Usage: python3 {sys.argv[0]} <path_to_input_file>.clus <path_to_output_folder> <core_threshold>")
+        print(f"Usage: python3 {sys.argv[0]} <path_to_input_file>.json <path_to_output_folder> <core_threshold>")
         exit(1)
 
     ifile = sys.argv[1]
@@ -67,10 +59,12 @@ def main():
         ofolder += "/"
     core_threshold = int(sys.argv[3])
     
-    genomes, families = compute_genome_families(ifile, DEBUG)
+    fhandler = FamiliesHandler(ifile)
+    genomes = fhandler.get_genomes()
+    families = fhandler.get_families_as_dict()
     
     parts = compute_parts(families, genomes, core_threshold)
-    pie(parts, ofolder, "pdf")
+    pie(parts, ofolder, "png")
 
 if __name__ == "__main__":
     main()
