@@ -26,6 +26,11 @@ PanDelos-plus: a parallel algorithm for computing sequence homology in pangenomi
     - [Discard value](#discard-value)
     - [Fragmented genes](#fragmented-genes)
     - [Similarity parameter](#similarity-parameter)
+  - [Query pangenome](#query-pangenome)
+    - [Example](#example)
+      - [Plots](#plots)
+      - [Files related to diffusivity analysis](#files-related-to-diffusivity-analysis)
+      - [Files related to type analysis](#files-related-to-type-analysis)
   - [License](#license)
   - [Citation](#citation)
 
@@ -151,6 +156,10 @@ chmod -R 777 output
 ```
 
 Build the container:
+
+**Important**
+
+If you are on a windows machine you probably have to start docker engine by opening the docker desktop application.
 
 ```bash
 docker compose build --no-cache
@@ -425,6 +434,159 @@ Otherwise, it is discarded.
 
 Using the `-p` flag you will use an higher threshold to make the decision, so more values will not be considered.
 
+## Query pangenome
+
+After the computation of the clusters, you can query the pangenome using the `query_pangenome.py` script.
+
+```bash
+python3 python3 query_pangenome.py -i <path_to_json_file>.json -o <path_to_output_folder> -c <gene_threshold_for_core> [-f < list | mutifasta | all>]
+```
+
+> Remember to activate the virtual environment before running the script. You can do this by running the following command:
+>
+> ```bash
+> source pdp_env/bin/activate
+> ```
+
+| Flag | Description                                                                                                                                                                                                                                  |
+| ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| -i   | Input file path. (`.json`)                                                                                                                                                                                                                   |
+| -o   | Output folder path.                                                                                                                                                                                                                          |
+| -f   | Create additional output files. Use `list` if you are interested only to gene identifiers; use `multifasta` if you are interested to get gene identifier and respective sequence in a multifasta format. If you want both you can use `all`. |
+| -h   | Display this help message.                                                                                                                                                                                                                   |
+
+You can also check the help message by running:
+
+```bash
+python3 query_pangenome.py -h
+```
+
+You will get this output:
+
+```bash
+usage: query_pangenome.py [-h] -i INPUT -o OUTPUT -c CORE [-f {none,list,multifasta,all}]
+
+Program to process files with output options.
+
+options:
+  -h, --help            show this help message and exit
+  -i, --input INPUT     input file to process
+  -o, --output OUTPUT   output folder for results
+  -c, --core CORE       core threshold, the minimun number of genomes that a gene must be present in to be considered core
+  -f, --format {none,list,multifasta,all}
+                        format of files to generate in addition to graphs
+```
+
+### Example
+
+Supposing that you have executed the example of execution with custom gbff files above and you have the following files in `output` folder:
+
+-   `custom.clus`
+-   `custom.json`
+
+You can query the pangenome using the following command:
+
+```bash
+python3 query_pangenome.py -i output/custom.json -o output/ -c 2 -f all
+```
+
+You will obtain the following output:
+
+```bash
+Processing file 'output/custom.json'...
+Results will be saved to 'output/'
+Running core analysis...
+Core analysis completed successfully.
+Running diffusivity analysis...
+Diffusivity analysis completed successfully.
+Generating presence/absence matrix...
+Presence/absence matrix generated successfully.
+All processing completed successfully.
+```
+
+Now your `output` folder will have the following contents:
+
+```bash
+output
+├── custom.clus
+├── custom.json
+├── diffusivity
+│   ├── list
+│   │   ├── diffusivity_1.txt
+│   │   └── diffusivity_2.txt
+│   └── multifasta
+│       ├── diffusivity_1.ffn
+│       └── diffusivity_2.ffn
+├── gene_type.png
+├── hist_family_diffusivity.png
+├── matrix.csv
+├── pie_family_diffusivity.png
+└── types
+    ├── list
+    │   ├── accessory.txt
+    │   ├── core.txt
+    │   └── singleton.txt
+    └── multifasta
+        ├── accessory.ffn
+        ├── core.ffn
+        └── singleton.ffn
+```
+
+Where:
+
+-   `diffusivity` folder contains the diffusivity analysis results.
+    -   `list` folder contains the diffusivity analysis results in a list format.
+    -   `multifasta` folder contains the diffusivity analysis results in a multifasta format.
+-   `gene_type.png` is a plot of the gene types (core, accessory, singleton) in the pangenome.
+-   `hist_family_diffusivity.png` is a histogram of the diffusivity distribution of the gene families.
+-   `pie_family_diffusivity.png` is a pie chart of the diffusivity distribution of the gene families.
+-   `matrix.csv` is a matrix of the presence/absence of the gene families in the genomes.
+-   `types` folder contains the gene types (core, accessory, singleton) in the pangenome.
+    -   `list` folder contains the gene types in a list format.
+    -   `multifasta` folder contains the gene types in a multifasta format.
+
+#### Plots
+
+For the `diffusivity` analysis:
+
+![hist_family_diffusivity.png](.github/src/hist_family_diffusivity.png)
+![pie_family_diffusivity.png](.github/src/pie_family_diffusivity.png)
+
+For the `gene_type` analysis:
+
+![gene_type.png](.github/src/gene_type.png)
+
+#### Files related to diffusivity analysis
+
+If you used `-f list` or `-f all`, you will find in the `diffusivity/list` folder the following files:
+
+-   `diffusivity_1.txt` contains the genes identifiers with diffusivity 1.
+-   `diffusivity_2.txt` contains the genes identifiers with diffusivity 2.
+
+> If you will have use than 2 genomes, you will find more files in the `list` folder. With the format `diffusivity_N.txt`, where `N` is the diffusivity of the genes inside the file.
+
+In the `diffusivity` folder you will find in `multifasta` folder:
+
+If you used `-f multifasta` or `-f all`, you will find in the `diffusivity/multifasta` folder the following files:
+
+-   `diffusivity_1.ffn` contains the genes with diffusivity 1, in multifasta format.
+-   `diffusivity_2.ffn` contains the genes with diffusivity 2, in multifasta format.
+
+> If you will use more than 2 genomes, you will find more files in the `multifasta` folder. With the format `diffusivity_N.ffn`, where `N` is the diffusivity of the genes inside the file.
+
+#### Files related to type analysis
+
+If you used `-f list` or `-f all`, you will find in the `types/list` folder the following files:
+
+-   `accessory.txt` contains the genes identifiers of the accessory genes.
+-   `core.txt` contains the genes identifiers of the accessory genes.
+-   `singleton.txt` contains the genes identifiers of the accessory genes.
+
+If you used `-f multifasta` or `-f all`, you will find in the `types/multifasta` folder the following files:
+-   `accessory.ffn` contains the accessory genes, in multifasta format.
+-   `core.ffn` contains the core genes, in multifasta format.
+-   `singleton.ffn` contains the singleton genes, in multifasta format.
+
 ## License
 
 PanDelos-plus is distributed under the MIT license. This means that it is free for both academic and commercial use. Note, however, that some third-party components in PanDelos-plus require you to reference certain works in scientific publications. You are free to link or use PanDelos-plus inside the source code of your own program. If you do so, please reference (cite) PanDelos-plus and this website. Bug fixes and collaboration for improvements are appreciated.
@@ -446,6 +608,10 @@ Original PanDelos software:
 If you have used any of the PanDelos-plus project software, please cite the the following paper:
 
 <!-- TODO add citation -->
+
+```
+
+```
 
 ```
 

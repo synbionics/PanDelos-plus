@@ -6,12 +6,11 @@ import subprocess
 def arg_parser():
     parser = argparse.ArgumentParser(description="Program to process files with output options.")
     
-    parser.add_argument("-i", "--input", required=True, help="Input file to process")
-    parser.add_argument("-o", "--output", required=True, help="Output folder for results")
-    parser.add_argument("-c", "--core", required=True, help="Core threshold")
+    parser.add_argument("-i", "--input", required=True, help="input file to process")
+    parser.add_argument("-o", "--output", required=True, help="output folder for results")
+    parser.add_argument("-c", "--core", required=True, help="core threshold, the minimun number of genomes that a gene must be present in to be considered core")
     parser.add_argument("-f", "--format", choices=["none", "list", "multifasta", "all"], 
-                        default="none", help="Format of files to generate in addition to graphs")
-    
+                        default="none", help="format of files to generate in addition to graphs")
     args = parser.parse_args()
     return args
 
