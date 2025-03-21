@@ -11,6 +11,7 @@ k = int(sys.argv[2])
 wrongFile = False
 
 def check_sequences():
+    global wrongFile
     seq = False
     last = ""
     with open(ifile, "r") as file:
@@ -34,4 +35,6 @@ check_sequences()
 if wrongFile:
     print("File is wrong")
     sys.exit(1)
-
+else:
+    print("File is correct")
+    sys.exit(0)

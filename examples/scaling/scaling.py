@@ -72,7 +72,7 @@ while i < len(lines):
     tmpFaa = "tmpFaa.pdi"
     subprocess.call("python3 ../gbk2ig.py ./{}/ ./{}".format(tmpBanks, tmpFaa), shell=True, cwd=cwd)
 
-    command = "bash execute.sh -i {} -o {} -g {} -p ./".format(tmpFaa, f"./{tmpNets}/{i}", i)
+    command = "bash pandelosp.sh -i {} -o {} -g {} -p ./".format(tmpFaa, f"./{tmpNets}/{i}", i)
     subprocess.call(command, shell=True, cwd=cwd)
 
 

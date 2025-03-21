@@ -38,7 +38,7 @@ for filename in os.listdir(dirPath):
         subprocess.call(command, shell=True, cwd="{}/{}".format(cwd, fName))
         
         os.mkdir("./{}/nets".format(fName))
-        command = "bash execute.sh -i {} -o {} -p {}".format(f"./{fName}/{fName}.pdi", f"./{fName}/nets/{fName}", f"./{fName}/")
+        command = "bash pandelosp.sh -i {} -o {} -p {}".format(f"./{fName}/{fName}.pdi", f"./{fName}/nets/{fName}", f"./{fName}/")
         subprocess.call(command, shell=True, cwd=cwd)
 
 

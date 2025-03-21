@@ -11,6 +11,12 @@
 .history/
 
 
+# python
+*__pycache__/
+
+# env
+
+*pdp_env
 
 ### Cpp ###
 
@@ -18,3 +24,4 @@
 *.exe
 *.out
 *.app
+main
