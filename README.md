@@ -8,37 +8,37 @@ PanDelos-plus: a parallel algorithm for computing sequence homology in pangenomi
 
 ## Contents
 
-- [PanDelos-plus](#pandelos-plus)
-  - [Contents](#contents)
-  - [Introduction](#introduction)
-  - [Use on your local machine](#use-on-your-local-machine)
-    - [Installation](#installation)
-    - [Usage](#usage)
-  - [Use with docker](#use-with-docker)
-    - [Installation](#installation-1)
-    - [Usage](#usage-1)
-  - [Run with a custom file](#run-with-a-custom-file)
-    - [Local execution with custom file](#local-execution-with-custom-file)
-    - [Docker execution with custom file](#docker-execution-with-custom-file)
-  - [Advanced usage](#advanced-usage)
-    - [Using gbff files as input](#using-gbff-files-as-input)
-    - [Custom execution](#custom-execution)
-    - [Discard value](#discard-value)
-    - [Fragmented genes](#fragmented-genes)
-    - [Similarity parameter](#similarity-parameter)
-  - [Query pangenome](#query-pangenome)
-    - [Example](#example)
-      - [Plots](#plots)
-      - [Files related to diffusivity analysis](#files-related-to-diffusivity-analysis)
-      - [Files related to type analysis](#files-related-to-type-analysis)
-  - [License](#license)
-  - [Citation](#citation)
+-   [PanDelos-plus](#pandelos-plus)
+    -   [Contents](#contents)
+    -   [Introduction](#introduction)
+    -   [Use on your local machine](#use-on-your-local-machine)
+        -   [Installation](#installation)
+        -   [Usage](#usage)
+    -   [Use with docker](#use-with-docker)
+        -   [Installation](#installation-1)
+        -   [Usage](#usage-1)
+    -   [Run with a custom file](#run-with-a-custom-file)
+        -   [Local execution with custom file](#local-execution-with-custom-file)
+        -   [Docker execution with custom file](#docker-execution-with-custom-file)
+    -   [Advanced usage](#advanced-usage)
+        -   [Using gbff files as input](#using-gbff-files-as-input)
+        -   [Custom execution](#custom-execution)
+        -   [Discard value](#discard-value)
+        -   [Fragmented genes](#fragmented-genes)
+        -   [Similarity parameter](#similarity-parameter)
+    -   [Query pangenome](#query-pangenome)
+        -   [Example](#example)
+            -   [Plots](#plots)
+            -   [Files related to diffusivity analysis](#files-related-to-diffusivity-analysis)
+            -   [Files related to type analysis](#files-related-to-type-analysis)
+    -   [License](#license)
+    -   [Citation](#citation)
 
 <br>
 
 ## Introduction
 
-PanDelos-plus implements a dictionary-based method for pan-genome content discovery. This updated version is a re-engineered and parallelized C++ implementation of the original [PanDelos](https://github.com/InfOmics/PanDelos). It integrates several Python modules with a C++ library, coordinated via the `execute.sh` Bash script, which facilitates streamlined access to the complete PanDelos-plus pipeline.
+PanDelos-plus implements a dictionary-based method for pan-genome content discovery. This updated version is a re-engineered and parallelized C++ implementation of the original [PanDelos](https://github.com/InfOmics/PanDelos). It integrates several Python modules with a C++ library, coordinated via the `pandelosp.sh` Bash script, which facilitates streamlined access to the complete PanDelos-plus pipeline.
 
 <br>
 
@@ -363,7 +363,7 @@ bash pandelosp.sh -h
 You will get this output:
 
 ```bash
-Usage: execute.sh [-i input_file] [-o output_file] [-t thread_num] [-m] [-d discard_value] [-g path to gbks][-h]
+Usage: pandelosp.sh [-i input_file] [-o output_file] [-t thread_num] [-m] [-d discard_value] [-g path to gbks][-h]
 Options:
   -i: Input file path
   -o: Output file path
@@ -583,6 +583,7 @@ If you used `-f list` or `-f all`, you will find in the `types/list` folder the 
 -   `singleton.txt` contains the genes identifiers of the accessory genes.
 
 If you used `-f multifasta` or `-f all`, you will find in the `types/multifasta` folder the following files:
+
 -   `accessory.ffn` contains the accessory genes, in multifasta format.
 -   `core.ffn` contains the core genes, in multifasta format.
 -   `singleton.ffn` contains the singleton genes, in multifasta format.
