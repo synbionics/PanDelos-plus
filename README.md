@@ -438,15 +438,23 @@ Using the `-p` flag you will use an higher threshold to make the decision, so mo
 
 After the computation of the clusters, you can query the pangenome using the `query_pangenome.py` script.
 
+If you are using docker:
+
 ```bash
-python3 python3 query_pangenome.py -i <path_to_json_file>.json -o <path_to_output_folder> -c <gene_threshold_for_core> [-f < list | mutifasta | all>]
+docker compose run --rm pandelosplus python3 query_pangenome.py -i <path_to_json_file>.json -o <path_to_output_folder> -c <gene_threshold_for_core> [-f < list | mutifasta | all>]
 ```
+
+If you are not using docker:
 
 > Remember to activate the virtual environment before running the script. You can do this by running the following command:
 >
 > ```bash
 > source pdp_env/bin/activate
 > ```
+
+```bash
+python3 query_pangenome.py -i <path_to_json_file>.json -o <path_to_output_folder> -c <gene_threshold_for_core> [-f < list | mutifasta | all>]
+```
 
 | Flag | Description                                                                                                                                                                                                                                  |
 | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -485,6 +493,14 @@ Supposing that you have executed the example of execution with custom gbff files
 -   `custom.json`
 
 You can query the pangenome using the following command:
+
+If inside docker:
+
+```bash
+docker compose run --rm pandelosplus python3 query_pangenome.py -i output/custom.json -o output/ -c 2 -f all
+```
+
+If outside docker:
 
 ```bash
 python3 query_pangenome.py -i output/custom.json -o output/ -c 2 -f all

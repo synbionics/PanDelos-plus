@@ -11,18 +11,30 @@ RUN apt update && apt-get upgrade -y && \
         gzip\ 
         bash \
         git \
-        build-essential
+        build-essential \
+        unzip
 
 RUN useradd -ms /bin/bash pdp
 
 ARG TOOLNAME="PanDelos-plus"
-ARG PDPGITHUB="https://github.com/vbonnici/${TOOLNAME}.git"
+ARG VERSION="1.0.1"
+
+ARG PDPGITHUB="https://github.com/synbionics/${TOOLNAME}/archive/refs/tags/v${VERSION}.zip"
 ARG WORKDIR="/home/pdp"
+
 ARG TOOLDIR="/home/pdp/${TOOLNAME}"
+
+ARG ZIPNAME="pdp.zip"
+
 RUN mkdir -p ${WORKDIR}
 WORKDIR ${WORKDIR}
 
-RUN git clone ${PDPGITHUB}
+
+RUN curl -L --output ${ZIPNAME} ${PDPGITHUB}
+RUN unzip ${ZIPNAME} 
+
+RUN mv "${TOOLNAME}-${VERSION}" ${TOOLNAME}
+
 WORKDIR ${WORKDIR}/${TOOLNAME}
 
 
