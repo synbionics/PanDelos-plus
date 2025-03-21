@@ -17,7 +17,7 @@ RUN apt update && apt-get upgrade -y && \
 RUN useradd -ms /bin/bash pdp
 
 ARG TOOLNAME="PanDelos-plus"
-ARG VERSION="1.0.1"
+ARG VERSION="1.0.0"
 
 ARG PDPGITHUB="https://github.com/synbionics/${TOOLNAME}/archive/refs/tags/v${VERSION}.zip"
 ARG WORKDIR="/home/pdp"
