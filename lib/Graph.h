@@ -25,6 +25,8 @@ public:
 
     int get_number_of_edges() const;
 
+    const std::vector<std::pair<int, double>>& get_neighbors(int u) const;
+
 private:
     std::unordered_set<int> nodes;
     std::unordered_map<int, std::vector<std::pair<int, double>>> adj;

@@ -35,3 +35,12 @@ int Graph::get_number_of_nodes() const{
 int Graph::get_number_of_edges() const{
     return number_of_edges;;
 }
+
+const std::vector<std::pair<int, double>>& Graph::get_neighbors(int u) const {
+    static const std::vector<std::pair<int, double>> empty;
+    auto it = adj.find(u);
+    if (it != adj.end()) {
+        return it->second;
+    }
+    return empty;
+}
