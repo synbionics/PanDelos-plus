@@ -54,6 +54,6 @@ else
 fi
 
 # echo "Compile flags: $COMPILE_FLAGS"
-g++ $COMPILE_FLAGS main.cc -o main
+g++ $COMPILE_FLAGS src/main.cc -o main
 
 
