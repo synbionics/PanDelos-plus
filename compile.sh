@@ -53,7 +53,7 @@ else
     echo "Compiling in multi thread mode"
 fi
 
-echo "Compile flags: $COMPILE_FLAGS"
+# echo "Compile flags: $COMPILE_FLAGS"
 g++ $COMPILE_FLAGS main.cc -o main
 
 
