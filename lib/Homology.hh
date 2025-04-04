@@ -507,6 +507,16 @@ namespace homology {
         score_t minScore = mins_.getMin(genomeId);
 
         for (index_t row = 0; row < genes.size(); ++row) {
+            #ifdef SINGLE_THREAD
+            for(index_t col = row + 1; col < genes.size(); ++col) {
+                const auto& g = genes[row];
+                score_t currentScore = calculateSimilarity(g, genes[col]);
+                if (currentScore >= minScore) {
+                    scores.setScoreAt(row, col, currentScore);
+                    bestRows.addCandidate(row, currentScore, col);
+                }
+            }
+            #else
             poolRef.execute(
                 [row, &scores, this, &genes, &bestRows, minScore] {
                     for (index_t col = row + 1; col < genes.size(); ++col) {
@@ -521,12 +531,14 @@ namespace homology {
                     }
                 }
             );
+            #endif
         }
         // poolRef.waitTasks();
-
+        #ifndef SINGLE_THREAD
         while (!poolRef.tasksCompleted()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
+        #endif
     }
 
     inline void
@@ -538,6 +550,16 @@ namespace homology {
 
         for (index_t row = 0; row < rowGenes.size(); ++row) {
             // gene_tr rowGene = rowGenes.at(row);
+            #ifdef SINGLE_THREAD
+            for (index_t col = 0; col < colGenes.size(); ++col) {
+                gene_tr rowGene = rowGenes[row];
+                score_t currentScore = calculateSimilarity(rowGene, colGenes[col]);
+                if (currentScore > 0) {
+                    scores.setScoreAt(row, col, currentScore);
+                    bestRows.addCandidate(row, currentScore, col);
+                }
+            }
+            #else
             poolRef.execute(
                 [row, &scores, this, &colGenes, &bestRows, &rowGenes] {
                     gene_tr rowGene = rowGenes[row];
@@ -550,11 +572,14 @@ namespace homology {
                     }
                 }
             );
+            #endif
         }
+        #ifndef SINGLE_THREAD
         // poolRef.waitTasks();
         while (!poolRef.tasksCompleted()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
+        #endif
     }
 
 
@@ -583,7 +608,63 @@ namespace homology {
         for (auto col = match.begin(); col != match.end(); ++col) {
             const auto& currentColRef = *col;
 
+            #ifdef SINGLE_THREAD
+            auto& fwRef = *fw;
+            score_t bestScore = -1;
 
+
+            std::unordered_set<index_t> currentBestIndexs;
+
+            // index_t colGeneId = currentColRef.first;
+            index_t colGeneId = currentColRef;;
+            gene_tr currentColGene = colGenes[colGeneId];
+            // estrae le migliori righe per la colonna corrente
+            // e li memorizza in current best indexs
+
+            for (index_t row = 0; row < rowGenes.size(); ++row) {
+                score_t currentScore = scores.getScoreAt(row, colGeneId);
+
+                if (currentScore > bestScore && currentScore > 0.0) {
+                    bestScore = currentScore;
+                    currentBestIndexs.clear();
+                    currentBestIndexs.emplace(row);
+                }
+                else if (currentScore == bestScore && currentScore > 0.0) {
+                    currentBestIndexs.emplace(row);
+                }
+            }
+
+            // passa per tutte le righe con il punteggio migliore
+            // e se quel punteggio è il migliore anche per la riga
+            // crea il bbh
+            if (bestScore > 0.0) {
+
+                score_t minBBH = 2;
+
+                index_t currentColGeneFileLine = currentColGene.getGeneFilePosition();
+
+                for (auto index = currentBestIndexs.begin(); index != currentBestIndexs.end(); ++index) {
+                    index_t currentIndex = *index;
+
+                    if (bestScore == candidates.getBestScoreForCandidate(currentIndex)) {
+                        fwRef.write(
+                            std::to_string(
+                                rowGenes[currentIndex].getGeneFilePosition()
+                            ) + "," +
+                            std::to_string(
+                                currentColGeneFileLine
+                            ) + "," +
+                            std::to_string(bestScore)
+                            , outStream_);
+                        minBBH = bestScore < minBBH ? bestScore : minBBH;
+                    }
+                }
+                if (minBBH < sharedMin) {
+                    std::unique_lock<std::mutex> lock(minMutex);
+                    sharedMin = minBBH < sharedMin ? minBBH : sharedMin;
+                }
+            }
+            #else
             poolRef.execute(
                 [&currentColRef, &colGenes, &rowGenes, &scores, &candidates, this, &sharedMin, &minMutex] {
 
@@ -646,12 +727,14 @@ namespace homology {
 
                 }
             );
+            #endif
         }
         // poolRef.waitTasks();
-
+        #ifndef SINGLE_THREAD
         while (!poolRef.tasksCompleted()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
+        #endif
 
         // poolRef.waitTasks();
 
@@ -677,6 +760,45 @@ namespace homology {
         // passo per tutte le colonne "candidate"
         for (auto col = match.begin(); col != match.end(); ++col) {
             const auto& currentColRef = *col;
+            #ifdef SINGLE_THREAD
+                auto& fwRef = *fw;
+                score_t bestScore = -1;
+
+                std::unordered_set<index_t> currentBestIndexs;
+                index_t colGeneId = currentColRef;
+                gene_tr currentColGene = genes[colGeneId];
+                for (index_t row = 0; row < colGeneId; ++row) {
+                    score_t currentScore = scores.getScoreAt(row, colGeneId);
+
+                    if (currentScore > bestScore && currentScore > 0.0) {
+                        bestScore = currentScore;
+                        currentBestIndexs.clear();
+                        currentBestIndexs.insert(row);
+                    }
+                    else if (currentScore == bestScore && currentScore > 0.0) {
+                        currentBestIndexs.insert(row);
+                    }
+                }
+                if (bestScore > 0.0) {
+                    index_t currentColGeneFileLine = currentColGene.getGeneFilePosition();
+                    for (auto index = currentBestIndexs.begin(); index != currentBestIndexs.end(); ++index) {
+                        index_t currentIndex = *index;
+
+                        if (bestScore == candidates.getBestScoreForCandidate(currentIndex)) {
+                            fwRef.write(
+                                std::to_string(
+                                    genes[currentIndex].getGeneFilePosition()
+                                ) + "," +
+                                std::to_string(
+                                    currentColGeneFileLine
+                                ) + "," +
+                                std::to_string(bestScore)
+                                , outStream_);
+
+                        }
+                    }
+                }
+            #else
             poolRef.execute(
                 [&currentColRef, &genes, &scores, &candidates, this] {
                     auto& fwRef = *fw;
@@ -728,12 +850,16 @@ namespace homology {
                     }
                 }
             );
+            #endif
         }
         // poolRef.waitTasks();
+        #ifndef SINGLE_THREAD
 
         while (!poolRef.tasksCompleted()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
+        #endif
+        
         delete matchp;
     }
 
