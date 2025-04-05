@@ -4,8 +4,10 @@
 #include <unordered_map>
 #include <vector>
 #include <string.h>
-#include "../lib/Graph.h"
 #include <unordered_set>
+#include "../lib/Graph.hh"
+#include "../lib/Umbrella_algo.hh"
+#include "../lib/types.hh"
 
 #ifndef NDEBUG
     #define DEBUG_PRINT(x) std::cout << "[DEBUG] " << x << std::endl
@@ -67,10 +69,15 @@ int main(int argc, char* argv[]) {
         check_duplicates(seq_names);
     #endif
 
-    Graph graph = build_graph_from_file(net_ifile_name);
+    Graph network = build_graph_from_file(net_ifile_name);
 
-    DEBUG_PRINT("number of network nodes: " << graph.get_number_of_nodes());
-    DEBUG_PRINT("number of network edges: " << graph.get_number_of_edges());
+    DEBUG_PRINT("number of network nodes: " << network.get_number_of_nodes());
+    DEBUG_PRINT("number of network edges: " << network.get_number_of_edges());
+
+    #if !FAST_MODE
+        DEBUG_PRINT("Computing connected components");
+        DEBUG_PRINT("number of connected components: " << connected_components(network).size());
+    #endif
     
     return 0;
 }
