@@ -182,7 +182,19 @@ namespace bbh {
             // if no candidates on row -> skip
             if (candidates_[i].size() == 0)
                 continue;
-            
+                
+            #ifdef SINGLE_THREAD
+            const auto& list = candidates_[i].getCandidateList();
+                for (const auto& key : list) {
+                    // index_t key = *k;
+                    if (!bools[key].load(std::memory_order_acquire)) {
+                        std::unique_lock<std::mutex> lock(mutex_v[key]);
+                        if (!bools[key].load(std::memory_order_acquire)) {
+                            bools[key].store(true, std::memory_order_release);
+                        }
+                    }
+                }
+            #else
             pool.execute(
                 [i, this, &bools, &mutex_v] {
                     const auto& list = candidates_[i].getCandidateList();
@@ -197,12 +209,16 @@ namespace bbh {
                     }
                 }
             );
+            #endif
         }
 
         // pool.waitTasks();
+        #ifndef SINGLE_THREAD
         while (!pool.tasksCompleted()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
+        #endif
+
         BBHCandidatesSet* map = new BBHCandidatesSet();
         BBHCandidatesSet& mapRef = *map;
         mapRef.reserve(maxSize);

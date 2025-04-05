@@ -98,6 +98,18 @@ namespace bbh {
             return;
         }
 
+        #ifdef SINGLE_THREAD
+        {
+            auto c = halfMatrix_[0].begin();
+            score_t currentMin = *c;
+            ++c;
+            for (; c != halfMatrix_[0].end(); ++c) {
+                currentMin = *c < currentMin ? *c : currentMin;
+            }
+            mins_[0] = currentMin;
+        }
+        #else
+        
         pool.execute(
             [this] {
                 auto c = halfMatrix_[0].begin();
@@ -109,9 +121,28 @@ namespace bbh {
                 mins_[0] = currentMin;
             }
         );
+        #endif
 
         for (index_t r = 1; r < effectiveRows; ++r) {
-
+            #ifdef SINGLE_THREAD
+            {
+                auto c = halfMatrix_[r].begin();
+                score_t currentMin = *c;
+                ++c;
+                for (; c != halfMatrix_[r].end(); ++c) {
+                    currentMin = *c < currentMin ? *c : currentMin;
+                }
+                index_t p = r - 1;
+                for (; p > 0; --p) {
+                    score_t tmp = getVal(p, r);
+                    currentMin = tmp < currentMin ? tmp : currentMin;
+                }
+                // p = 0
+                score_t tmp = getVal(p, r);
+                currentMin = tmp < currentMin ? tmp : currentMin;
+                mins_[r] = currentMin;
+            }
+            #else
             pool.execute(
                 [this, r] {
                     auto c = halfMatrix_[r].begin();
@@ -131,12 +162,28 @@ namespace bbh {
                     mins_[r] = currentMin;
                 }
             );
-
-
-
+        #endif
         }
 
         // last row
+        #ifdef SINGLE_THREAD
+        {
+            index_t p = effectiveRows - 1;
+            score_t currentMin = getVal(p, effectiveRows);
+            if (p > 0) {
+                --p;
+            }
+            for (; p > 0; --p) {
+                score_t tmp = getVal(p, effectiveRows);
+                currentMin = tmp < currentMin ? tmp : currentMin;
+            }
+            // p = 0
+            score_t tmp = getVal(p, effectiveRows);
+            currentMin = tmp < currentMin ? tmp : currentMin;
+            mins_[effectiveRows] = currentMin;
+        }
+        #else
+
         pool.execute(
             [this, effectiveRows] {
                 index_t p = effectiveRows - 1;
@@ -154,10 +201,13 @@ namespace bbh {
                 mins_[effectiveRows] = currentMin;
             }
         );
+        #endif
+
+        #ifndef SINGLE_THREAD
         while (!pool.tasksCompleted()) {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
         }
-
+        #endif
     }
     inline MinBBHContainer::score_t
         MinBBHContainer::getMin(const index_t row) const {

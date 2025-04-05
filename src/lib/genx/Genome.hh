@@ -230,15 +230,21 @@ namespace genome {
     inline void
     Genome::deleteAllKmers(thread_ptr pool) {
         for(auto g = genes_.begin(); g != genes_.end(); ++g){
+            #ifdef SINGLE_THREAD
+            g->deleteKmers();
+            #else
             pool.execute(
                 [g] {
                     g->deleteKmers();
                 }
             );
+            #endif
         }
         // pool.waitTasks();
+        #ifndef SINGLE_THREAD
         while(!pool.tasksCompleted())
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
+        #endif
     }
 
     // ritorna il numero di geni
