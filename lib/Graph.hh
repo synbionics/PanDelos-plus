@@ -22,6 +22,11 @@ public:
         ++number_of_edges;
     }
 
+    std::vector<node_id_t> get_nodes() const {
+        return std::vector<node_id_t>(nodes.begin(), nodes.end());
+    }
+
+
     void printGraph() const {
         for (const auto& [node, neighbors] : adj) {
             std::cout << node << " -> ";
