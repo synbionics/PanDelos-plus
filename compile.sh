@@ -1,4 +1,12 @@
 #!bin/bash
+
+# delete main if it exists
+if [ -f "main" ]; then
+    echo "Deleting old main"
+    rm main
+fi
+
+
 # Initialize single thread flag
 SINGLE_THREAD_ENABLED=false
 
