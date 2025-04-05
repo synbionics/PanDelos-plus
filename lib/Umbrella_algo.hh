@@ -6,6 +6,80 @@
 #include <unordered_map>
 #include <vector>
 #include <stack>
+#include <limits>
+#include <map>
+#include <queue>
+#include <algorithm>
+
+struct Path_info{
+    double distance;
+    double paths;
+    double delta;
+
+    Path_info() : distance(std::numeric_limits<double>::infinity()),
+                paths(0), delta(0) {}
+};
+
+struct PairHash {
+        template <class T1, class T2>
+        std::size_t operator() (const std::pair<T1, T2>& pair) const {
+            return std::hash<T1>()(pair.first) ^ std::hash<T2>()(pair.second);
+        }
+    };
+
+std::unordered_map<std::pair<node_id_t,node_id_t>, weight_t, PairHash> calculate_edge_betweenness(const Graph& g) {
+
+    std::unordered_map<std::pair<node_id_t, node_id_t>, weight_t, PairHash> edge_betweenness;
+
+    for (node_id_t s : g.get_nodes()) {
+        std::unordered_map<node_id_t, Path_info> info;
+        std::unordered_map<node_id_t, std::vector<node_id_t>> pred;
+        std::queue<node_id_t> q;
+        std::stack<node_id_t> stack;
+
+        info[s].distance = 0;
+        info[s].paths = 1;
+
+        //BFS che fa anche da shortest paths (valido solo per grafo non pesato)
+
+        q.push(s);
+        while (!q.empty()) {
+            node_id_t u = q.front(); q.pop();
+            stack.push(u);
+
+            for (const auto& [v, _] : g.get_neighbors(u)) {
+                
+                if (info[v].distance == std::numeric_limits<double>::infinity()) {
+                    info[v].distance = info[u].distance + 1;
+                    q.push(v);
+                }
+
+                if (info[v].distance == info[u].distance + 1) {
+                    info[v].paths += info[u].paths;
+                    pred[v].push_back(u);
+                }
+            }
+        }
+
+        while (!stack.empty()) {
+            node_id_t w = stack.top(); stack.pop();
+            for (node_id_t v : pred[w]) {
+                double coefficent = (info[v].paths / info[w].paths) * (1 + info[w].delta);
+                //considero l'arco come dall'id più piccolo al più grande
+                std::pair<node_id_t, node_id_t> edge = std::minmax(v, w);
+                edge_betweenness[edge] += coefficent;
+                info[v].delta += coefficent;
+            }
+        }
+    }
+
+    // opzionale? alla fine è O(m) ma a me interessa solo il più grande
+    for (auto& [edge, val] : edge_betweenness) {
+        val /= 2.0;
+    }
+
+    return edge_betweenness;
+}
 
 int get_max_collision(std::vector<node_id_t> component, const Graph& network,
     const std::unordered_map<node_id_t, std::string>& seq_genome){
