@@ -6,6 +6,7 @@
 #include <vector>
 #include <utility>
 #include <iostream>
+#include <cassert>
 
 using node_id_t = int;
 using weight_t = double;
@@ -60,6 +61,34 @@ public:
         return number_of_edges;
     }
 
+    //edge è in forma minmax
+    void remove_edge(const std::pair<node_id_t, node_id_t>& edge) {
+
+        // magari metto fast mode
+        assert(exists_edge(edge.first, edge.second));
+
+        node_id_t node_1 = edge.first;
+        node_id_t node_2 = edge.second;
+
+        auto& node_1_adj_vec = adj[node_1];
+        for (auto it = node_1_adj_vec.begin(); it != node_1_adj_vec.end(); ++it) {
+            if (it->first == node_2) {
+                node_1_adj_vec.erase(it);
+                break;
+            }
+        }
+
+        auto& node_2_adj_vec = adj[node_2];
+        for (auto it = node_2_adj_vec.begin(); it != node_2_adj_vec.end(); ++it) {
+            if (it->first == node_1) {
+                node_2_adj_vec.erase(it);
+                break;
+            }
+        }
+
+        --number_of_edges;
+    }
+
     const std::vector<std::pair<node_id_t, weight_t>>& get_neighbors(node_id_t u) const {
         static const std::vector<std::pair<node_id_t, double>> empty;
         auto it = adj.find(u);
@@ -67,6 +96,31 @@ public:
             return it->second;
         }
         return empty;
+    }
+
+    Graph subgraph(const std::vector<node_id_t>& nodes_subset) const{
+        Graph subgraph;
+
+        for (const node_id_t& node : nodes_subset) {
+            subgraph.addNode(node);
+        }
+
+        for (const node_id_t& node : nodes_subset) {
+            if (adj.find(node) != adj.end()) {
+                for (const auto& neighbor_pair : adj.at(node)) {
+                    node_id_t neighbor = neighbor_pair.first;
+                    weight_t weight = neighbor_pair.second;
+                    // ottimizzabile mettendo il controllo da altre parti,
+                    // potrei qui inserire e basta le liste di adiacenza anche se alcuni nodi non appaiono
+                    if (std::find(nodes_subset.begin(), nodes_subset.end(), neighbor) != nodes_subset.end()) {
+                        subgraph.addEdge(node, neighbor, weight);
+                    }
+                }
+            }
+        }
+
+        return subgraph;
+
     }
 
 private:
