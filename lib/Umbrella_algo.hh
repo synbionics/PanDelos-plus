@@ -113,6 +113,23 @@ int get_max_collision(std::vector<node_id_t> component, const Graph& network,
 
 }
 
+std::pair<node_id_t, node_id_t> calculate_heaviest(const std::unordered_map<std::pair<node_id_t, node_id_t>, weight_t, PairHash>& edge_bws_map){
+
+    weight_t current_max = 0;
+    std::pair<node_id_t,node_id_t>max_bw_edge = std::make_pair(0,0);
+
+    for(auto it = edge_bws_map.begin(); it != edge_bws_map.end(); ++it){
+        auto& current_betweeness = it->second;
+        if(current_betweeness > current_max){
+            current_max = current_betweeness;
+            max_bw_edge = it->first;
+        }    
+    }
+
+    return max_bw_edge;
+
+}
+
 // approccio DFS
 std::vector<std::vector<int>> connected_components(const Graph& g) {
     std::unordered_set<int> visited;
@@ -143,6 +160,36 @@ std::vector<std::vector<int>> connected_components(const Graph& g) {
     }
 
     return components;
+}
+
+std::vector<std::vector<node_id_t>> single_split_girvan_newman(Graph& network){
+
+    const auto& edge_bws = calculate_edge_betweenness(network);
+    auto heaviest_edge = calculate_heaviest(edge_bws);
+    network.remove_edge(heaviest_edge);
+    return connected_components(network);
+
+}
+
+std::vector<std::vector<node_id_t>> split_until_max_k(
+                const std::vector<node_id_t>& component,
+                const Graph& network, const std::unordered_map<int, std::string>& seq_genome)
+{
+
+    Graph component_subnet = network.subgraph(component);
+
+    std::vector<std::vector<node_id_t>> tmp_communities = single_split_girvan_newman(component_subnet);
+    std::vector<std::vector<node_id_t>> final_communities;
+
+    for(const auto& community : tmp_communities){
+        if(get_max_collision(community,component_subnet,seq_genome) > 0 ){
+            auto subresult = split_until_max_k(community, component_subnet, seq_genome);
+            final_communities.insert(final_communities.end(), subresult.begin(), subresult.end());
+        } else {
+            final_communities.push_back(community);
+        }
+    }
+    return final_communities;
 }
 
 #endif
