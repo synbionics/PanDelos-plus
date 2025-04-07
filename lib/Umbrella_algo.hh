@@ -192,4 +192,23 @@ std::vector<std::vector<node_id_t>> split_until_max_k(
     return final_communities;
 }
 
+void sort_and_print_component(const std::vector<node_id_t>& component, std::ostream& out_op) {
+    out_op << "coco: [";
+
+    std::vector<node_id_t> sorted_component = component;
+    std::sort(sorted_component.begin(), sorted_component.end());
+
+    for (size_t i = 0; i < sorted_component.size(); ++i) {
+        out_op << sorted_component[i];
+        if (i != sorted_component.size() - 1)
+            out_op << ", ";
+    }
+
+    out_op << "]" << std::endl;
+}
+
+void print_family(const std::vector<node_id_t>& community, std::ostream& out_op){
+    
+}
+
 #endif
