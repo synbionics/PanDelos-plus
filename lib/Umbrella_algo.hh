@@ -11,6 +11,8 @@
 #include <queue>
 #include <algorithm>
 #include <set>
+#include <sstream>
+#include <fstream>
 
 struct Path_info{
     double distance;
@@ -132,34 +134,36 @@ std::pair<node_id_t, node_id_t> calculate_heaviest(const std::unordered_map<std:
 }
 
 // approccio DFS
-std::vector<std::vector<int>> connected_components(const Graph& g) {
-    std::unordered_set<int> visited;
-    std::vector<std::vector<int>> components;
-
-    for (int node = 0; node < g.get_number_of_nodes(); ++node) {
-        if (!g.find_node(node) || visited.count(node)) continue;
-
-        std::vector<int> component;
-        std::stack<int> stack;
-        stack.push(node);
-
-        while (!stack.empty()) {
-            int u = stack.top(); stack.pop();
-
-            if (visited.count(u)) continue;
-            visited.insert(u);
-            component.push_back(u);
-
-            for (const auto& [v, _] : g.get_neighbors(u)) {
-                if (!visited.count(v)) {
-                    stack.push(v);
+std::vector<std::vector<node_id_t>> connected_components(const Graph& g) {
+    std::vector<std::vector<node_id_t>> components;
+    std::unordered_set<node_id_t> visited;
+    std::vector<node_id_t> nodes = g.get_nodes();
+    
+    for (const auto& node : nodes) {
+        if (visited.find(node) == visited.end()) {
+            std::vector<node_id_t> component;
+            std::vector<node_id_t> stack;
+            
+            stack.push_back(node);
+            visited.insert(node);
+            
+            while (!stack.empty()) {
+                node_id_t current = stack.back();
+                stack.pop_back();
+                component.push_back(current);
+                
+                for (const auto& [neighbor, _] : g.get_neighbors(current)) {
+                    if (visited.find(neighbor) == visited.end()) {
+                        stack.push_back(neighbor);
+                        visited.insert(neighbor);
+                    }
                 }
             }
+            
+            components.push_back(component);
         }
-
-        components.push_back(component);
     }
-
+    
     return components;
 }
 
@@ -209,7 +213,7 @@ void sort_and_print_component(const std::vector<node_id_t>& component, std::ostr
 }
 
 void print_family(const std::vector<node_id_t>& community, const std::unordered_map<node_id_t, std::string>& seq_names, std::ostream& out_op) {
-    out_op << community.size() << std::endl;
+    out_op << "dimensione community: " << community.size() << std::endl;
 
     out_op << "fam [";
     std::vector<node_id_t> sorted_community = community;

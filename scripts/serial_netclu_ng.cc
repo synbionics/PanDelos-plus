@@ -1,6 +1,4 @@
 #include <iostream>
-#include <fstream>
-#include <sstream>
 #include <unordered_map>
 #include <vector>
 #include <string.h>
@@ -18,9 +16,6 @@
 #ifndef FAST_MODE
 #define FAST_MODE 0
 #endif
-
-void check_duplicates(const std::unordered_map<int, std::string>& seq_names);
-Graph build_graph_from_file(const std::string& file_name);
 
 int main(int argc, char* argv[]) {
 
@@ -88,9 +83,8 @@ int main(int argc, char* argv[]) {
             ++nof_comps;
         }
 
-        for (const auto& [size, count] : comps_size_distr) {
-            std::cout << size << " " << count << std::endl;
-        }
+        for (const auto& [size, count] : comps_size_distr)
+            DEBUG_PRINT("con dimensione: " << size << " ci sono: " << count << " componenti");
 
         DEBUG_PRINT("number of connected components: " << nof_comps);
         DEBUG_PRINT("----------------------------------------");
@@ -102,8 +96,11 @@ int main(int argc, char* argv[]) {
         remaining_singletons.insert(it->first);
     }
 
-    std::unordered_set<node_id_t> fnodes;
-    std::unordered_map<size_t, node_id_t> comps_size_distr;
+    // nel file originale fnodes non viene usato
+    //std::unordered_set<node_id_t> fnodes;
+    // in teoria si fa anche non ordinata quindi più veloce
+    // clear non libera memoria -> più veloce, sta in ram
+    comps_size_distr.clear();
     int nof_coms = 0;
 
     for(auto& component : connected_components(network)){
@@ -114,6 +111,7 @@ int main(int argc, char* argv[]) {
         int max_k = get_max_collision(component, network, seq_genome);
         if(max_k > 0){
             std::cout << "max_k: " << max_k << ", coco size: " << component.size() << std::endl;
+            DEBUG_PRINT("-*-computing girvan-newman...");
             auto communities = split_until_max_k(component,network, seq_genome);
             nof_coms += communities.size();
             for(auto& community : communities){

@@ -40,7 +40,7 @@ public:
     }
 
     bool find_node(node_id_t u) const {
-        return nodes.find(u) != nodes.end();
+        return nodes.count(u) > 0;
     }
 
     int get_number_of_nodes() const {
