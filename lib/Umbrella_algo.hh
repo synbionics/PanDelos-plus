@@ -10,6 +10,7 @@
 #include <map>
 #include <queue>
 #include <algorithm>
+#include <set>
 
 struct Path_info{
     double distance;
@@ -207,8 +208,55 @@ void sort_and_print_component(const std::vector<node_id_t>& component, std::ostr
     out_op << "]" << std::endl;
 }
 
-void print_family(const std::vector<node_id_t>& community, std::ostream& out_op){
-    
+void print_family(const std::vector<node_id_t>& community, const std::unordered_map<node_id_t, std::string>& seq_names, std::ostream& out_op) {
+    out_op << community.size() << std::endl;
+
+    out_op << "fam [";
+    std::vector<node_id_t> sorted_community = community;
+    std::sort(sorted_community.begin(), sorted_community.end());
+    for (size_t i = 0; i < sorted_community.size(); ++i) {
+        out_op << sorted_community[i];
+        if (i != sorted_community.size() - 1)
+            out_op << ", ";
+    }
+    out_op << "]" << std::endl;
+
+    out_op << "F{ ";
+    for (size_t i = 0; i < sorted_community.size(); ++i) {
+        out_op << seq_names.at(sorted_community[i]);
+        if (i != sorted_community.size() - 1)
+            out_op << " ; ";
+    }
+    out_op << "}" << std::endl;
 }
+
+void print_family_descriptions(const std::vector<node_id_t>& community, const std::unordered_map<node_id_t, std::string>& seq_descr, std::ostream& out_op) {
+    out_op << "D{ ";
+    for (size_t i = 0; i < community.size(); ++i) {
+        out_op << seq_descr.at(community[i]);
+        if (i != community.size() - 1)
+            out_op << " ; ";
+    }
+    out_op << "}" << std::endl;
+
+    out_op << "S{ ";
+    std::set<std::string> unique_descriptions;
+    for (const auto& node : community) {
+        unique_descriptions.insert(seq_descr.at(node));
+    }
+
+    bool first = true;
+    for (const auto& desc : unique_descriptions) {
+        if (!first) {
+            out_op << " ; ";
+        }
+        out_op << desc;
+        first = false;
+    }
+    out_op << "}" << std::endl;
+
+    out_op << "-" << std::endl;
+}
+
 
 #endif
