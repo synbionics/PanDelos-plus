@@ -75,55 +75,76 @@ int main(int argc, char* argv[]) {
     DEBUG_PRINT("number of network edges: " << network.get_number_of_edges());
 
     #if !FAST_MODE
-        DEBUG_PRINT("Computing connected components");
-        DEBUG_PRINT("number of connected components: " << connected_components(network).size());
+
+        std::map<size_t, node_id_t> comps_size_distr;
+        int nof_comps = 0;
+        DEBUG_PRINT("----------------------------------------");
+        DEBUG_PRINT("Computing connected components...");
+        auto components = connected_components(network);
+
+        for(auto& component : components){
+            size_t comp_size = component.size();
+            ++(comps_size_distr[comp_size]);
+            ++nof_comps;
+        }
+
+        for (const auto& [size, count] : comps_size_distr) {
+            std::cout << size << " " << count << std::endl;
+        }
+
+        DEBUG_PRINT("number of connected components: " << nof_comps);
+        DEBUG_PRINT("----------------------------------------");
+
     #endif
+
+    std::unordered_set<int> remaining_singletons;
+    for(auto it = seq_names.begin(); it != seq_names.end(); ++it){
+        remaining_singletons.insert(it->first);
+    }
+
+    std::unordered_set<node_id_t> fnodes;
+    std::unordered_map<size_t, node_id_t> comps_size_distr;
+    int nof_coms = 0;
+
+    for(auto& component : connected_components(network)){
+        std::cout << "----------------------------------------" << std::endl;
+        #if !FAST_MODE
+            sort_and_print_component(component, std::cout);
+        #endif
+        int max_k = get_max_collision(component, network, seq_genome);
+        if(max_k > 0){
+            std::cout << "max_k: " << max_k << ", coco size: " << component.size() << std::endl;
+            auto communities = split_until_max_k(component,network, seq_genome);
+            nof_coms += communities.size();
+            for(auto& community : communities){
+                size_t community_length = community.size();
+                // da c++98 fino all'attuale inizializza con 0 se non esiste
+                comps_size_distr[component.size()] += 1;
+                print_family(community, seq_names, std::cout);
+                for(const node_id_t& node : community)
+                    remaining_singletons.erase(node);
+                print_family_descriptions(community, seq_descr, std::cout);
+            }
+        } else{
+            ++nof_coms;
+            comps_size_distr[component.size()] += 1;
+            print_family(component, seq_names, std::cout);
+            for(const node_id_t& node : component)
+                    remaining_singletons.erase(node);
+        }
+    }
+
+    for(const node_id_t& node : remaining_singletons)
+        std::cout << "F{" << seq_names.at(node) << " }" << std::endl;
+
+    for (const auto& [k, v] : comps_size_distr)
+        std::cout << k << " " << v << std::endl;
+
+    std::cout << "number of communities " << nof_comps << std::endl;
+
+    std::cout << "----------------------------------------" << std::endl;
+    std::cout << "----------------------------------------" << std::endl;
+    DEBUG_PRINT("end of net_clu_ng");
     
     return 0;
-}
-
-void check_duplicates(const std::unordered_map<int, std::string>& seq_names) {
-    std::unordered_map<std::string, int> name_count;
-
-    for (const auto& pair : seq_names) {
-        name_count[pair.second]++;
-        if (name_count[pair.second] > 1) {
-            std::cout << "Duplicated seq name: " << pair.second << std::endl;
-        }
-    }
-}
-
-Graph build_graph_from_file(const std::string& file_name){
-    char netSeparator = ',';
-
-    Graph graph;
-    std::ifstream file(file_name);
-    std::string line;
-    
-    while (getline(file, line)) {
-        std::stringstream ss(line);
-        std::string col0, col1, col2;
-        getline(ss, col0, netSeparator);
-        getline(ss, col1, netSeparator);
-        getline(ss, col2, netSeparator);
-
-        if(std::stof(col2) != 0.0){
-            int node_0 = std::stoi(col0);
-            int node_1 = std::stoi(col1);
-            float edge_weight = std::stof(col2);
-            if(!graph.find_node(node_0)){
-                graph.addNode(node_0);
-            }
-            if(node_0 != node_1 && !graph.find_node(node_1)){
-                graph.addNode(node_1);
-            }
-            if(node_0 != node_1){
-                graph.addEdge(node_0,node_1,edge_weight);
-            }
-        }
-
-    }
-
-    return graph;
-
 }
