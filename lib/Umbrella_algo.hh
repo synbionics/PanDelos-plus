@@ -259,4 +259,51 @@ void print_family_descriptions(const std::vector<node_id_t>& community, const st
 }
 
 
+
+void check_duplicates(const std::unordered_map<int, std::string>& seq_names) {
+    std::unordered_map<std::string, int> name_count;
+
+    for (const auto& pair : seq_names) {
+        name_count[pair.second]++;
+        if (name_count[pair.second] > 1) {
+            std::cout << "Duplicated seq name: " << pair.second << std::endl;
+        }
+    }
+}
+
+Graph build_graph_from_file(const std::string& file_name){
+    char netSeparator = ',';
+
+    Graph graph;
+    std::ifstream file(file_name);
+    std::string line;
+    
+    while (getline(file, line)) {
+        std::stringstream ss(line);
+        std::string col0, col1, col2;
+        getline(ss, col0, netSeparator);
+        getline(ss, col1, netSeparator);
+        getline(ss, col2, netSeparator);
+
+        if(std::stof(col2) != 0.0){
+            int node_0 = std::stoi(col0);
+            int node_1 = std::stoi(col1);
+            float edge_weight = std::stof(col2);
+            if(!graph.find_node(node_0)){
+                graph.addNode(node_0);
+            }
+            if(node_0 != node_1 && !graph.find_node(node_1)){
+                graph.addNode(node_1);
+            }
+            if(node_0 != node_1){
+                graph.addEdge(node_0,node_1,edge_weight);
+            }
+        }
+
+    }
+
+    return graph;
+
+}
+
 #endif
