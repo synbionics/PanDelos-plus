@@ -7,6 +7,7 @@
 #include <utility>
 #include <iostream>
 #include <cassert>
+#include <algorithm>
 
 using node_id_t = int;
 using weight_t = double;
