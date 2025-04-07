@@ -248,6 +248,6 @@ if [ $? -ne 0 ]; then
 fi
 
 #rm "$outFile.net"
-rm $tmp
+#rm $tmp
 
 date
