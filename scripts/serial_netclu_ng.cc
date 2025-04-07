@@ -129,6 +129,7 @@ int main(int argc, char* argv[]) {
             print_family(component, seq_names, std::cout);
             for(const node_id_t& node : component)
                     remaining_singletons.erase(node);
+            print_family_descriptions(component, seq_descr, std::cout);
         }
     }
 

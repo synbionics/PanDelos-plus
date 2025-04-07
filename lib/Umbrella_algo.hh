@@ -180,20 +180,31 @@ std::vector<std::vector<node_id_t>> split_until_max_k(
                 const std::vector<node_id_t>& component,
                 const Graph& network, const std::unordered_map<int, std::string>& seq_genome)
 {
-
     Graph component_subnet = network.subgraph(component);
-
+    
+    int max_collision = get_max_collision(component, network, seq_genome);
+    
+    if (max_collision <= 0) {
+        return {component};
+    }
+    
     std::vector<std::vector<node_id_t>> tmp_communities = single_split_girvan_newman(component_subnet);
+    
+    if (tmp_communities.size() <= 1) {
+        return {component};
+    }
+    
     std::vector<std::vector<node_id_t>> final_communities;
-
-    for(const auto& community : tmp_communities){
-        if(get_max_collision(community,component_subnet,seq_genome) > 0 ){
-            auto subresult = split_until_max_k(community, component_subnet, seq_genome);
+    
+    for (const auto& community : tmp_communities) {
+        if (community.size() < component.size()) {
+            auto subresult = split_until_max_k(community, network, seq_genome);
             final_communities.insert(final_communities.end(), subresult.begin(), subresult.end());
         } else {
             final_communities.push_back(community);
         }
     }
+    
     return final_communities;
 }
 
