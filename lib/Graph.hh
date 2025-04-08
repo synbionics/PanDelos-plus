@@ -56,6 +56,7 @@ public:
         if (!exists_edge(u, v)) {
             adj[u].emplace_back(v, weight);
             adj[v].emplace_back(u, weight); // non direzionale
+            ++number_of_edges;
         }
     }
 

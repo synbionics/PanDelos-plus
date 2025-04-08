@@ -25,11 +25,13 @@ struct Path_info{
 };
 
 struct PairHash {
-        template <class T1, class T2>
-        std::size_t operator() (const std::pair<T1, T2>& pair) const {
-            return std::hash<T1>()(pair.first) ^ std::hash<T2>()(pair.second);
-        }
-    };
+    template <class T1, class T2>
+    std::size_t operator()(const std::pair<T1, T2>& p) const {
+        auto h1 = std::hash<T1>{}(p.first);
+        auto h2 = std::hash<T2>{}(p.second);
+        return h1 ^ (h2 << 1);
+    }
+};
 
 std::unordered_map<std::pair<node_id_t,node_id_t>, weight_t, PairHash> calculate_edge_betweenness(const Graph& g) {
 
@@ -170,15 +172,10 @@ std::vector<std::vector<node_id_t>> connected_components(const Graph& g) {
 
 std::vector<std::vector<node_id_t>> single_split_girvan_newman(Graph& network){
 
-    std::cout << "\n-------------------Sottografo prima di gn\n";
-    network.printGraph();
-    std::cout << "\n-------------------\n";
+    std::cout << ("-*-computing girvan-newman...") << std::endl;
     const auto& edge_bws = calculate_edge_betweenness(network);
     auto heaviest_edge = calculate_heaviest(edge_bws);
     network.remove_edge(heaviest_edge);
-    std::cout << "\n-------------------Sottografo post rimozione\n";
-    network.printGraph();
-    std::cout << "\n-------------------\n";
     return connected_components(network);
 
 }
@@ -196,7 +193,12 @@ std::vector<std::vector<node_id_t>> split_until_max_k(
         return {component};
     }
     
-    std::vector<std::vector<node_id_t>> tmp_communities = single_split_girvan_newman(component_subnet);
+    std::vector<std::vector<node_id_t>> tmp_communities;
+
+    // sospetto che networkX chiami gn finchè non scompone e non solo una volta togliendo l'arco con bw piu' alto
+    do{
+         tmp_communities = single_split_girvan_newman(component_subnet);
+    } while(tmp_communities.size() <= 1); 
     
     if (tmp_communities.size() <= 1) {
         return {component};

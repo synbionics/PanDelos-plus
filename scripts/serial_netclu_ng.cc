@@ -111,7 +111,6 @@ int main(int argc, char* argv[]) {
         int max_k = get_max_collision(component, network, seq_genome);
         if(max_k > 0){
             std::cout << "max_k: " << max_k << ", coco size: " << component.size() << std::endl;
-            DEBUG_PRINT("-*-computing girvan-newman...");
             auto communities = split_until_max_k(component,network, seq_genome);
             nof_coms += communities.size();
             for(auto& community : communities){
@@ -134,7 +133,7 @@ int main(int argc, char* argv[]) {
     }
 
     for(const node_id_t& node : remaining_singletons)
-        std::cout << "F{" << seq_names.at(node) << " }" << std::endl;
+        std::cout << "F{ " << seq_names.at(node) << " }" << std::endl;
 
     for (const auto& [k, v] : coms_size_distr)
         std::cout << k << " " << v << std::endl;
