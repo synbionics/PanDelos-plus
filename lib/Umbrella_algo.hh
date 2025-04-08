@@ -2,6 +2,7 @@
 #define UMBRELLA_ALGO_H_GUARD
 
 #include "Graph.hh"
+#include "SubGraph.hh"
 #include <unordered_set>
 #include <unordered_map>
 #include <vector>
@@ -169,18 +170,25 @@ std::vector<std::vector<node_id_t>> connected_components(const Graph& g) {
 
 std::vector<std::vector<node_id_t>> single_split_girvan_newman(Graph& network){
 
+    std::cout << "\n-------------------Sottografo prima di gn\n";
+    network.printGraph();
+    std::cout << "\n-------------------\n";
     const auto& edge_bws = calculate_edge_betweenness(network);
     auto heaviest_edge = calculate_heaviest(edge_bws);
     network.remove_edge(heaviest_edge);
+    std::cout << "\n-------------------Sottografo post rimozione\n";
+    network.printGraph();
+    std::cout << "\n-------------------\n";
     return connected_components(network);
 
 }
 
 std::vector<std::vector<node_id_t>> split_until_max_k(
                 const std::vector<node_id_t>& component,
-                const Graph& network, const std::unordered_map<int, std::string>& seq_genome)
+                Graph& network, const std::unordered_map<int, std::string>& seq_genome)
 {
-    Graph component_subnet = network.subgraph(component);
+    // Nota: parametro network è ora riferimento non-const
+    SubGraph component_subnet(network, component);
     
     int max_collision = get_max_collision(component, network, seq_genome);
     

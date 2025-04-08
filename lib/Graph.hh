@@ -18,12 +18,6 @@ public:
         nodes.insert(u);
     }
 
-    void addEdge(node_id_t u, node_id_t v, double w) {
-        adj[u].push_back({v, w});
-        adj[v].push_back({u, w});
-        ++number_of_edges;
-    }
-
     std::vector<node_id_t> get_nodes() const {
         return std::vector<node_id_t>(nodes.begin(), nodes.end());
     }
@@ -58,12 +52,19 @@ public:
         return false;
     }
 
+    virtual void addEdge(node_id_t u, node_id_t v, weight_t weight) {
+        if (!exists_edge(u, v)) {
+            adj[u].emplace_back(v, weight);
+            adj[v].emplace_back(u, weight); // non direzionale
+        }
+    }
+
     int get_number_of_edges() const {
         return number_of_edges;
     }
 
     //edge è in forma minmax
-    void remove_edge(const std::pair<node_id_t, node_id_t>& edge) {
+    virtual void remove_edge(const std::pair<node_id_t, node_id_t>& edge) {
 
         // magari metto fast mode
         assert(exists_edge(edge.first, edge.second));
@@ -75,6 +76,7 @@ public:
         for (auto it = node_1_adj_vec.begin(); it != node_1_adj_vec.end(); ++it) {
             if (it->first == node_2) {
                 node_1_adj_vec.erase(it);
+                std::cout << "ho rimosso l'arco (non direzionale), fra i due nodi: " << node_1 << " e " << node_2 << std::endl;
                 break;
             }
         }
@@ -88,6 +90,10 @@ public:
         }
 
         --number_of_edges;
+    }
+
+    bool has_node(node_id_t u) const{
+        return nodes.count(u) > 0;
     }
 
     const std::vector<std::pair<node_id_t, weight_t>>& get_neighbors(node_id_t u) const {
