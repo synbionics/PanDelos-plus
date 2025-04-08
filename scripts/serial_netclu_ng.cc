@@ -100,7 +100,7 @@ int main(int argc, char* argv[]) {
     //std::unordered_set<node_id_t> fnodes;
     // in teoria si fa anche non ordinata quindi più veloce
     // clear non libera memoria -> più veloce, sta in ram
-    comps_size_distr.clear();
+    std::map<size_t, node_id_t> coms_size_distr;
     int nof_coms = 0;
 
     for(auto& component : connected_components(network)){
@@ -117,7 +117,7 @@ int main(int argc, char* argv[]) {
             for(auto& community : communities){
                 size_t community_length = community.size();
                 // da c++98 fino all'attuale inizializza con 0 se non esiste
-                comps_size_distr[component.size()] += 1;
+                coms_size_distr[component.size()] += 1;
                 print_family(community, seq_names, std::cout);
                 for(const node_id_t& node : community)
                     remaining_singletons.erase(node);
@@ -125,7 +125,7 @@ int main(int argc, char* argv[]) {
             }
         } else{
             ++nof_coms;
-            comps_size_distr[component.size()] += 1;
+            coms_size_distr[component.size()] += 1;
             print_family(component, seq_names, std::cout);
             for(const node_id_t& node : component)
                     remaining_singletons.erase(node);
@@ -136,10 +136,10 @@ int main(int argc, char* argv[]) {
     for(const node_id_t& node : remaining_singletons)
         std::cout << "F{" << seq_names.at(node) << " }" << std::endl;
 
-    for (const auto& [k, v] : comps_size_distr)
+    for (const auto& [k, v] : coms_size_distr)
         std::cout << k << " " << v << std::endl;
 
-    std::cout << "number of communities " << nof_comps << std::endl;
+    std::cout << "number of communities " << nof_coms << std::endl;
 
     std::cout << "----------------------------------------" << std::endl;
     std::cout << "----------------------------------------" << std::endl;
