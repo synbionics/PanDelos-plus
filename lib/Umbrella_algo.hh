@@ -126,6 +126,8 @@ std::pair<node_id_t, node_id_t> calculate_heaviest(const std::unordered_map<std:
 
     for(auto it = edge_bws_map.begin(); it != edge_bws_map.end(); ++it){
         auto& current_betweeness = it->second;
+        std::cout << "valore arco esaminato tra " << it->first.first << " e " << it->first.second << ": " << current_betweeness << std::endl ;
+        //posso cambiare da > a >= e viceversa in base se esistono uguali quale togliere
         if(current_betweeness > current_max){
             current_max = current_betweeness;
             max_bw_edge = it->first;
@@ -173,9 +175,13 @@ std::vector<std::vector<node_id_t>> connected_components(const Graph& g) {
 std::vector<std::vector<node_id_t>> single_split_girvan_newman(Graph& network){
 
     std::cout << ("-*-computing girvan-newman...") << std::endl;
-    const auto& edge_bws = calculate_edge_betweenness(network);
-    auto heaviest_edge = calculate_heaviest(edge_bws);
-    network.remove_edge(heaviest_edge);
+    
+    while(connected_components(network).size() <= 1){
+        const auto& edge_bws = calculate_edge_betweenness(network);
+        auto heaviest_edge = calculate_heaviest(edge_bws);
+        std::cout << "arco con bw piu' alta e' fra: " << heaviest_edge.first << " e " << heaviest_edge.second << std::endl;
+        network.remove_edge(heaviest_edge);
+    }
     return connected_components(network);
 
 }
@@ -184,49 +190,37 @@ std::vector<std::vector<node_id_t>> split_until_max_k(
                 const std::vector<node_id_t>& component,
                 Graph& network, const std::unordered_map<int, std::string>& seq_genome)
 {
-    // Nota: parametro network è ora riferimento non-const
     SubGraph component_subnet(network, component);
     
-    int max_collision = get_max_collision(component, network, seq_genome);
-    
-    if (max_collision <= 0) {
-        return {component};
-    }
-    
-    std::vector<std::vector<node_id_t>> tmp_communities;
-
-    // sospetto che networkX chiami gn finchè non scompone e non solo una volta togliendo l'arco con bw piu' alto
-    do{
-         tmp_communities = single_split_girvan_newman(component_subnet);
-    } while(tmp_communities.size() <= 1); 
-    
-    if (tmp_communities.size() <= 1) {
-        return {component};
-    }
-    
+    std::vector<std::vector<node_id_t>> tmp_communities = single_split_girvan_newman(component_subnet);
     std::vector<std::vector<node_id_t>> final_communities;
-    
-    for (const auto& community : tmp_communities) {
-        if (community.size() < component.size()) {
-            auto subresult = split_until_max_k(community, network, seq_genome);
-            final_communities.insert(final_communities.end(), subresult.begin(), subresult.end());
+
+    std::vector<std::vector<node_id_t>> to_process(tmp_communities.begin(), tmp_communities.end());
+
+    while (!to_process.empty()) {
+        std::vector<node_id_t> community = to_process.back();
+        to_process.pop_back();
+
+        if (get_max_collision(community, component_subnet, seq_genome) > 0) {
+            std::vector<std::vector<node_id_t>> subresult = split_until_max_k(community, network, seq_genome);
+            to_process.insert(to_process.end(), subresult.begin(), subresult.end());
         } else {
             final_communities.push_back(community);
         }
     }
-    
+
     return final_communities;
 }
 
-void sort_and_print_component(const std::vector<node_id_t>& component, std::ostream& out_op) {
+
+void sort_and_print_component(std::vector<node_id_t>& component, std::ostream& out_op) {
     out_op << "coco: [";
 
-    std::vector<node_id_t> sorted_component = component;
-    std::sort(sorted_component.begin(), sorted_component.end());
+    std::sort(component.begin(), component.end());
 
-    for (size_t i = 0; i < sorted_component.size(); ++i) {
-        out_op << sorted_component[i];
-        if (i != sorted_component.size() - 1)
+    for (size_t i = 0; i < component.size(); ++i) {
+        out_op << component[i];
+        if (i != component.size() - 1)
             out_op << ", ";
     }
 
