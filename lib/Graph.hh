@@ -3,6 +3,8 @@
 
 #include <unordered_map>
 #include <unordered_set>
+#include <map>
+#include <set>
 #include <vector>
 #include <utility>
 #include <iostream>
@@ -132,8 +134,8 @@ public:
     }
 
 private:
-    std::unordered_set<node_id_t> nodes;
-    std::unordered_map<node_id_t, std::vector<std::pair<node_id_t, weight_t>>> adj;
+    std::set<node_id_t> nodes;
+    std::map<node_id_t, std::vector<std::pair<node_id_t, weight_t>>> adj;
     int number_of_edges = 0;
 };
 

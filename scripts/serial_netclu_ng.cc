@@ -103,6 +103,8 @@ int main(int argc, char* argv[]) {
     std::map<size_t, node_id_t> coms_size_distr;
     int nof_coms = 0;
 
+    //togliere magari ma serve per capire per ora
+
     for(auto& component : connected_components(network)){
         std::cout << "----------------------------------------" << std::endl;
         #if !FAST_MODE
