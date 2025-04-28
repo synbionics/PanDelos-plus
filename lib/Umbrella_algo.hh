@@ -126,18 +126,22 @@ std::pair<node_id_t, node_id_t> calculate_heaviest(const Graph& network, const s
 
     for(auto it = edge_bws_map.begin(); it != edge_bws_map.end(); ++it){
         auto& current_betweeness = it->second;
-        std::cout << "valore arco esaminato tra " << it->first.first << " e " << it->first.second << ": " << current_betweeness << std::endl ;
+        std::cout << "valore del bw esaminato tra i nodi " << it->first.first << " e " << it->first.second << ": " << current_betweeness << std::endl ;
         //posso cambiare da > a >= e viceversa in base se esistono uguali quale togliere
         if(current_betweeness > current_max){
             current_max = current_betweeness;
             max_bw_edge = it->first;
         }
         else if(current_betweeness == current_max){
+            std::cout << "\n!!! betweeness uguale trovato !!!\n";
             weight_t current_edge_weight = network.get_edge_weight(it->first.first,it->first.second);
             weight_t max_bw_edge_weight = network.get_edge_weight(max_bw_edge.first,max_bw_edge.second);
+            std::cout << "\nVecchio arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
             if(current_edge_weight < max_bw_edge_weight){
                 max_bw_edge = it->first;
             }
+            std::cout << "Nuovo arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
+            
 
         }    
     }

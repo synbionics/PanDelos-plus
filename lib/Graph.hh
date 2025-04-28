@@ -70,6 +70,9 @@ public:
                 return weight;
             }
         }
+
+        //TODO gestione errori? rallenta pero'
+        return -1;
     }
 
     int get_number_of_edges() const {
