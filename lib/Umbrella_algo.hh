@@ -122,18 +122,20 @@ int get_max_collision(std::vector<node_id_t> component, const Graph& network,
 std::pair<node_id_t, node_id_t> calculate_heaviest(const Graph& network, const std::unordered_map<std::pair<node_id_t, node_id_t>, weight_t, PairHash>& edge_bws_map){
 
     weight_t current_max = -1;
+    const double EPSILON = 1e-6;
     std::pair<node_id_t,node_id_t>max_bw_edge = std::make_pair(0,0);
 
     for(auto it = edge_bws_map.begin(); it != edge_bws_map.end(); ++it){
         auto& current_betweeness = it->second;
+        std::cout << "attuale max_current: " << current_max << std::endl;
         std::cout << "valore del bw esaminato tra i nodi " << it->first.first << " e " << it->first.second << ": " << current_betweeness << std::endl ;
         //posso cambiare da > a >= e viceversa in base se esistono uguali quale togliere
         if(current_betweeness > current_max){
             current_max = current_betweeness;
             max_bw_edge = it->first;
         }
-        else if(current_betweeness == current_max){
-            std::cout << "\n!!! betweeness uguale trovato !!!\n";
+        else if(std::abs(current_betweeness - current_max) < EPSILON){
+            std::cout << "\n!!! betweeness uguale trovato e valente: " << current_betweeness << " !!!\n";
             weight_t current_edge_weight = network.get_edge_weight(it->first.first,it->first.second);
             weight_t max_bw_edge_weight = network.get_edge_weight(max_bw_edge.first,max_bw_edge.second);
             std::cout << "\nVecchio arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
@@ -141,8 +143,6 @@ std::pair<node_id_t, node_id_t> calculate_heaviest(const Graph& network, const s
                 max_bw_edge = it->first;
             }
             std::cout << "Nuovo arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
-            
-
         }    
     }
 
