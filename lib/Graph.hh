@@ -62,6 +62,16 @@ public:
         }
     }
 
+    weight_t get_edge_weight(node_id_t u, node_id_t v) const {
+        auto it = adj.find(u);
+
+        for (const auto& [neighbor, weight] : it->second) {
+            if (neighbor == v) {
+                return weight;
+            }
+        }
+    }
+
     int get_number_of_edges() const {
         return number_of_edges;
     }
