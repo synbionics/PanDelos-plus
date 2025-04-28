@@ -119,9 +119,9 @@ int get_max_collision(std::vector<node_id_t> component, const Graph& network,
 
 }
 
-std::pair<node_id_t, node_id_t> calculate_heaviest(const std::unordered_map<std::pair<node_id_t, node_id_t>, weight_t, PairHash>& edge_bws_map){
+std::pair<node_id_t, node_id_t> calculate_heaviest(const Graph& network, const std::unordered_map<std::pair<node_id_t, node_id_t>, weight_t, PairHash>& edge_bws_map){
 
-    weight_t current_max = 0;
+    weight_t current_max = -1;
     std::pair<node_id_t,node_id_t>max_bw_edge = std::make_pair(0,0);
 
     for(auto it = edge_bws_map.begin(); it != edge_bws_map.end(); ++it){
@@ -131,6 +131,14 @@ std::pair<node_id_t, node_id_t> calculate_heaviest(const std::unordered_map<std:
         if(current_betweeness > current_max){
             current_max = current_betweeness;
             max_bw_edge = it->first;
+        }
+        else if(current_betweeness == current_max){
+            weight_t current_edge_weight = network.get_edge_weight(it->first.first,it->first.second);
+            weight_t max_bw_edge_weight = network.get_edge_weight(max_bw_edge.first,max_bw_edge.second);
+            if(current_edge_weight < max_bw_edge_weight){
+                max_bw_edge = it->first;
+            }
+
         }    
     }
 
@@ -178,7 +186,7 @@ std::vector<std::vector<node_id_t>> single_split_girvan_newman(Graph& network){
     
     while(connected_components(network).size() <= 1){
         const auto& edge_bws = calculate_edge_betweenness(network);
-        auto heaviest_edge = calculate_heaviest(edge_bws);
+        auto heaviest_edge = calculate_heaviest(network, edge_bws);
         std::cout << "arco con bw piu' alta e' fra: " << heaviest_edge.first << " e " << heaviest_edge.second << std::endl;
         network.remove_edge(heaviest_edge);
     }
