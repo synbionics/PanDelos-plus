@@ -92,7 +92,7 @@ public:
         for (auto it = node_1_adj_vec.begin(); it != node_1_adj_vec.end(); ++it) {
             if (it->first == node_2) {
                 node_1_adj_vec.erase(it);
-                std::cout << "ho rimosso l'arco (non direzionale), fra i due nodi: " << node_1 << " e " << node_2 << std::endl;
+                //std::cout << "ho rimosso l'arco (non direzionale), fra i due nodi: " << node_1 << " e " << node_2 << std::endl;
                 break;
             }
         }

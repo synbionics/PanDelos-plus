@@ -34,7 +34,7 @@ struct PairHash {
 };
 
 std::unordered_map<std::pair<node_id_t,node_id_t>, weight_t, PairHash> calculate_edge_betweenness(const Graph& g) {
-
+    
     std::unordered_map<std::pair<node_id_t, node_id_t>, weight_t, PairHash> edge_betweenness;
 
     for (node_id_t s : g.get_nodes()) {
@@ -127,22 +127,22 @@ std::pair<node_id_t, node_id_t> calculate_heaviest(const Graph& network, const s
 
     for(auto it = edge_bws_map.begin(); it != edge_bws_map.end(); ++it){
         auto& current_betweeness = it->second;
-        std::cout << "attuale max_current: " << current_max << std::endl;
-        std::cout << "valore del bw esaminato tra i nodi " << it->first.first << " e " << it->first.second << ": " << current_betweeness << std::endl ;
+        //std::cout << "attuale max_current: " << current_max << std::endl;
+        //std::cout << "valore del bw esaminato tra i nodi " << it->first.first << " e " << it->first.second << ": " << current_betweeness << std::endl ;
         //posso cambiare da > a >= e viceversa in base se esistono uguali quale togliere
         if(current_betweeness > current_max){
             current_max = current_betweeness;
             max_bw_edge = it->first;
         }
         else if(std::abs(current_betweeness - current_max) < EPSILON){
-            std::cout << "\n!!! betweeness uguale trovato e valente: " << current_betweeness << " !!!\n";
+            //std::cout << "\n!!! betweeness uguale trovato e valente: " << current_betweeness << " !!!\n";
             weight_t current_edge_weight = network.get_edge_weight(it->first.first,it->first.second);
             weight_t max_bw_edge_weight = network.get_edge_weight(max_bw_edge.first,max_bw_edge.second);
-            std::cout << "\nVecchio arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
+            //std::cout << "\nVecchio arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
             if(current_edge_weight < max_bw_edge_weight){
                 max_bw_edge = it->first;
             }
-            std::cout << "Nuovo arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
+            //std::cout << "Nuovo arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
         }    
     }
 
@@ -186,12 +186,12 @@ std::vector<std::vector<node_id_t>> connected_components(const Graph& g) {
 
 std::vector<std::vector<node_id_t>> single_split_girvan_newman(Graph& network){
 
-    std::cout << ("-*-computing girvan-newman...") << std::endl;
+    //std::cout << ("-*-computing girvan-newman...") << std::endl;
     
     while(connected_components(network).size() <= 1){
         const auto& edge_bws = calculate_edge_betweenness(network);
         auto heaviest_edge = calculate_heaviest(network, edge_bws);
-        std::cout << "arco con bw piu' alta e' fra: " << heaviest_edge.first << " e " << heaviest_edge.second << std::endl;
+        //std::cout << "arco con bw piu' alta e' fra: " << heaviest_edge.first << " e " << heaviest_edge.second << std::endl;
         network.remove_edge(heaviest_edge);
     }
     return connected_components(network);
