@@ -33,45 +33,98 @@ struct PairHash {
     }
 };
 
-std::unordered_map<std::pair<node_id_t,node_id_t>, weight_t, PairHash> calculate_edge_betweenness(const Graph& g) {
+void shortest_paths_bfs(
+    const Graph& g, 
+    node_id_t s,
+    std::unordered_map<node_id_t, Path_info>& info,
+    std::unordered_map<node_id_t, std::vector<node_id_t>>& pred,
+    std::stack<node_id_t>& stack
+) {
+    std::queue<node_id_t> q;
+    q.push(s);
+    
+    while (!q.empty()) {
+        node_id_t u = q.front(); q.pop();
+        stack.push(u);
+
+        for (const auto& [v, _] : g.get_neighbors(u)) {
+            if (info[v].distance == std::numeric_limits<double>::infinity()) {
+                info[v].distance = info[u].distance + 1;
+                q.push(v);
+            }
+
+            if (info[v].distance == info[u].distance + 1) {
+                info[v].paths += info[u].paths;
+                pred[v].push_back(u);
+            }
+        }
+    }
+}
+
+void shortest_paths_dijkstra(
+    const Graph& g, 
+    node_id_t s,
+    std::unordered_map<node_id_t, Path_info>& info,
+    std::unordered_map<node_id_t, std::vector<node_id_t>>& pred,
+    std::stack<node_id_t>& stack
+) {
+    std::priority_queue<std::pair<double, node_id_t>, 
+                       std::vector<std::pair<double, node_id_t>>, 
+                       std::greater<std::pair<double, node_id_t>>> pq;
+    pq.push({0, s});
+    
+    while (!pq.empty()) {
+        auto [dist, u] = pq.top(); pq.pop();
+        
+        if (dist > info[u].distance) continue;
+        
+        stack.push(u);
+        
+        for (const auto& [v, w] : g.get_neighbors(u)) {
+            double alt = info[u].distance + w;
+            
+            if (info[v].distance > alt) {
+                info[v].distance = alt;
+                info[v].paths = 0;
+                pred[v].clear();
+                pq.push({alt, v});
+            }
+            
+            if (std::abs(info[v].distance - alt) < 1e-9) {
+                info[v].paths += info[u].paths;
+                pred[v].push_back(u);
+            }
+        }
+    }
+}
+
+std::unordered_map<std::pair<node_id_t,node_id_t>, weight_t, PairHash> calculate_edge_betweenness(const Graph& g, bool is_weighted) {
     
     std::unordered_map<std::pair<node_id_t, node_id_t>, weight_t, PairHash> edge_betweenness;
 
     for (node_id_t s : g.get_nodes()) {
         std::unordered_map<node_id_t, Path_info> info;
         std::unordered_map<node_id_t, std::vector<node_id_t>> pred;
-        std::queue<node_id_t> q;
         std::stack<node_id_t> stack;
 
+        for (node_id_t v : g.get_nodes()) {
+            info[v].distance = std::numeric_limits<double>::infinity();
+            info[v].paths = 0;
+        }
+        
         info[s].distance = 0;
         info[s].paths = 1;
 
-        //BFS che fa anche da shortest paths (valido solo per grafo non pesato)
-
-        q.push(s);
-        while (!q.empty()) {
-            node_id_t u = q.front(); q.pop();
-            stack.push(u);
-
-            for (const auto& [v, _] : g.get_neighbors(u)) {
-                
-                if (info[v].distance == std::numeric_limits<double>::infinity()) {
-                    info[v].distance = info[u].distance + 1;
-                    q.push(v);
-                }
-
-                if (info[v].distance == info[u].distance + 1) {
-                    info[v].paths += info[u].paths;
-                    pred[v].push_back(u);
-                }
-            }
+        if (is_weighted) {
+            shortest_paths_dijkstra(g, s, info, pred, stack);
+        } else {
+            shortest_paths_bfs(g, s, info, pred, stack);
         }
 
         while (!stack.empty()) {
             node_id_t w = stack.top(); stack.pop();
             for (node_id_t v : pred[w]) {
                 double coefficent = (info[v].paths / info[w].paths) * (1 + info[w].delta);
-                //considero l'arco come dall'id più piccolo al più grande
                 std::pair<node_id_t, node_id_t> edge = std::minmax(v, w);
                 edge_betweenness[edge] += coefficent;
                 info[v].delta += coefficent;
@@ -79,7 +132,6 @@ std::unordered_map<std::pair<node_id_t,node_id_t>, weight_t, PairHash> calculate
         }
     }
 
-    // opzionale? alla fine è O(m) ma a me interessa solo il più grande
     for (auto& [edge, val] : edge_betweenness) {
         val /= 2.0;
     }
@@ -184,12 +236,12 @@ std::vector<std::vector<node_id_t>> connected_components(const Graph& g) {
     return components;
 }
 
-std::vector<std::vector<node_id_t>> single_split_girvan_newman(Graph& network){
+std::vector<std::vector<node_id_t>> single_split_girvan_newman(Graph& network, bool is_weighted){
 
     //std::cout << ("-*-computing girvan-newman...") << std::endl;
     
     while(connected_components(network).size() <= 1){
-        const auto& edge_bws = calculate_edge_betweenness(network);
+        const auto& edge_bws = calculate_edge_betweenness(network, is_weighted);
         auto heaviest_edge = calculate_heaviest(network, edge_bws);
         //std::cout << "arco con bw piu' alta e' fra: " << heaviest_edge.first << " e " << heaviest_edge.second << std::endl;
         network.remove_edge(heaviest_edge);
@@ -200,11 +252,12 @@ std::vector<std::vector<node_id_t>> single_split_girvan_newman(Graph& network){
 
 std::vector<std::vector<node_id_t>> split_until_max_k(
                 const std::vector<node_id_t>& component,
-                Graph& network, const std::unordered_map<int, std::string>& seq_genome)
+                Graph& network, const std::unordered_map<int, std::string>& seq_genome,
+                bool is_weighted = false)
 {
     SubGraph component_subnet(network, component);
     
-    std::vector<std::vector<node_id_t>> tmp_communities = single_split_girvan_newman(component_subnet);
+    std::vector<std::vector<node_id_t>> tmp_communities = single_split_girvan_newman(component_subnet,is_weighted);
     std::vector<std::vector<node_id_t>> final_communities;
 
     std::vector<std::vector<node_id_t>> to_process(tmp_communities.begin(), tmp_communities.end());
