@@ -15,6 +15,8 @@
 #include <sstream>
 #include <fstream>
 
+#define BIG_COMPONENT_THRESHOLD = 50;
+
 struct Path_info{
     double distance;
     double paths;
@@ -102,11 +104,13 @@ std::unordered_map<std::pair<node_id_t,node_id_t>, weight_t, PairHash> calculate
     
     std::unordered_map<std::pair<node_id_t, node_id_t>, weight_t, PairHash> edge_betweenness;
 
+    // parallelizzabile per ciascun nodo -> decisamente più semplice, poca comunicazione quindi poco overhead sembra promettente
     for (node_id_t s : g.get_nodes()) {
         std::unordered_map<node_id_t, Path_info> info;
         std::unordered_map<node_id_t, std::vector<node_id_t>> pred;
         std::stack<node_id_t> stack;
 
+        // O(n)
         for (node_id_t v : g.get_nodes()) {
             info[v].distance = std::numeric_limits<double>::infinity();
             info[v].paths = 0;
@@ -116,9 +120,9 @@ std::unordered_map<std::pair<node_id_t,node_id_t>, weight_t, PairHash> calculate
         info[s].paths = 1;
 
         if (is_weighted) {
-            shortest_paths_dijkstra(g, s, info, pred, stack);
+            shortest_paths_dijkstra(g, s, info, pred, stack); // O(nm + n²log n)
         } else {
-            shortest_paths_bfs(g, s, info, pred, stack);
+            shortest_paths_bfs(g, s, info, pred, stack); // O(nm)
         }
 
         while (!stack.empty()) {
