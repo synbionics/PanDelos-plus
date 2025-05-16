@@ -220,6 +220,9 @@ end_python=$(date +%s.%N)
 python_time=$(echo "$end_python - $start_python" | bc)
 python_time_fmt=$(LC_NUMERIC=C printf "%.2f" "$python_time")
 
+echo "Compiling cpp serial (can be done in advance)"
+g++ -O3 $scripts_path/serial_netclu_ng.cc ./lib/Graph.hh ./lib/Umbrella_algo.hh -o $scripts_path/serial_net
+
 echo "Computing clusters (cpp) (serial)"
 start_cpp=$(date +%s.%N)
 "$scripts_path/serial_net" "$inFile" "$outFile.net" > "cpp_result.txt"
@@ -227,8 +230,19 @@ end_cpp=$(date +%s.%N)
 cpp_time=$(echo "$end_cpp - $start_cpp" | bc)
 cpp_time_fmt=$(LC_NUMERIC=C printf "%.2f" "$cpp_time")
 
+echo "Compiling cpp parallel (can be done in advance)"
+g++ -O3 $scripts_path/netclu_ng.cc ./lib/Graph.hh ./lib/Umbrella_algo.hh -o $scripts_path/parallel_net
+
+echo "Computing clusters (cpp) (serial)"
+start_cpp_parall=$(date +%s.%N)
+"$scripts_path/parallel_net" "$inFile" "$outFile.net" > "parallel_cpp_result.txt"
+end_cpp_parall=$(date +%s.%N)
+cpp_time_parall=$(echo "$end_cpp_parall - $start_cpp_parall" | bc)
+cpp_time_fmt_parall=$(LC_NUMERIC=C printf "%.2f" "$cpp_time_parall")
+
 python_clus="$outFile.clus"
 cpp_clus="cpp_result.clus"
+cpp_parall_clus="parallel_cpp_result.clus"
 
 grep "F{ " "$tmp" | sed 's/F{\ //g' | sed 's/}//g' | sed 's/\ \;//g' | \
   awk '{n=split($0,a," "); asort(a); for(i=1;i<=n;i++) printf a[i] (i==n?"\n":" ")}' | \
@@ -238,23 +252,28 @@ grep "F{ " "cpp_result.txt" | sed 's/F{\ //g' | sed 's/}//g' | sed 's/\ \;//g' |
   awk '{n=split($0,a," "); asort(a); for(i=1;i<=n;i++) printf a[i] (i==n?"\n":" ")}' | \
   sort | uniq > "$cpp_clus"
 
+grep "F{ " "parallel_cpp_result.txt" | sed 's/F{\ //g' | sed 's/}//g' | sed 's/\ \;//g' | \
+  awk '{n=split($0,a," "); asort(a); for(i=1;i<=n;i++) printf a[i] (i==n?"\n":" ")}' | \
+  sort | uniq > "$cpp_parall_clus"
+
 diff_output=$(diff "$python_clus" "$cpp_clus")
 {
     echo "tempo esecuzione python: $python_time_fmt secondi"
-    echo "tempo esecuzione c++: $cpp_time_fmt secondi"
+    echo "tempo esecuzione c++ (seriale): $cpp_time_fmt secondi"
+    echo "tempo esecuzione c++ (parallelo): $cpp_time_fmt_parall secondi"
     echo ""
     echo "differenze:"
     if [ -z "$diff_output" ]; then
         echo "Nessuna differenza trovata. I file .clus sono uguali."
     else
-        echo "$diff_output"
+        echo "differenze trovate, file .clus diversi"
     fi
 } > differenze.txt
 
 if [ -z "$diff_output" ]; then
     echo "✅ I risultati sono UGUALI."
 else
-    echo "❌ I risultati sono DIVERSI. Vedi 'differenze.txt' per i dettagli."
+    echo "❌ I risultati sono DIVERSI."
 fi
 
 
