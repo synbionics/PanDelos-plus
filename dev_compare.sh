@@ -210,9 +210,6 @@ if [ $? -ne 0 ]; then
 fi
 
 
-
-# fatto da chatgpt supervisionato, mi serve per comparare i risultati
-
 echo "Computing clusters (python) (serial)"
 start_python=$(date +%s.%N)
 python3 "$net_clug_path" "$inFile" "$outFile.net" >> "$tmp"
@@ -231,7 +228,7 @@ cpp_time=$(echo "$end_cpp - $start_cpp" | bc)
 cpp_time_fmt=$(LC_NUMERIC=C printf "%.2f" "$cpp_time")
 
 echo "Compiling cpp parallel (can be done in advance)"
-g++ -O3 $scripts_path/netclu_ng.cc ./lib/Graph.hh ./lib/Umbrella_algo.hh -o $scripts_path/parallel_net
+g++ -O3 $scripts_path/netclug_ng.cc ./lib/Graph.hh ./lib/Umbrella_algo.hh -o $scripts_path/parallel_net
 
 echo "Computing clusters (cpp) (serial)"
 start_cpp_parall=$(date +%s.%N)
@@ -256,24 +253,54 @@ grep "F{ " "parallel_cpp_result.txt" | sed 's/F{\ //g' | sed 's/}//g' | sed 's/\
   awk '{n=split($0,a," "); asort(a); for(i=1;i<=n;i++) printf a[i] (i==n?"\n":" ")}' | \
   sort | uniq > "$cpp_parall_clus"
 
-diff_output=$(diff "$python_clus" "$cpp_clus")
+echo "✅Clustering eseguito"
+
+echo "tempo esecuzione python: $python_time_fmt secondi"
+echo "tempo esecuzione c++ (seriale): $cpp_time_fmt secondi"
+echo "tempo esecuzione c++ (parallelo): $cpp_time_fmt_parall secondi"
+
+speedup=$(echo "$python_time_fmt / $cpp_time_fmt_parall" | bc -l)
+speedup_fmt=$(LC_NUMERIC=C printf "%.2f" "$speedup")
+echo "speedup python-cpp_parallelo: $speedup_fmt"
+
+speedup_cpp=$(echo "$cpp_time_fmt / $cpp_time_fmt_parall" | bc -l)
+speedup_cpp_fmt=$(LC_NUMERIC=C printf "%.2f" "$speedup_cpp")
+echo "speedup cpp_seriale-cpp_parallelo: $speedup_cpp_fmt"
+
+diff_output=$(diff -w "$python_clus" "$cpp_clus")
 {
-    echo "tempo esecuzione python: $python_time_fmt secondi"
-    echo "tempo esecuzione c++ (seriale): $cpp_time_fmt secondi"
-    echo "tempo esecuzione c++ (parallelo): $cpp_time_fmt_parall secondi"
-    echo ""
     echo "differenze:"
     if [ -z "$diff_output" ]; then
-        echo "Nessuna differenza trovata. I file .clus sono uguali."
+        echo "Nessuna differenza trovata. I file .clus sono uguali. (python e cpp seriale)"
     else
-        echo "differenze trovate, file .clus diversi"
+        echo "$diff_output"
     fi
 } > differenze.txt
 
+diff_seriale_parallelo=$(diff -w "$cpp_parall_clus" "$cpp_clus")
+{
+    echo "tempo esecuzione c++ (seriale): $cpp_time_fmt secondi"
+    echo "tempo esecuzione c++ (parallelo): $cpp_time_fmt_parall secondi"
+
+    echo "differenze:"
+    if [ -z "$diff_seriale_parallelo" ]; then
+        echo "Nessuna differenza trovata. I file .clus sono uguali. (cpp parallelo e seriale)"
+    else
+        echo $diff_seriale_parallelo
+    fi
+
+} > differenze_parall.txt
+
 if [ -z "$diff_output" ]; then
-    echo "✅ I risultati sono UGUALI."
+    echo "✅ I risultati sono UGUALI (python e cpp seriale)."
 else
-    echo "❌ I risultati sono DIVERSI."
+    echo "❌ I risultati sono DIVERSI. (python e cpp seriale)."
+fi
+
+if [ -z "$diff_seriale_parallelo" ]; then
+    echo "✅ I risultati sono UGUALI (cpp parallelo e seriale)."
+else
+    echo "❌ GRAVE! parallelo e seriale danno output DIVERSI."
 fi
 
 
