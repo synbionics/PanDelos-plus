@@ -228,9 +228,9 @@ cpp_time=$(echo "$end_cpp - $start_cpp" | bc)
 cpp_time_fmt=$(LC_NUMERIC=C printf "%.2f" "$cpp_time")
 
 echo "Compiling cpp parallel (can be done in advance)"
-g++ -O3 $scripts_path/netclug_ng.cc ./lib/Graph.hh ./lib/Umbrella_algo.hh -o $scripts_path/parallel_net
+g++ -O3 $scripts_path/pool_netclug_ng.cc ./lib/UmbrThreadPool.hh ./lib/Graph.hh ./lib/Umbrella_algo.hh -o $scripts_path/parallel_net
 
-echo "Computing clusters (cpp) (serial)"
+echo "Computing clusters (cpp) (parallel)"
 start_cpp_parall=$(date +%s.%N)
 "$scripts_path/parallel_net" "$inFile" "$outFile.net" > "parallel_cpp_result.txt"
 end_cpp_parall=$(date +%s.%N)
@@ -267,7 +267,7 @@ speedup_cpp=$(echo "$cpp_time_fmt / $cpp_time_fmt_parall" | bc -l)
 speedup_cpp_fmt=$(LC_NUMERIC=C printf "%.2f" "$speedup_cpp")
 echo "speedup cpp_seriale-cpp_parallelo: $speedup_cpp_fmt"
 
-diff_output=$(diff -w "$python_clus" "$cpp_clus")
+diff_output=$(diff "$python_clus" "$cpp_clus")
 {
     echo "differenze:"
     if [ -z "$diff_output" ]; then
@@ -277,7 +277,7 @@ diff_output=$(diff -w "$python_clus" "$cpp_clus")
     fi
 } > differenze.txt
 
-diff_seriale_parallelo=$(diff -w "$cpp_parall_clus" "$cpp_clus")
+diff_seriale_parallelo=$(diff "$cpp_parall_clus" "$cpp_clus")
 {
     echo "tempo esecuzione c++ (seriale): $cpp_time_fmt secondi"
     echo "tempo esecuzione c++ (parallelo): $cpp_time_fmt_parall secondi"
