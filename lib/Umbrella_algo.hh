@@ -14,6 +14,10 @@
 #include <set>
 #include <sstream>
 #include <fstream>
+#include <mutex>
+
+//mi serve per evitare stampe incomprensibili
+std::mutex cout_mutex;
 
 #define BIG_COMPONENT_THRESHOLD = 50;
 
@@ -283,9 +287,11 @@ std::vector<std::vector<node_id_t>> split_until_max_k(
 
 
 void sort_and_print_component(std::vector<node_id_t>& component, std::ostream& out_op) {
-    out_op << "coco: [";
 
     std::sort(component.begin(), component.end());
+
+    std::lock_guard<std::mutex> lock(cout_mutex);
+    out_op << "coco: [";
 
     for (size_t i = 0; i < component.size(); ++i) {
         out_op << component[i];
@@ -297,6 +303,7 @@ void sort_and_print_component(std::vector<node_id_t>& component, std::ostream& o
 }
 
 void print_family(const std::vector<node_id_t>& community, const std::unordered_map<node_id_t, std::string>& seq_names, std::ostream& out_op) {
+    
     out_op << "dimensione community: " << community.size() << std::endl;
 
     out_op << "fam [";
@@ -319,6 +326,7 @@ void print_family(const std::vector<node_id_t>& community, const std::unordered_
 }
 
 void print_family_descriptions(const std::vector<node_id_t>& community, const std::unordered_map<node_id_t, std::string>& seq_descr, std::ostream& out_op) {
+    
     out_op << "D{ ";
     for (size_t i = 0; i < community.size(); ++i) {
         out_op << seq_descr.at(community[i]);
@@ -354,7 +362,7 @@ void check_duplicates(const std::unordered_map<int, std::string>& seq_names) {
     for (const auto& pair : seq_names) {
         name_count[pair.second]++;
         if (name_count[pair.second] > 1) {
-            std::cout << "Duplicated seq name: " << pair.second << std::endl;
+            //std::cout << "Duplicated seq name: " << pair.second << std::endl;
         }
     }
 }
