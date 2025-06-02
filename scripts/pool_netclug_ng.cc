@@ -17,6 +17,8 @@
 #include "../lib/UmbrThreadPool.hh"
 
 const size_t MAX_THREADS = std::thread::hardware_concurrency();
+std::mutex rs_mutex;
+std::mutex cons_mutex;
 
 #ifndef NDEBUG
     #define DEBUG_PRINT(x) //std::cout << "[DEBUG] " << x << std::endl
@@ -35,24 +37,30 @@ void process_component(const std::vector<node_id_t>& component,
                        const std::unordered_map<int, std::string>& seq_descr,
                        std::atomic_int& nof_coms,
                        std::map<size_t, node_id_t>& coms_size_distr,
-                       const std::vector<size_t>& component_sizes,
                        std::unordered_set<int>& remaining_singletons
                        ){
 
-    std::vector<std::vector<node_id_t>> communities =  split_until_max_k(component, network, seq_genome);
-        nof_coms += communities.size();
-        
-        size_t i = 0;
-        for(auto& community : communities){
-            coms_size_distr[component_sizes[i++]] += 1;
-            {
-                std::lock_guard<std::mutex> lock(cout_mutex);
-                print_family(community, seq_names, std::cout);
-                print_family_descriptions(community, seq_descr, std::cout);
-            }
+    std::vector<std::vector<node_id_t>> communities = split_until_max_k(component, network, seq_genome);
+    nof_coms += communities.size();
+    
+    size_t component_size = component.size();
+
+    for(auto& community : communities){
+        {
+            std::lock_guard<std::mutex> coms_lock(cons_mutex);
+            coms_size_distr[component_size] += 1;
+        }
+        {
+            std::lock_guard<std::mutex> lock(cout_mutex);
+            print_family(community, seq_names, std::cout);
+            print_family_descriptions(community, seq_descr, std::cout);
+        }
+        {
+            std::lock_guard<std::mutex> rs_lock(rs_mutex);
             for(const node_id_t& node : community)
                 remaining_singletons.erase(node);
         }
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -141,9 +149,7 @@ int main(int argc, char* argv[]) {
     std::map<size_t, node_id_t> coms_size_distr;
     std::atomic<int> nof_coms = 0;
 
-std::vector<std::future<std::vector<std::vector<node_id_t>>>> futures;
 std::vector<size_t> component_sizes;
-int active_threads = 0;
 std::mutex mtx;
 std::condition_variable cv;
 
@@ -157,10 +163,8 @@ for(auto& component : connected_components(network)){
     #endif
     int max_k = get_max_collision(component, network, seq_genome);
     if(max_k > 0){
-
         size_t current_component_size = component.size();
-        component_sizes.push_back(current_component_size);
-
+        
         pool.execute(
             process_component,
             std::cref(component),             
@@ -170,17 +174,18 @@ for(auto& component : connected_components(network)){
             std::cref(seq_descr),
             std::ref(nof_coms),
             std::ref(coms_size_distr),
-            std::cref(component_sizes),
             std::ref(remaining_singletons)
         );
-
-        //std::cout << "max_k: " << max_k << ", coco size: " << component.size() << std::endl;
-
-    } else{
-        ++nof_coms;
-        coms_size_distr[component.size()] += 1;
-        for(const node_id_t& node : component)
-                remaining_singletons.erase(node);
+    }else{
+         ++nof_coms;
+        {
+            std::lock_guard<std::mutex> cm_lock(cons_mutex);
+            coms_size_distr[component.size()] += 1;
+        }
+        std::lock_guard<std::mutex> rs_lock(rs_mutex);
+        for(const node_id_t& node : component){
+            remaining_singletons.erase(node);
+        }
         {
             std::lock_guard<std::mutex> lock(cout_mutex);
             print_family(component, seq_names, std::cout);
@@ -196,8 +201,15 @@ for(auto& component : connected_components(network)){
     pool.wait();
     
     std::lock_guard<std::mutex> lock(cout_mutex);
-    for(const node_id_t& node : remaining_singletons)
-        std::cout << "F{ " << seq_names.at(node) << " }" << std::endl;
+    std::lock_guard<std::mutex> rs_lock(rs_mutex);
+    for(const node_id_t& node : remaining_singletons){
+        auto it = seq_names.find(node);
+        if (it != seq_names.end()) {
+            std::cout << "F{ " << it->second << " }" << std::endl;
+        } else {
+            std::cerr << "[WARN] Nodo " << node << " non trovato in seq_names!" << std::endl;
+        }
+    }
 
     for (const auto& [k, v] : coms_size_distr)
         std::cout << k << " " << v << std::endl;
