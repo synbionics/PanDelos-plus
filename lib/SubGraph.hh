@@ -31,15 +31,6 @@ public:
         Graph::remove_edge(edge);
         original_graph.remove_edge(edge);
     }
-    
-    // Sovrascrivi altri metodi di modifica del grafo per propagare le modifiche
-    void addEdge(node_id_t from, node_id_t to, weight_t weight) override {
-        Graph::addEdge(from, to, weight);
-        if (nodes_subset.find(from) != nodes_subset.end() && 
-            nodes_subset.find(to) != nodes_subset.end()) {
-            original_graph.addEdge(from, to, weight);
-        }
-    }
 
     SubGraph subgraph(const std::vector<node_id_t>& nodes_subset) {
         return SubGraph(*this, nodes_subset);

@@ -81,32 +81,37 @@ public:
 
     //edge è in forma minmax
     virtual void remove_edge(const std::pair<node_id_t, node_id_t>& edge) {
+    node_id_t node_1 = edge.first;
+    node_id_t node_2 = edge.second;
 
-        // magari metto fast mode
-        assert(exists_edge(edge.first, edge.second));
-
-        node_id_t node_1 = edge.first;
-        node_id_t node_2 = edge.second;
-
-        auto& node_1_adj_vec = adj[node_1];
-        for (auto it = node_1_adj_vec.begin(); it != node_1_adj_vec.end(); ++it) {
-            if (it->first == node_2) {
-                node_1_adj_vec.erase(it);
-                //std::cout << "ho rimosso l'arco (non direzionale), fra i due nodi: " << node_1 << " e " << node_2 << std::endl;
-                break;
-            }
-        }
-
-        auto& node_2_adj_vec = adj[node_2];
-        for (auto it = node_2_adj_vec.begin(); it != node_2_adj_vec.end(); ++it) {
-            if (it->first == node_1) {
-                node_2_adj_vec.erase(it);
-                break;
-            }
-        }
-
-        --number_of_edges;
+    if (!exists_edge(node_1, node_2)) {
+        std::cerr << "Attenzione: arco inesistente tra " << node_1 << " e " << node_2 << std::endl;
+        return;
     }
+
+    if (adj.find(node_1) == adj.end() || adj.find(node_2) == adj.end()) {
+        std::cerr << "Errore: uno dei nodi non esiste in adj.\n";
+        return;
+    }
+
+    auto& node_1_adj_vec = adj[node_1];
+    node_1_adj_vec.erase(
+        std::remove_if(node_1_adj_vec.begin(), node_1_adj_vec.end(),
+                       [node_2](const auto& pair) { return pair.first == node_2; }),
+        node_1_adj_vec.end());
+
+    auto& node_2_adj_vec = adj[node_2];
+    node_2_adj_vec.erase(
+        std::remove_if(node_2_adj_vec.begin(), node_2_adj_vec.end(),
+                       [node_1](const auto& pair) { return pair.first == node_1; }),
+        node_2_adj_vec.end());
+
+    --number_of_edges;
+
+    //std::cout << "Ho rimosso l'arco (non direzionale) fra i due nodi: "
+    //          << node_1 << " e " << node_2 << std::endl;
+}
+
 
     bool has_node(node_id_t u) const{
         return nodes.count(u) > 0;
@@ -119,31 +124,6 @@ public:
             return it->second;
         }
         return empty;
-    }
-
-    Graph subgraph(const std::vector<node_id_t>& nodes_subset) const{
-        Graph subgraph;
-
-        for (const node_id_t& node : nodes_subset) {
-            subgraph.addNode(node);
-        }
-
-        for (const node_id_t& node : nodes_subset) {
-            if (adj.find(node) != adj.end()) {
-                for (const auto& neighbor_pair : adj.at(node)) {
-                    node_id_t neighbor = neighbor_pair.first;
-                    weight_t weight = neighbor_pair.second;
-                    // ottimizzabile mettendo il controllo da altre parti,
-                    // potrei qui inserire e basta le liste di adiacenza anche se alcuni nodi non appaiono
-                    if (std::find(nodes_subset.begin(), nodes_subset.end(), neighbor) != nodes_subset.end()) {
-                        subgraph.addEdge(node, neighbor, weight);
-                    }
-                }
-            }
-        }
-
-        return subgraph;
-
     }
 
 private:
