@@ -18,8 +18,9 @@
 
 //mi serve per evitare stampe incomprensibili
 std::mutex cout_mutex;
+std::mutex graph_lock;
 
-#define BIG_COMPONENT_THRESHOLD = 50;
+//std::ofstream debugFile("pool_debug_output.txt");
 
 struct Path_info{
     double distance;
@@ -109,6 +110,8 @@ std::unordered_map<std::pair<node_id_t,node_id_t>, weight_t, PairHash> calculate
     std::unordered_map<std::pair<node_id_t, node_id_t>, weight_t, PairHash> edge_betweenness;
 
     // parallelizzabile per ciascun nodo -> decisamente più semplice, poca comunicazione quindi poco overhead sembra promettente
+    // oppure parallelizzo bfs e per versione pesata vado di delta stepping
+    
     for (node_id_t s : g.get_nodes()) {
         std::unordered_map<node_id_t, Path_info> info;
         std::unordered_map<node_id_t, std::vector<node_id_t>> pred;
@@ -126,7 +129,7 @@ std::unordered_map<std::pair<node_id_t,node_id_t>, weight_t, PairHash> calculate
         if (is_weighted) {
             shortest_paths_dijkstra(g, s, info, pred, stack); // O(nm + n²log n)
         } else {
-            shortest_paths_bfs(g, s, info, pred, stack); // O(nm)
+            shortest_paths_bfs(g, s, info, pred, stack); // O(n+m)
         }
 
         while (!stack.empty()) {
@@ -153,9 +156,14 @@ int get_max_collision(std::vector<node_id_t> component, const Graph& network,
     std::unordered_map<std::string, std::vector<node_id_t>> collisions;
 
     for(const node_id_t& node : component){
+    try {
         std::string genome = seq_genome.at(node);
         collisions[genome].push_back(node);
+    } catch (const std::out_of_range& e) {
+        std::cerr << "[get_max_collision] Key not found in seq_genome: " << node << std::endl;
+        throw; // rethrow to keep the crash after printing
     }
+}
 
     int max_k = 0;
 
@@ -186,23 +194,25 @@ std::pair<node_id_t, node_id_t> calculate_heaviest(const Graph& network, const s
     std::pair<node_id_t,node_id_t>max_bw_edge = std::make_pair(0,0);
 
     for(auto it = edge_bws_map.begin(); it != edge_bws_map.end(); ++it){
+        std::lock_guard<std::mutex> lock(cout_mutex);
         auto& current_betweeness = it->second;
-        //std::cout << "attuale max_current: " << current_max << std::endl;
-        //std::cout << "valore del bw esaminato tra i nodi " << it->first.first << " e " << it->first.second << ": " << current_betweeness << std::endl ;
+        // togliere poi
+            //debugFile << "attuale max_current: " << current_max << std::endl;
+            //debugFile << "valore del bw esaminato tra i nodi " << it->first.first << " e " << it->first.second << ": " << current_betweeness << std::endl ;
         //posso cambiare da > a >= e viceversa in base se esistono uguali quale togliere
         if(current_betweeness > current_max){
             current_max = current_betweeness;
             max_bw_edge = it->first;
         }
         else if(std::abs(current_betweeness - current_max) < EPSILON){
-            //std::cout << "\n!!! betweeness uguale trovato e valente: " << current_betweeness << " !!!\n";
+            //debugFile << "\n!!! betweeness uguale trovato e valente: " << current_betweeness << " !!!\n";
             weight_t current_edge_weight = network.get_edge_weight(it->first.first,it->first.second);
             weight_t max_bw_edge_weight = network.get_edge_weight(max_bw_edge.first,max_bw_edge.second);
-            //std::cout << "\nVecchio arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
+            //debugFile << "\nVecchio arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
             if(current_edge_weight < max_bw_edge_weight){
                 max_bw_edge = it->first;
             }
-            //std::cout << "Nuovo arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
+            //debugFile << "Nuovo arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
         }    
     }
 
@@ -244,14 +254,16 @@ std::vector<std::vector<node_id_t>> connected_components(const Graph& g) {
     return components;
 }
 
-std::vector<std::vector<node_id_t>> single_split_girvan_newman(Graph& network, bool is_weighted){
+std::vector<std::vector<node_id_t>> girvan_newman(Graph& network, bool is_weighted){
 
     //std::cout << ("-*-computing girvan-newman...") << std::endl;
     
     while(connected_components(network).size() <= 1){
         const auto& edge_bws = calculate_edge_betweenness(network, is_weighted);
         auto heaviest_edge = calculate_heaviest(network, edge_bws);
-        //std::cout << "arco con bw piu' alta e' fra: " << heaviest_edge.first << " e " << heaviest_edge.second << std::endl;
+        //debugFile << "arco con bw piu' alta e' fra: " << heaviest_edge.first << " e " << heaviest_edge.second << std::endl;
+        //debugFile << "\nho rimosso un arco" << std::endl;
+        std::lock_guard<std::mutex> g_lock(graph_lock);
         network.remove_edge(heaviest_edge);
     }
     return connected_components(network);
@@ -263,9 +275,13 @@ std::vector<std::vector<node_id_t>> split_until_max_k(
                 Graph& network, const std::unordered_map<int, std::string>& seq_genome,
                 bool is_weighted = false)
 {
-    SubGraph component_subnet(network, component);
-    
-    std::vector<std::vector<node_id_t>> tmp_communities = single_split_girvan_newman(component_subnet,is_weighted);
+    SubGraph component_subnet = [&]() {
+        std::lock_guard<std::mutex> g_lock(graph_lock);
+        return SubGraph(network, component);
+    }();
+
+
+    std::vector<std::vector<node_id_t>> tmp_communities = girvan_newman(component_subnet,is_weighted);
     std::vector<std::vector<node_id_t>> final_communities;
 
     std::vector<std::vector<node_id_t>> to_process(tmp_communities.begin(), tmp_communities.end());
