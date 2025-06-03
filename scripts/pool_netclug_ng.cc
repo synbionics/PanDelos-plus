@@ -17,11 +17,11 @@
 #include "../lib/UmbrThreadPool.hh"
 
 const size_t MAX_THREADS = std::thread::hardware_concurrency();
-std::mutex rs_mutex;
-std::mutex cons_mutex;
+
+std::mutex remaining_singletons_mutex;
 
 #ifndef NDEBUG
-    #define DEBUG_PRINT(x) //std::cout << "[DEBUG] " << x << std::endl
+    #define DEBUG_PRINT(x) std::cout << "[DEBUG] " << x << std::endl
 #else
     #define DEBUG_PRINT(x)
 #endif
@@ -30,36 +30,30 @@ std::mutex cons_mutex;
 #define FAST_MODE 0
 #endif
 
-void process_component(const std::vector<node_id_t>& component,
+void process_component(std::vector<node_id_t> component,
                        Graph& network,
                        const std::unordered_map<int, std::string>& seq_genome,
                        const std::unordered_map<int, std::string>& seq_names,
                        const std::unordered_map<int, std::string>& seq_descr,
                        std::atomic_int& nof_coms,
                        std::map<size_t, node_id_t>& coms_size_distr,
+                       size_t component_size,
                        std::unordered_set<int>& remaining_singletons
                        ){
 
-    std::vector<std::vector<node_id_t>> communities = split_until_max_k(component, network, seq_genome);
+    std::vector<std::vector<node_id_t>> communities =  split_until_max_k(component, network, seq_genome);
     nof_coms += communities.size();
     
-    size_t component_size = component.size();
-
     for(auto& community : communities){
-        {
-            std::lock_guard<std::mutex> coms_lock(cons_mutex);
-            coms_size_distr[component_size] += 1;
-        }
+        coms_size_distr[component_size] += 1;
         {
             std::lock_guard<std::mutex> lock(cout_mutex);
             print_family(community, seq_names, std::cout);
             print_family_descriptions(community, seq_descr, std::cout);
         }
-        {
-            std::lock_guard<std::mutex> rs_lock(rs_mutex);
-            for(const node_id_t& node : community)
-                remaining_singletons.erase(node);
-        }
+        std::lock_guard rs_lock(remaining_singletons_mutex);
+        for(const node_id_t& node : community)
+            remaining_singletons.erase(node);
     }
 }
 
@@ -149,67 +143,63 @@ int main(int argc, char* argv[]) {
     std::map<size_t, node_id_t> coms_size_distr;
     std::atomic<int> nof_coms = 0;
 
-std::vector<size_t> component_sizes;
-std::mutex mtx;
-std::condition_variable cv;
+    UmbrThreadPool pool(MAX_THREADS);
 
-UmbrThreadPool pool(MAX_THREADS);
+    for(auto component : connected_components(network)){
 
-for(auto& component : connected_components(network)){
+        //std::cout << "----------------------------------------" << std::endl;
+        #if !FAST_MODE
+            sort_and_print_component(component, std::cout);
+        #endif
+        int max_k = get_max_collision(component, network, seq_genome);
+        if(max_k > 0){
 
-    //std::cout << "----------------------------------------" << std::endl;
-    #if !FAST_MODE
-        sort_and_print_component(component, std::cout);
-    #endif
-    int max_k = get_max_collision(component, network, seq_genome);
-    if(max_k > 0){
-        size_t current_component_size = component.size();
-        
-        pool.execute(
-            process_component,
-            std::cref(component),             
-            std::ref(network),                 
-            std::cref(seq_genome),
-            std::cref(seq_names),
-            std::cref(seq_descr),
-            std::ref(nof_coms),
-            std::ref(coms_size_distr),
-            std::ref(remaining_singletons)
-        );
-    }else{
-         ++nof_coms;
-        {
-            std::lock_guard<std::mutex> cm_lock(cons_mutex);
+            size_t component_size = component.size();
+
+            pool.execute(
+                process_component,
+                component,
+                std::ref(network),
+                std::cref(seq_genome),
+                std::cref(seq_names),
+                std::cref(seq_descr),
+                std::ref(nof_coms),
+                std::ref(coms_size_distr),
+                component_size,
+                std::ref(remaining_singletons)
+            );
+
+            //std::cout << "max_k: " << max_k << ", coco size: " << component.size() << std::endl;
+
+        } else{
+            DEBUG_PRINT("miao");
+            ++nof_coms;
             coms_size_distr[component.size()] += 1;
-        }
-        std::lock_guard<std::mutex> rs_lock(rs_mutex);
-        for(const node_id_t& node : component){
-            remaining_singletons.erase(node);
-        }
-        {
-            std::lock_guard<std::mutex> lock(cout_mutex);
-            print_family(component, seq_names, std::cout);
-            print_family_descriptions(component, seq_descr, std::cout);
+            {
+                std::lock_guard rs_lock(remaining_singletons_mutex);
+                for(const node_id_t& node : component)
+                remaining_singletons.erase(node);
+            }
+            {
+                std::lock_guard<std::mutex> lock(cout_mutex);
+                print_family(component, seq_names, std::cout);
+                print_family_descriptions(component, seq_descr, std::cout);
+            }
         }
     }
-   }
 
 //GCA_000200735.1:FR773153.2:HF1_11170:1
 // !!! problema classico
 // devo eseguirlo alla fine dopo tutti i thread, NON nel mentre o stampa quelli che ancora non sono stati rimossi da remaining_singletons
+pool.wait();
+
+
 {
-    pool.wait();
     
     std::lock_guard<std::mutex> lock(cout_mutex);
-    std::lock_guard<std::mutex> rs_lock(rs_mutex);
-    for(const node_id_t& node : remaining_singletons){
-        auto it = seq_names.find(node);
-        if (it != seq_names.end()) {
-            std::cout << "F{ " << it->second << " }" << std::endl;
-        } else {
-            std::cerr << "[WARN] Nodo " << node << " non trovato in seq_names!" << std::endl;
-        }
-    }
+    DEBUG_PRINT("\nfinito lavoro parallelo\n");
+    for(const node_id_t& node : remaining_singletons)
+        std::cout << "F{ " << seq_names.at(node) << " }" << std::endl;
 
     for (const auto& [k, v] : coms_size_distr)
         std::cout << k << " " << v << std::endl;
@@ -219,7 +209,7 @@ for(auto& component : connected_components(network)){
     std::cout << "----------------------------------------" << std::endl;
     std::cout << "----------------------------------------" << std::endl;
 }
-    //DEBUG_PRINT("end of net_clu_ng");
+    DEBUG_PRINT("end of net_clu_ng");
     
     return 0;
 }
