@@ -172,7 +172,6 @@ int main(int argc, char* argv[]) {
             //std::cout << "max_k: " << max_k << ", coco size: " << component.size() << std::endl;
 
         } else{
-            DEBUG_PRINT("miao");
             ++nof_coms;
             coms_size_distr[component.size()] += 1;
             {
