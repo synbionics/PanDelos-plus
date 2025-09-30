@@ -128,7 +128,7 @@ public:
 
 private:
     std::set<node_id_t> nodes;
-    std::map<node_id_t, std::vector<std::pair<node_id_t, weight_t>>> adj;
+    std::unordered_map<node_id_t, std::vector<std::pair<node_id_t, weight_t>>> adj;
     int number_of_edges = 0;
 };
 
