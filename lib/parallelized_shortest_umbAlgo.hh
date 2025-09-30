@@ -21,6 +21,7 @@
 std::ofstream debugFile("debug_output.txt");
 
 std::mutex cout_mutex;
+std::mutex merge_mutex;
 
 struct Path_info{
     double distance;
@@ -104,63 +105,20 @@ void shortest_paths_dijkstra(
         }
     }
 }
-
-void process_single_source(
-    std::unordered_map<std::pair<node_id_t, node_id_t>, double, PairHash>& local_edge_bw,
-    const Graph& g,
-    node_id_t s,  
-    bool is_weighted
-) {
-    std::unordered_map<node_id_t, Path_info> info;
-    std::unordered_map<node_id_t, std::vector<node_id_t>> pred;
-    std::stack<node_id_t> stack;
-
-    for (node_id_t v : g.get_nodes()) {
-        info[v] = Path_info();
-    }
-
-    info[s].distance = 0;
-    info[s].paths = 1;
-    info[s].delta = 0;
-
-    if (is_weighted) {
-        shortest_paths_dijkstra(g, s, info, pred, stack);
-    } else {
-        shortest_paths_bfs(g, s, info, pred, stack);
-    }
-
-    while (!stack.empty()) {
-            node_id_t w = stack.top(); stack.pop();
-            for (node_id_t v : pred[w]) {
-                double coefficent = (info[v].paths / info[w].paths) * (1 + info[w].delta);
-                std::pair<node_id_t, node_id_t> edge = std::minmax(v, w);
-                std::lock_guard<std::mutex> lock(cout_mutex);
-                local_edge_bw[edge] += coefficent;
-                debugFile << "local bw di" << edge.first << "->" << edge.second << " vale ora: " << local_edge_bw[edge] << std::endl;
-                info[v].delta += coefficent;
-            }
-        }
-
-    //debug
-    for(auto& [edge, val] : local_edge_bw){
-        std::lock_guard<std::mutex> lock(cout_mutex);
-        val /= 2;
-        debugFile << "l'arco: " << edge.first << "->" << edge.second << " ha bw di valore: " << val << std::endl;
-    }
-}
-
+/*
 std::map<std::pair<node_id_t,node_id_t>, double>
 calculate_edge_betweenness(const Graph& g, bool is_weighted, UmbrThreadPool& pool) {
     using Edge = std::pair<node_id_t, node_id_t>;
 
-    const auto& nodes = g.get_nodes();
-    std::vector<std::map<Edge, long double>> partial_results(nodes.size());
+    std::mutex og_edge_bw_mutex;
 
     std::atomic<size_t> counter = 0;
 
-    for (node_id_t s : nodes) {
+    std::map<Edge, double> edge_betweenness;
+
+    for (node_id_t s : g.get_nodes()) {
         size_t i = counter++;
-        pool.execute([&, s, i]() {
+        //pool.execute([&, s, i]() {
             std::unordered_map<node_id_t, Path_info> info;
             std::unordered_map<node_id_t, std::vector<node_id_t>> pred;
             std::stack<node_id_t> stack;
@@ -180,27 +138,30 @@ calculate_edge_betweenness(const Graph& g, bool is_weighted, UmbrThreadPool& poo
                 shortest_paths_bfs(g, s, info, pred, stack);
             }
 
-            std::map<Edge, long double> local_edge_betweenness;
+            //std::map<Edge, long double> local_edge_betweenness;
 
             while (!stack.empty()) {
                 node_id_t w = stack.top(); stack.pop();
                 for (node_id_t v : pred[w]) {
                     long double coefficient = (static_cast<long double>(info[v].paths) / info[w].paths) * (1.0 + info[w].delta);
                     Edge edge = std::minmax(v, w);
-                    local_edge_betweenness[edge] += coefficient;
+                    {
+                        std::lock_guard<std::mutex> lock(og_edge_bw_mutex);
+                        edge_betweenness[edge] += coefficient;
+                    }
                     info[v].delta += coefficient;
+
                 }
             }
 
-            partial_results[i] = std::move(local_edge_betweenness);
-        });
+            //partial_results[i] = std::move(local_edge_betweenness);
+        //});
     }
 
-    pool.wait();
+    //pool.wait();
 
     // Merge deterministico, in ordine
-    std::map<Edge, double> edge_betweenness;
-    for (const auto& local_map : partial_results) {
+   /*for (const auto& local_map : partial_results) {
         for (const auto& [edge, val] : local_map) {
             edge_betweenness[edge] += static_cast<double>(val);
         }
@@ -212,8 +173,81 @@ calculate_edge_betweenness(const Graph& g, bool is_weighted, UmbrThreadPool& poo
     }
 
     return edge_betweenness;
-}
+}*/
 
+struct KahanAccumulator {
+    double sum = 0.0;
+    double c = 0.0;
+
+    void add(double x) {
+        double y = x - c;
+        double t = sum + y;
+        c = (t - sum) - y;
+        sum = t;
+    }
+
+    double result() const {
+        return sum;
+    }
+};
+
+std::unordered_map<std::pair<node_id_t, node_id_t>, weight_t, PairHash>
+calculate_edge_betweenness(const Graph& g, bool is_weighted, UmbrThreadPool& pool) {
+    using Edge = std::pair<node_id_t, node_id_t>;
+    std::vector<node_id_t> nodes = g.get_nodes();
+
+    std::mutex merge_mutex;
+    std::unordered_map<Edge, KahanAccumulator, PairHash> accumulators;
+
+    for (node_id_t s : nodes) {
+        pool.execute([&, s]() {
+            std::unordered_map<node_id_t, Path_info> info;
+            std::unordered_map<node_id_t, std::vector<node_id_t>> pred;
+            std::stack<node_id_t> stack;
+
+            for (node_id_t v : g.get_nodes()) {
+                info[v].distance = std::numeric_limits<double>::infinity();
+                info[v].paths = 0;
+                info[v].delta = 0;
+            }
+
+            info[s].distance = 0;
+            info[s].paths = 1;
+
+            if (is_weighted) {
+                shortest_paths_dijkstra(g, s, info, pred, stack);
+            } else {
+                shortest_paths_bfs(g, s, info, pred, stack);
+            }
+
+            std::unordered_map<Edge, double, PairHash> local_edge_betweenness;
+
+            while (!stack.empty()) {
+                node_id_t w = stack.top(); stack.pop();
+                for (node_id_t v : pred[w]) {
+                    double coeff = (info[v].paths / info[w].paths) * (1.0 + info[w].delta);
+                    Edge edge = std::minmax(v, w);
+                    local_edge_betweenness[edge] += coeff;
+                    info[v].delta += coeff;
+                }
+            }
+
+            std::lock_guard<std::mutex> lock(merge_mutex);
+            for (const auto& [edge, val] : local_edge_betweenness) {
+                accumulators[edge].add(val);
+            }
+        });
+    }
+
+    pool.wait(); 
+
+    std::unordered_map<Edge, weight_t, PairHash> edge_betweenness;
+    for (auto& [edge, acc] : accumulators) {
+        edge_betweenness[edge] = acc.result() / 2.0;
+    }
+
+    return edge_betweenness;
+}
 
 int get_max_collision(std::vector<node_id_t> component, const Graph& network,
     const std::unordered_map<node_id_t, std::string>& seq_genome){
@@ -249,7 +283,7 @@ int get_max_collision(std::vector<node_id_t> component, const Graph& network,
 
 std::pair<node_id_t, node_id_t> calculate_heaviest(
     const Graph& network,
-    const std::map<std::pair<node_id_t, node_id_t>, double>& edge_bws_map
+    const std::unordered_map<std::pair<node_id_t, node_id_t>, weight_t, PairHash>& edge_bws_map
 ) {
     double current_max = -1.0;
     const double EPSILON = 1e-6;
@@ -258,9 +292,9 @@ std::pair<node_id_t, node_id_t> calculate_heaviest(
     for (auto it = edge_bws_map.begin(); it != edge_bws_map.end(); ++it) {
         const double current_betweeness = it->second;
 
-        std::cout << "attuale max_current: " << current_max << std::endl;
-        std::cout << "valore del bw esaminato tra i nodi " << it->first.first << " e " << it->first.second
-                  << ": " << current_betweeness << std::endl;
+        //std::cout << "attuale max_current: " << current_max << std::endl;
+        //std::cout << "valore del bw esaminato tra i nodi " << it->first.first << " e " << it->first.second
+        //          << ": " << current_betweeness << std::endl;
 
         assert(current_betweeness>=0);
 
@@ -268,15 +302,15 @@ std::pair<node_id_t, node_id_t> calculate_heaviest(
             current_max = current_betweeness;
             max_bw_edge = it->first;
         } else if (std::abs(current_betweeness - current_max) < EPSILON) {
-            std::cout << "\n!!! betweeness uguale trovato e valente: " << current_betweeness << " !!!\n";
+            //std::cout << "\n!!! betweeness uguale trovato e valente: " << current_betweeness << " !!!\n";
             double current_edge_weight = network.get_edge_weight(it->first.first, it->first.second);
             double max_bw_edge_weight = network.get_edge_weight(max_bw_edge.first, max_bw_edge.second);
 
-            std::cout << "\nVecchio arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
+            //std::cout << "\nVecchio arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
             if (current_edge_weight < max_bw_edge_weight) {
                 max_bw_edge = it->first;
             }
-            std::cout << "Nuovo arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
+            //std::cout << "Nuovo arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
         }
     }
 
@@ -319,15 +353,15 @@ std::vector<std::vector<node_id_t>> connected_components(const Graph& g) {
 
 std::vector<std::vector<node_id_t>> girvan_newman(Graph& network, bool is_weighted){
 
-    std::cout << ("-*-computing girvan-newman...") << std::endl;
+    //std::cout << ("-*-computing girvan-newman...") << std::endl;
     
     while(connected_components(network).size() <= 1){
         UmbrThreadPool pool(std::thread::hardware_concurrency());
-        std::map<std::pair<node_id_t, node_id_t>, double> edge_bws = calculate_edge_betweenness(network, is_weighted, pool);
+        const auto& edge_bws = calculate_edge_betweenness(network, is_weighted, pool);
         assert(!edge_bws.empty());
         auto heaviest_edge = calculate_heaviest(network, edge_bws);
-        debugFile << "arco con bw piu' alta e' fra: " << heaviest_edge.first << " e " << heaviest_edge.second << std::endl;
-        debugFile << "\nho rimosso un arco" << std::endl;
+        //debugFile << "arco con bw piu' alta e' fra: " << heaviest_edge.first << " e " << heaviest_edge.second << std::endl;
+        //debugFile << "\nho rimosso un arco" << std::endl;
         network.remove_edge(heaviest_edge);
     }
     return connected_components(network);
