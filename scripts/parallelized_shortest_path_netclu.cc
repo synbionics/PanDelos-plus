@@ -27,31 +27,29 @@ const size_t MAX_THREADS = std::thread::hardware_concurrency();
 #define FAST_MODE 0
 #endif
 
-void process_component(const std::vector<node_id_t>& component,
+void process_component(std::vector<node_id_t> component,
                        Graph& network,
                        const std::unordered_map<int, std::string>& seq_genome,
                        const std::unordered_map<int, std::string>& seq_names,
                        const std::unordered_map<int, std::string>& seq_descr,
                        std::atomic_int& nof_coms,
                        std::map<size_t, node_id_t>& coms_size_distr,
-                       const std::vector<size_t>& component_sizes,
-                       std::unordered_set<int>& remaining_singletons,
-                       UmbrThreadPool& pool
+                       size_t component_size,
+                       std::unordered_set<int>& remaining_singletons
                        ){
 
-    std::vector<std::vector<node_id_t>> communities =  split_until_max_k(component, network, seq_genome, pool, false);
-        nof_coms += communities.size();
-        
-        size_t i = 0;
-        for(auto& community : communities){
-            coms_size_distr[component_sizes[i++]] += 1;
-            {
-                print_family(community, seq_names, std::cout);
-                print_family_descriptions(community, seq_descr, std::cout);
-            }
-            for(const node_id_t& node : community)
-                remaining_singletons.erase(node);
-        }
+    std::vector<std::vector<node_id_t>> communities =  split_until_max_k(component, network, seq_genome);
+    nof_coms += communities.size();
+    
+    for(auto& community : communities){
+        coms_size_distr[component_size] += 1;
+        {
+            print_family(community, seq_names, std::cout);
+            print_family_descriptions(community, seq_descr, std::cout);
+        };
+        for(const node_id_t& node : community)
+            remaining_singletons.erase(node);
+    }
 }
 
 int main(int argc, char* argv[]) {
@@ -146,7 +144,7 @@ int active_threads = 0;
 std::mutex mtx;
 std::condition_variable cv;
 
-UmbrThreadPool pool(MAX_THREADS);
+
 
 for(auto& component : connected_components(network)){
 
@@ -168,9 +166,8 @@ for(auto& component : connected_components(network)){
             std::cref(seq_descr),
             std::ref(nof_coms),
             std::ref(coms_size_distr),
-            std::cref(component_sizes),
-            std::ref(remaining_singletons),
-            std::ref(pool));
+            current_component_size,
+            std::ref(remaining_singletons));
 
         //std::cout << "max_k: " << max_k << ", coco size: " << component.size() << std::endl;
 
