@@ -15,6 +15,7 @@
 #include <sstream>
 #include <fstream>
 #include <mutex>
+#include "../lib/UmbrThreadPool.hh"
 
 //mi serve per evitare stampe incomprensibili
 std::mutex cout_mutex;
@@ -150,6 +151,78 @@ std::unordered_map<std::pair<node_id_t,node_id_t>, weight_t, PairHash> calculate
     return edge_betweenness;
 }
 
+std::unordered_map<std::pair<node_id_t,node_id_t>, weight_t, PairHash>
+calculate_edge_betweenness_parallel(const Graph& g, bool is_weighted, UmbrThreadPool& pool)
+{
+    auto nodes = g.get_nodes();
+    size_t n = nodes.size();
+
+    std::unordered_map<std::pair<node_id_t,node_id_t>, weight_t, PairHash> edge_betweenness;
+    std::mutex merge_mutex;
+
+    const size_t num_threads = std::thread::hardware_concurrency();
+    const size_t batch_size = std::max<size_t>(1, n / (num_threads * 4));
+
+    std::atomic<size_t> next_index{0};
+
+    for (size_t t = 0; t < num_threads; ++t) {
+        pool.execute([&, t]() {
+            std::unordered_map<std::pair<node_id_t,node_id_t>, weight_t, PairHash> local_bw;
+            local_bw.reserve(g.get_number_of_edges() / 4);
+
+            while (true) {
+                size_t start = next_index.fetch_add(batch_size);
+                if (start >= n) break;
+                size_t end = std::min(start + batch_size, n);
+
+                for (size_t i = start; i < end; ++i) {
+                    node_id_t s = nodes[i];
+                    std::unordered_map<node_id_t, Path_info> info;
+                    std::unordered_map<node_id_t, std::vector<node_id_t>> pred;
+                    std::stack<node_id_t> stack;
+
+                    for (auto v : nodes) {
+                        info[v].distance = std::numeric_limits<double>::infinity();
+                        info[v].paths = 0;
+                    }
+                    info[s].distance = 0;
+                    info[s].paths = 1;
+
+                    if (is_weighted)
+                        shortest_paths_dijkstra(g, s, info, pred, stack);
+                    else
+                        shortest_paths_bfs(g, s, info, pred, stack);
+
+                    while (!stack.empty()) {
+                        node_id_t w = stack.top();
+                        stack.pop();
+                        for (node_id_t v : pred[w]) {
+                            double coeff = (info[v].paths / info[w].paths) * (1 + info[w].delta);
+                            auto edge = std::minmax(v, w);
+                            local_bw[edge] += coeff;
+                            info[v].delta += coeff;
+                        }
+                    }
+                }
+            }
+
+            // merge locale → globale
+            {
+                std::lock_guard<std::mutex> lock(merge_mutex);
+                for (auto &kv : local_bw)
+                    edge_betweenness[kv.first] += kv.second;
+            }
+        });
+    }
+
+    pool.wait();
+
+    for (auto &[edge, val] : edge_betweenness)
+        val /= 2.0;
+
+    return edge_betweenness;
+}
+
 int get_max_collision(std::vector<node_id_t> component, const Graph& network,
     const std::unordered_map<node_id_t, std::string>& seq_genome){
 
@@ -254,12 +327,14 @@ std::vector<std::vector<node_id_t>> connected_components(const Graph& g) {
     return components;
 }
 
-std::vector<std::vector<node_id_t>> girvan_newman(Graph& network, bool is_weighted){
+std::vector<std::vector<node_id_t>> girvan_newman(Graph& network, bool is_weighted, UmbrThreadPool& pool){
 
     //std::cout << ("-*-computing girvan-newman...") << std::endl;
     
     while(connected_components(network).size() <= 1){
-        const auto& edge_bws = calculate_edge_betweenness(network, is_weighted);
+        //const auto& edge_bws = calculate_edge_betweenness(network, is_weighted);
+        extern UmbrThreadPool global_pool; // dichiarata nel main
+        const auto& edge_bws = calculate_edge_betweenness_parallel(network, is_weighted, pool);
         auto heaviest_edge = calculate_heaviest(network, edge_bws);
         //debugFile << "arco con bw piu' alta e' fra: " << heaviest_edge.first << " e " << heaviest_edge.second << std::endl;
         //debugFile << "\nho rimosso un arco" << std::endl;
@@ -273,6 +348,7 @@ std::vector<std::vector<node_id_t>> girvan_newman(Graph& network, bool is_weight
 std::vector<std::vector<node_id_t>> split_until_max_k(
                 const std::vector<node_id_t>& component,
                 Graph& network, const std::unordered_map<int, std::string>& seq_genome,
+                UmbrThreadPool& pool,
                 bool is_weighted = false)
 {
     SubGraph component_subnet = [&]() {
@@ -281,7 +357,7 @@ std::vector<std::vector<node_id_t>> split_until_max_k(
     }();
 
 
-    std::vector<std::vector<node_id_t>> tmp_communities = girvan_newman(component_subnet,is_weighted);
+    std::vector<std::vector<node_id_t>> tmp_communities = girvan_newman(component_subnet,is_weighted, pool);
     std::vector<std::vector<node_id_t>> final_communities;
 
     std::vector<std::vector<node_id_t>> to_process(tmp_communities.begin(), tmp_communities.end());
@@ -291,7 +367,7 @@ std::vector<std::vector<node_id_t>> split_until_max_k(
         to_process.pop_back();
 
         if (get_max_collision(community, component_subnet, seq_genome) > 0) {
-            std::vector<std::vector<node_id_t>> subresult = split_until_max_k(community, network, seq_genome);
+            std::vector<std::vector<node_id_t>> subresult = split_until_max_k(community, network, seq_genome, pool);
             to_process.insert(to_process.end(), subresult.begin(), subresult.end());
         } else {
             final_communities.push_back(community);

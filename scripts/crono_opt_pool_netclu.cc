@@ -37,14 +37,15 @@ void process_component(std::vector<node_id_t> component,
                        std::atomic_int& nof_coms,
                        std::unordered_map<size_t, node_id_t>& coms_size_distr,
                        size_t component_size,
-                       std::unordered_set<int>& remaining_singletons
+                       std::unordered_set<int>& remaining_singletons,
+                       UmbrThreadPool& pool
                        ) {
 
     std::stringstream oss;
     std::unordered_map<size_t, node_id_t> local_coms_size;
     std::vector<node_id_t> local_removed;
 
-    std::vector<std::vector<node_id_t>> communities = split_until_max_k(component, network, seq_genome);
+    std::vector<std::vector<node_id_t>> communities = split_until_max_k(component, network, seq_genome, pool);
     nof_coms += static_cast<int>(communities.size());
 
     for (auto &community : communities) {
@@ -160,6 +161,7 @@ int main(int argc, char* argv[]) {
     auto time_start_parallel = high_resolution_clock::now();
 
     UmbrThreadPool pool(MAX_THREADS);
+    //UmbrThreadPool& global_pool = pool;
 
 //    for (auto component : connected_components(network)) {
 
@@ -182,7 +184,8 @@ int main(int argc, char* argv[]) {
                 std::ref(nof_coms),
                 std::ref(coms_size_distr),
                 component_size,
-                std::ref(remaining_singletons)
+                std::ref(remaining_singletons),
+                std::ref(pool)
             );
 
         } else {
