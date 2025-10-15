@@ -131,7 +131,7 @@ int main(int argc, char* argv[]) {
     DEBUG_PRINT("Computing connected components...");
     auto components = connected_components(network);
 
-    for (auto& component : components) {
+    for (const auto& component : components) {
         size_t comp_size = component.size();
         ++(comps_size_distr[comp_size]);
         ++nof_comps;
@@ -157,7 +157,7 @@ int main(int argc, char* argv[]) {
 
     UmbrThreadPool pool(MAX_THREADS);
 
-    for (auto component : connected_components(network)) {
+    for (auto& component : components) {
 
 #if !FAST_MODE
         sort_and_print_component(component, std::cout);
