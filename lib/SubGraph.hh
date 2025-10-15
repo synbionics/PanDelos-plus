@@ -1,12 +1,13 @@
 #include "Graph.hh"
 
+// crea una hard copy del grafo originale
 class SubGraph : public Graph {
 private:
-    Graph& original_graph;
+    const Graph& original_graph;
     std::unordered_set<node_id_t> nodes_subset;
     
 public:
-    SubGraph(Graph& orig, const std::vector<node_id_t>& subset) 
+    SubGraph(const Graph& orig, const std::vector<node_id_t>& subset) 
         : original_graph(orig) {
         for (const node_id_t& node : subset) {
             nodes_subset.insert(node);
@@ -29,7 +30,6 @@ public:
     
     void remove_edge(const std::pair<node_id_t, node_id_t>& edge) override {
         Graph::remove_edge(edge);
-        original_graph.remove_edge(edge);
     }
 
     SubGraph subgraph(const std::vector<node_id_t>& nodes_subset) {
