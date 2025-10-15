@@ -157,12 +157,13 @@ int main(int argc, char* argv[]) {
 
     UmbrThreadPool pool(MAX_THREADS);
 
-    for (auto component : connected_components(network)) {
+//    for (auto component : connected_components(network)) {
 
-#if !FAST_MODE
-        sort_and_print_component(component, std::cout);
-#endif
-
+    auto components = connected_components(network);
+    for (auto &component : components){
+        #if !FAST_MODE
+                sort_and_print_component(component, std::cout);
+        #endif
         int max_k = get_max_collision(component, network, seq_genome);
         if (max_k > 0) {
             size_t component_size = component.size();
