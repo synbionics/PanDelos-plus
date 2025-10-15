@@ -9,6 +9,7 @@
 #include <future>
 #include <mutex>
 #include <atomic>
+#include <map>
 #include <chrono>
 #include "../lib/Graph.hh"
 #include "../lib/Umbrella_algo.hh"
@@ -35,32 +36,26 @@ void process_component(std::vector<node_id_t> component,
                        const std::unordered_map<int, std::string>& seq_names,
                        const std::unordered_map<int, std::string>& seq_descr,
                        std::atomic_int& nof_coms,
-                       std::unordered_map<size_t, node_id_t>& coms_size_distr,
+                       std::map<size_t, node_id_t>& coms_size_distr,
                        size_t component_size,
-                       std::unordered_set<int>& remaining_singletons,
-                       UmbrThreadPool& pool
+                       std::unordered_set<int>& remaining_singletons
                        ) {
 
     std::stringstream oss;
-    std::unordered_map<size_t, node_id_t> local_coms_size;
-    std::vector<node_id_t> local_removed;
 
-    std::vector<std::vector<node_id_t>> communities = split_until_max_k(component, network, seq_genome, pool);
+    std::vector<std::vector<node_id_t>> communities = split_until_max_k(component, network, seq_genome);
     nof_coms += static_cast<int>(communities.size());
 
-    for (auto &community : communities) {
-        local_coms_size[component_size] += 1;
-        for (const node_id_t &n : community) local_removed.push_back(n);
+    for (auto& community : communities) {
+        {
+            std::lock_guard<std::mutex> data_lock(data_mutex);
+            coms_size_distr[component_size] += 1;
+            for (const node_id_t& node : community)
+                remaining_singletons.erase(node);
+        }
 
         print_family(community, seq_names, oss);
         print_family_descriptions(community, seq_descr, oss);
-    }
-
-    // merge
-    {
-        std::lock_guard<std::mutex> data_lock(data_mutex);
-        for (auto &p : local_coms_size) coms_size_distr[p.first] += p.second;
-        for (auto &n : local_removed) remaining_singletons.erase(n);
     }
 
     // stampa in un colpo solo
@@ -130,7 +125,7 @@ int main(int argc, char* argv[]) {
 
 #if !FAST_MODE
 
-    std::unordered_map<size_t, node_id_t> comps_size_distr;
+    std::map<size_t, node_id_t> comps_size_distr;
     int nof_comps = 0;
     DEBUG_PRINT("----------------------------------------");
     DEBUG_PRINT("Computing connected components...");
@@ -155,21 +150,19 @@ int main(int argc, char* argv[]) {
         remaining_singletons.insert(it->first);
     }
 
-    std::unordered_map<size_t, node_id_t> coms_size_distr;
+    std::map<size_t, node_id_t> coms_size_distr;
     std::atomic<int> nof_coms = 0;
 
     auto time_start_parallel = high_resolution_clock::now();
 
     UmbrThreadPool pool(MAX_THREADS);
-    //UmbrThreadPool& global_pool = pool;
 
-//    for (auto component : connected_components(network)) {
+    for (auto component : connected_components(network)) {
 
-    auto components = connected_components(network);
-    for (auto &component : components){
-        #if !FAST_MODE
-                sort_and_print_component(component, std::cout);
-        #endif
+#if !FAST_MODE
+        sort_and_print_component(component, std::cout);
+#endif
+
         int max_k = get_max_collision(component, network, seq_genome);
         if (max_k > 0) {
             size_t component_size = component.size();
@@ -184,8 +177,7 @@ int main(int argc, char* argv[]) {
                 std::ref(nof_coms),
                 std::ref(coms_size_distr),
                 component_size,
-                std::ref(remaining_singletons),
-                std::ref(pool)
+                std::ref(remaining_singletons)
             );
 
         } else {
