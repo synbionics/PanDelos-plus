@@ -42,20 +42,25 @@ void process_component(std::vector<node_id_t> component,
                        ) {
 
     std::stringstream oss;
+    std::map<size_t, node_id_t> local_coms_size;
+    std::vector<node_id_t> local_removed;
 
     std::vector<std::vector<node_id_t>> communities = split_until_max_k(component, network, seq_genome);
     nof_coms += static_cast<int>(communities.size());
 
-    for (auto& community : communities) {
-        {
-            std::lock_guard<std::mutex> data_lock(data_mutex);
-            coms_size_distr[component_size] += 1;
-            for (const node_id_t& node : community)
-                remaining_singletons.erase(node);
-        }
+    for (auto &community : communities) {
+        local_coms_size[component_size] += 1;
+        for (const node_id_t &n : community) local_removed.push_back(n);
 
         print_family(community, seq_names, oss);
         print_family_descriptions(community, seq_descr, oss);
+    }
+
+    // merge
+    {
+        std::lock_guard<std::mutex> data_lock(data_mutex);
+        for (auto &p : local_coms_size) coms_size_distr[p.first] += p.second;
+        for (auto &n : local_removed) remaining_singletons.erase(n);
     }
 
     // stampa in un colpo solo
