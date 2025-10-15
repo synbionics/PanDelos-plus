@@ -9,7 +9,6 @@
 #include <future>
 #include <mutex>
 #include <atomic>
-#include <map>
 #include <chrono>
 #include "../lib/Graph.hh"
 #include "../lib/Umbrella_algo.hh"
@@ -36,7 +35,7 @@ void process_component(std::vector<node_id_t> component,
                        const std::unordered_map<int, std::string>& seq_names,
                        const std::unordered_map<int, std::string>& seq_descr,
                        std::atomic_int& nof_coms,
-                       std::map<size_t, node_id_t>& coms_size_distr,
+                       std::unordered_map<size_t, node_id_t>& coms_size_distr,
                        size_t component_size,
                        std::unordered_set<int>& remaining_singletons
                        ) {
@@ -125,7 +124,7 @@ int main(int argc, char* argv[]) {
 
 #if !FAST_MODE
 
-    std::map<size_t, node_id_t> comps_size_distr;
+    std::unordered_map<size_t, node_id_t> comps_size_distr;
     int nof_comps = 0;
     DEBUG_PRINT("----------------------------------------");
     DEBUG_PRINT("Computing connected components...");
@@ -150,7 +149,7 @@ int main(int argc, char* argv[]) {
         remaining_singletons.insert(it->first);
     }
 
-    std::map<size_t, node_id_t> coms_size_distr;
+    std::unordered_map<size_t, node_id_t> coms_size_distr;
     std::atomic<int> nof_coms = 0;
 
     auto time_start_parallel = high_resolution_clock::now();
