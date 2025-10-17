@@ -11,6 +11,7 @@
 #include <atomic>
 #include <chrono>
 #include "../lib/Graph.hh"
+//#include "../lib/opt_nested_Umbrella_algo.hh"
 #include "../lib/Umbrella_algo.hh"
 #include "../lib/types.hh"
 #include "../lib/UmbrThreadPool.hh"
@@ -29,15 +30,16 @@ std::mutex data_mutex;              // per coms_size_distr e remaining_singleton
 #define FAST_MODE 0
 #endif
 
-void process_component(std::vector<node_id_t> component,
-                       Graph& network,
+void process_component(const std::vector<node_id_t>& component,
+                       const Graph& network,
                        const std::unordered_map<int, std::string>& seq_genome,
                        const std::unordered_map<int, std::string>& seq_names,
                        const std::unordered_map<int, std::string>& seq_descr,
                        std::atomic_int& nof_coms,
                        std::unordered_map<size_t, node_id_t>& coms_size_distr,
                        size_t component_size,
-                       std::unordered_set<int>& remaining_singletons
+                       std::unordered_set<int>& remaining_singletons,
+                       UmbrThreadPool& pool
                        ) {
 
     std::stringstream oss;
@@ -46,16 +48,22 @@ void process_component(std::vector<node_id_t> component,
     nof_coms += static_cast<int>(communities.size());
 
     for (auto& community : communities) {
-        {
-            std::lock_guard<std::mutex> data_lock(data_mutex);
-            coms_size_distr[component_size] += 1;
-            for (const node_id_t& node : community)
-                remaining_singletons.erase(node);
-        }
+    std::unordered_map<size_t, size_t> local_sizes;
+    std::vector<node_id_t> local_erase;
+    local_sizes[component_size] = 1;
+    local_erase.reserve(community.size());
+    for (const node_id_t& node : community)
+        local_erase.push_back(node);
 
-        print_family(community, seq_names, oss);
-        print_family_descriptions(community, seq_descr, oss);
+    print_family(community, seq_names, oss);
+    print_family_descriptions(community, seq_descr, oss);
+
+    {
+        std::lock_guard<std::mutex> data_lock(data_mutex);
+        for (auto& [k, v] : local_sizes) coms_size_distr[k] += v;
+        for (auto n : local_erase) remaining_singletons.erase(n);
     }
+}
 
     // stampa in un colpo solo
     {
@@ -168,7 +176,7 @@ int main(int argc, char* argv[]) {
 
             pool.execute(
                 process_component,
-                component,
+                std::cref(component),
                 std::ref(network),
                 std::cref(seq_genome),
                 std::cref(seq_names),
@@ -176,7 +184,8 @@ int main(int argc, char* argv[]) {
                 std::ref(nof_coms),
                 std::ref(coms_size_distr),
                 component_size,
-                std::ref(remaining_singletons)
+                std::ref(remaining_singletons),
+                std::ref(pool)
             );
 
         } else {
