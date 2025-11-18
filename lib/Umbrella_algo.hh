@@ -20,7 +20,7 @@
 std::mutex cout_mutex;
 std::mutex graph_lock;
 
-//std::ofstream debugFile("pool_debug_output.txt");
+std::ofstream debugFile("umbr_debug_output.txt");
 
 struct Path_info{
     double distance;
@@ -186,7 +186,7 @@ int get_max_collision(std::vector<node_id_t> component, const Graph& network,
     return max_k;
 
 }
-
+/*
 std::pair<node_id_t, node_id_t> calculate_heaviest(const Graph& network, const std::unordered_map<std::pair<node_id_t, node_id_t>, weight_t, PairHash>& edge_bws_map){
 
     weight_t current_max = -1;
@@ -197,27 +197,76 @@ std::pair<node_id_t, node_id_t> calculate_heaviest(const Graph& network, const s
         std::lock_guard<std::mutex> lock(cout_mutex);
         auto& current_betweeness = it->second;
         // togliere poi
-            //debugFile << "attuale max_current: " << current_max << std::endl;
-            //debugFile << "valore del bw esaminato tra i nodi " << it->first.first << " e " << it->first.second << ": " << current_betweeness << std::endl ;
+            debugFile << "attuale max_current: " << current_max << std::endl;
+            debugFile << "valore del bw esaminato tra i nodi " << it->first.first << " e " << it->first.second << ": " << current_betweeness << std::endl ;
         //posso cambiare da > a >= e viceversa in base se esistono uguali quale togliere
         if(current_betweeness > current_max){
             current_max = current_betweeness;
             max_bw_edge = it->first;
         }
         else if(std::abs(current_betweeness - current_max) < EPSILON){
-            //debugFile << "\n!!! betweeness uguale trovato e valente: " << current_betweeness << " !!!\n";
+            debugFile << "\n!!! betweeness uguale trovato e valente: " << current_betweeness << " !!!\n";
             weight_t current_edge_weight = network.get_edge_weight(it->first.first,it->first.second);
             weight_t max_bw_edge_weight = network.get_edge_weight(max_bw_edge.first,max_bw_edge.second);
-            //debugFile << "\nVecchio arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
+            debugFile << "\nVecchio arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
             if(current_edge_weight < max_bw_edge_weight){
                 max_bw_edge = it->first;
             }
-            //debugFile << "Nuovo arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
+            //terzo criterio, prendo l'id più piccolo
+            else if(current_edge_weight == max_bw_edge_weight){
+                if(it->first.first < max_bw_edge.first)
+                    max_bw_edge = it->first;
+            }
+            debugFile << "Nuovo arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
+        }    
+    }
+    
+    debugFile << "!!!ARCO che tagliero' e' fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
+    return max_bw_edge;
+
+}
+*/
+
+std::pair<node_id_t, node_id_t> calculate_heaviest(const Graph& network, const std::unordered_map<std::pair<node_id_t, node_id_t>, weight_t, PairHash>& edge_bws_map){
+
+    weight_t current_max = -1;
+    const double EPSILON = 1e-6;
+    std::pair<node_id_t,node_id_t> max_bw_edge = std::make_pair(0,0);
+
+    for(auto it = edge_bws_map.begin(); it != edge_bws_map.end(); ++it){
+        std::lock_guard<std::mutex> lock(cout_mutex);
+        auto& current_betweeness = it->second;
+        
+        debugFile << "attuale max_current: " << current_max << std::endl;
+        debugFile << "valore del bw esaminato tra i nodi " << it->first.first << " e " << it->first.second << ": " << current_betweeness << std::endl;
+        
+        if(current_betweeness > current_max){
+            current_max = current_betweeness;
+            max_bw_edge = it->first;
+        }
+        else if(std::abs(current_betweeness - current_max) < EPSILON){
+            debugFile << "\n!!! betweeness uguale trovato e valente: " << current_betweeness << " !!!\n";
+            weight_t current_edge_weight = network.get_edge_weight(it->first.first, it->first.second);
+            weight_t max_bw_edge_weight = network.get_edge_weight(max_bw_edge.first, max_bw_edge.second);
+            debugFile << "\nVecchio arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
+            
+            if(current_edge_weight < max_bw_edge_weight){
+                max_bw_edge = it->first;
+            }
+            // Terzo criterio: confronto lessicografico completo della coppia
+            else if(std::abs(current_edge_weight - max_bw_edge_weight) < EPSILON){
+                // Confronta (first, second) in ordine lessicografico
+                if(it->first < max_bw_edge){  // std::pair ha operator< già definito!
+                    max_bw_edge = it->first;
+                }
+            }
+            debugFile << "Nuovo arco candidato fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
         }    
     }
 
-    return max_bw_edge;
+    debugFile << "!!!ARCO che tagliero' e' fra " << max_bw_edge.first << " e " << max_bw_edge.second << std::endl;
 
+    return max_bw_edge;
 }
 
 // approccio DFS
@@ -272,14 +321,10 @@ std::vector<std::vector<node_id_t>> girvan_newman(Graph& network, bool is_weight
 
 std::vector<std::vector<node_id_t>> split_until_max_k(
                 const std::vector<node_id_t>& component,
-                Graph& network, const std::unordered_map<int, std::string>& seq_genome,
+                const Graph& network, const std::unordered_map<int, std::string>& seq_genome,
                 bool is_weighted = false)
 {
-    SubGraph component_subnet = [&]() {
-        std::lock_guard<std::mutex> g_lock(graph_lock);
-        return SubGraph(network, component);
-    }();
-
+    SubGraph component_subnet = SubGraph(network, component);
 
     std::vector<std::vector<node_id_t>> tmp_communities = girvan_newman(component_subnet,is_weighted);
     std::vector<std::vector<node_id_t>> final_communities;
