@@ -1,6 +1,8 @@
+#ifndef SUBGRAPH_H
+#define SUBGRAPH_H
+
 #include "Graph.hh"
 
-// crea una hard copy del grafo originale
 class SubGraph : public Graph {
 private:
     const Graph& original_graph;
@@ -37,3 +39,5 @@ public:
     }
 
 };
+
+#endif
