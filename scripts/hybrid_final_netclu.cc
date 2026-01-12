@@ -12,7 +12,8 @@
 #include <chrono>
 #include "../lib/Graph.hh"
 //#include "../lib/opt_nested_Umbrella_algo.hh"
-#include "../lib/kahan_v3_hybr_Umbrella_algo.hh"
+//#include "../lib/kahan_v3_hybr_Umbrella_algo.hh"
+#include "../lib/kahan_v4_umb_algo.hh"
 #include "../lib/types.hh"
 #include "../lib/UmbrThreadPool.hh"
 
@@ -179,7 +180,7 @@ int main(int argc, char* argv[]) {
             pool.execute(
                 process_component,
                 std::cref(component),
-                std::ref(network),
+                std::cref(network),
                 std::cref(seq_genome),
                 std::cref(seq_names),
                 std::cref(seq_descr),
@@ -238,12 +239,16 @@ int main(int argc, char* argv[]) {
     double serial_frac = 1.0 - P;
     double amdahl_limit = 1.0 / (serial_frac);  // N → ∞
 
+    int target_n = 10; // il mio n.di core fisici
+    double speedup_at_n = 1.0 / (serial_frac + (P / target_n));
+
     std::ofstream timer_file("timer_report.txt");
     timer_file << "Serial duration: " << serial_duration_ms << " ms\n";
     timer_file << "Parallel duration: " << parallel_duration_ms << " ms\n";
     timer_file << "Total duration: " << total_duration_ms << " ms\n";
     timer_file << "Serial fraction (1 - P): " << serial_frac << "\n";
-    timer_file << "Amdahl theoretical speedup limit: " << amdahl_limit << "x\n";
+    timer_file << "Amdahl theoretical speedup limit (N -> inf): " << amdahl_limit << "x\n";
+    timer_file << "Amdahl speedup estimate with " << target_n << " cores: " << speedup_at_n << "x\n";
     timer_file.close();
 
     DEBUG_PRINT("end of net_clu_ng");
