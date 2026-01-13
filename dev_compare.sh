@@ -28,6 +28,15 @@ path2gbff=""
 path2gbks=""
 similarityParameter=""
 
+#compilazione cpp
+
+echo "Compiling cpp serial (can be done in advance)"
+g++ -O3 $scripts_path/serial_netclu_ng.cc ./lib/Graph.hh ./lib/Umbrella_algo.hh -o $scripts_path/serial_net
+
+echo "Compiling cpp parallel (can be done in advance)"
+#g++ -O3 $scripts_path/openmp_netclu.cc ./lib/UmbrThreadPool.hh ./lib/Graph.hh ./lib/Umbrella_algo.hh -fopenmp -o $scripts_path/omp_parallel_net
+g++ -O3 $scripts_path/hybrid_final_netclu.cc ./lib/v2_pool.hh ./lib/Graph.hh ./lib/v4_umb_algo.hh -o $scripts_path/parallel_net
+
 function usage() {
     echo "Usage: $0 [-i input_file] [-o output_file] [-t thread_num] [-m] [-d discard_value] [-g path to gbff folder][-h]"
     echo "Options:"
@@ -217,9 +226,6 @@ end_python=$(date +%s.%N)
 python_time=$(echo "$end_python - $start_python" | bc)
 python_time_fmt=$(LC_NUMERIC=C printf "%.2f" "$python_time")
 
-echo "Compiling cpp serial (can be done in advance)"
-g++ -O3 $scripts_path/serial_netclu_ng.cc ./lib/Graph.hh ./lib/Umbrella_algo.hh -o $scripts_path/serial_net
-
 echo "Computing clusters (cpp) (serial)"
 start_cpp=$(date +%s.%N)
 "$scripts_path/serial_net" "$inFile" "$outFile.net" > "cpp_result.txt"
@@ -227,12 +233,10 @@ end_cpp=$(date +%s.%N)
 cpp_time=$(echo "$end_cpp - $start_cpp" | bc)
 cpp_time_fmt=$(LC_NUMERIC=C printf "%.2f" "$cpp_time")
 
-echo "Compiling cpp parallel (can be done in advance)"
-g++ -O3 $scripts_path/pool_netclug_ng.cc ./lib/UmbrThreadPool.hh ./lib/Graph.hh ./lib/Umbrella_algo.hh -o $scripts_path/parallel_net
-
 echo "Computing clusters (cpp) (parallel)"
 start_cpp_parall=$(date +%s.%N)
-"$scripts_path/parallel_net" "$inFile" "$outFile.net" > "parallel_cpp_result.txt"
+#valgrind --leak-check=full --show-leak-kinds=all --track-origins=yes "$scripts_path/parallel_net" "$inFile" "$outFile.net" > parallel_cpp_result.txt
+"$scripts_path/parallel_net" "$inFile" "$outFile.net" > parallel_cpp_result.txt
 end_cpp_parall=$(date +%s.%N)
 cpp_time_parall=$(echo "$end_cpp_parall - $start_cpp_parall" | bc)
 cpp_time_fmt_parall=$(LC_NUMERIC=C printf "%.2f" "$cpp_time_parall")
