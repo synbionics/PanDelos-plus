@@ -11,11 +11,10 @@
 #include <atomic>
 #include <chrono>
 #include "../lib/Graph.hh"
-//#include "../lib/opt_nested_Umbrella_algo.hh"
-//#include "../lib/kahan_v3_hybr_Umbrella_algo.hh"
 #include "../lib/kahan_v4_umb_algo.hh"
 #include "../lib/types.hh"
 #include "../lib/UmbrThreadPool.hh"
+#include <cmath>
 
 const size_t MAX_THREADS = std::thread::hardware_concurrency();
 
@@ -40,12 +39,13 @@ void process_component(const std::vector<node_id_t>& component,
                        std::unordered_map<size_t, node_id_t>& coms_size_distr,
                        size_t component_size,
                        std::unordered_set<int>& remaining_singletons,
-                       UmbrThreadPool& pool
+                       UmbrThreadPool& pool,
+                       node_id_t THRESHOLD
                        ) {
 
     std::stringstream oss;
 
-    std::vector<std::vector<node_id_t>> communities = split_until_max_k(component, network, seq_genome, pool);
+    std::vector<std::vector<node_id_t>> communities = split_until_max_k(component, network, seq_genome, pool, THRESHOLD);
     nof_coms += static_cast<int>(communities.size());
 
     for (auto& community : communities) {
@@ -139,11 +139,22 @@ int main(int argc, char* argv[]) {
     DEBUG_PRINT("Computing connected components...");
     auto components = connected_components(network);
 
+    std::vector<size_t> sizes;
+    sizes.reserve(components.size());
+
     for (const auto& component : components) {
         size_t comp_size = component.size();
         ++(comps_size_distr[comp_size]);
         ++nof_comps;
+
+        sizes.push_back(comp_size);
     }
+
+    //calcolo threshold
+    std::sort(sizes.begin(), sizes.end());
+    size_t n = sizes.size();
+    size_t idx = static_cast<size_t>(std::floor(0.8 * n));
+    const node_id_t THRESHOLD = sizes[idx];
 
     for (const auto& [size, count] : comps_size_distr)
         DEBUG_PRINT("con dimensione: " << size << " ci sono: " << count << " componenti");
@@ -165,7 +176,7 @@ int main(int argc, char* argv[]) {
 
     UmbrThreadPool pool(MAX_THREADS);
 
-    UmbrThreadPool bw_pool(MAX_THREADS); // micropool
+    UmbrThreadPool bw_pool(MAX_THREADS);
 
     for (auto& component : components) {
 
@@ -188,7 +199,8 @@ int main(int argc, char* argv[]) {
                 std::ref(coms_size_distr),
                 component_size,
                 std::ref(remaining_singletons),
-                std::ref(bw_pool)
+                std::ref(bw_pool),
+                THRESHOLD
             );
 
         } else {
@@ -231,7 +243,7 @@ int main(int argc, char* argv[]) {
 
     auto time_end_total = high_resolution_clock::now(); 
 
-      auto serial_duration_ms   = duration_cast<milliseconds>(time_start_parallel - time_start_serial).count();
+    auto serial_duration_ms   = duration_cast<milliseconds>(time_start_parallel - time_start_serial).count();
     auto parallel_duration_ms = duration_cast<milliseconds>(time_end_parallel - time_start_parallel).count();
     auto total_duration_ms    = duration_cast<milliseconds>(time_end_total - time_start_serial).count();  // solo core
 

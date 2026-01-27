@@ -21,9 +21,7 @@
 
 std::mutex cout_mutex;
 
-//std::ofstream debugFile("kahan_umbr_debug_output.txt");
-
-#define COMPONENT_SIZE_THRESHOLD 500
+std::ofstream debugFile("kahan_umbr_debug_output.txt");
 
 struct Path_info{
     double distance;
@@ -111,13 +109,14 @@ void shortest_paths_dijkstra(
 std::unordered_map<std::pair<node_id_t,node_id_t>, weight_t, PairHash> calculate_edge_betweenness(
     const Graph& g, 
     UmbrThreadPool& bw_pool,
+    const node_id_t THRESHOLD,
     bool is_weighted) {
     
     std::unordered_map<std::pair<node_id_t, node_id_t>, weight_t, PairHash> edge_betweenness;
     
-    if(g.get_number_of_nodes() > COMPONENT_SIZE_THRESHOLD){
+    if(g.get_number_of_nodes() > THRESHOLD){
 
-        //debugFile << "soglia superata, parallelizzo";
+        debugFile << "soglia ";
         
         std::unordered_map<std::pair<node_id_t, node_id_t>, std::vector<double>, PairHash> edge_contributions;
         std::mutex contributions_mutex;
@@ -368,10 +367,10 @@ std::vector<std::vector<node_id_t>> connected_components(const Graph& g) {
     return components;
 }
 
-std::vector<std::vector<node_id_t>> girvan_newman(Graph& network, UmbrThreadPool& pool, bool is_weighted){
+std::vector<std::vector<node_id_t>> girvan_newman(Graph& network, UmbrThreadPool& pool, const node_id_t THRESHOLD, bool is_weighted){
     
     while(connected_components(network).size() <= 1){
-        const auto& edge_bws = calculate_edge_betweenness(network, pool, is_weighted);
+        const auto& edge_bws = calculate_edge_betweenness(network, pool, THRESHOLD, is_weighted);
         auto heaviest_edge = calculate_heaviest(network, edge_bws);
         //questa versione usa deep copy
         //std::lock_guard<std::mutex> g_lock(graph_lock);
@@ -384,12 +383,13 @@ std::vector<std::vector<node_id_t>> split_until_max_k(
                 const std::vector<node_id_t>& component,
                 const Graph& network, const std::unordered_map<int, std::string>& seq_genome,
                 UmbrThreadPool& pool,
+                const node_id_t THRESHOLD,
                 bool is_weighted = false)
 {
     // Deep copy
     SubGraph component_subnet = SubGraph(network, component);
 
-    std::vector<std::vector<node_id_t>> tmp_communities = girvan_newman(component_subnet,pool,is_weighted);
+    std::vector<std::vector<node_id_t>> tmp_communities = girvan_newman(component_subnet,pool,THRESHOLD,is_weighted);
     std::vector<std::vector<node_id_t>> final_communities;
 
     std::vector<std::vector<node_id_t>> to_process(tmp_communities.begin(), tmp_communities.end());
