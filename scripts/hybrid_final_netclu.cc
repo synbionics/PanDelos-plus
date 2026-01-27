@@ -150,11 +150,19 @@ int main(int argc, char* argv[]) {
         sizes.push_back(comp_size);
     }
 
+    if(sizes.empty())
+        return 0;
+
     //calcolo THRESHOLD
-    std::sort(sizes.begin(), sizes.end());
+    node_id_t THRESHOLD;
     size_t n = sizes.size();
-    size_t idx = static_cast<size_t>(std::floor(0.8 * n));
-    const node_id_t THRESHOLD = sizes[idx];
+    size_t idx;
+
+    double percentile = (nof_comps < MAX_THREADS) ? 0.3 : 0.9;
+    auto it = sizes.begin() + static_cast<size_t>(percentile * n);
+
+    std::nth_element(sizes.begin(), it, sizes.end());
+    THRESHOLD = *it;
 
     for (const auto& [size, count] : comps_size_distr)
         DEBUG_PRINT("con dimensione: " << size << " ci sono: " << count << " componenti");
