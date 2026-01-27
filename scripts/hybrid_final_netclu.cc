@@ -150,7 +150,7 @@ int main(int argc, char* argv[]) {
         sizes.push_back(comp_size);
     }
 
-    //calcolo threshold
+    //calcolo THRESHOLD
     std::sort(sizes.begin(), sizes.end());
     size_t n = sizes.size();
     size_t idx = static_cast<size_t>(std::floor(0.8 * n));

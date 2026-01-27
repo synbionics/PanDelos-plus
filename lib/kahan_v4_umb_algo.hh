@@ -114,7 +114,7 @@ std::unordered_map<std::pair<node_id_t,node_id_t>, weight_t, PairHash> calculate
     
     std::unordered_map<std::pair<node_id_t, node_id_t>, weight_t, PairHash> edge_betweenness;
     
-    if(g.get_number_of_nodes() > THRESHOLD){
+    if(g.get_number_of_nodes() >= THRESHOLD){
 
         debugFile << "soglia ";
         
