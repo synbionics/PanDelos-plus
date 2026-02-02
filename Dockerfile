@@ -8,7 +8,7 @@ RUN apt update && apt-get upgrade -y && \
         time \
         curl \
         htop \
-        gzip\ 
+        gzip \
         bash \
         git \
         build-essential \
@@ -31,7 +31,7 @@ WORKDIR ${WORKDIR}
 
 
 RUN curl -L --output ${ZIPNAME} ${PDPGITHUB}
-RUN unzip ${ZIPNAME} 
+RUN unzip ${ZIPNAME}
 
 RUN mv "${TOOLNAME}-${VERSION}" ${TOOLNAME}
 
@@ -62,3 +62,5 @@ RUN echo 'PS1="\[\033[01;34m\]\u@\h:\[\033[01;32m\]\w\[\033[00m\]\$ "' >> /home/
 WORKDIR ${TOOLDIR}
 
 USER pdp
+
+ENTRYPOINT ["bash", "pandelosp.sh"]
