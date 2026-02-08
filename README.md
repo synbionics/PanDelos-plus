@@ -22,6 +22,7 @@ PanDelos-plus: a parallel algorithm for computing sequence homology in pangenomi
   - [Run with a custom file](#run-with-a-custom-file)
     - [Local execution with custom file](#local-execution-with-custom-file)
     - [Docker execution with custom file](#docker-execution-with-custom-file)
+    - [Docker execution with gbff files](#docker-execution-with-gbff-files)
   - [Advanced usage](#advanced-usage)
     - [Using gbff files as input](#using-gbff-files-as-input)
     - [Custom execution](#custom-execution)
@@ -289,6 +290,47 @@ docker compose run --rm pandelosplus -i input/custom.pdi -o output/custom
 This will run the PanDelos-plus pipeline inside the docker on the input file `input/custom.pdi` and save the output in the `output/custom.clus` file.
 The output files will contain the gene families computed by the pipeline.
 
+### Docker execution with gbff files
+
+PanDelos-plus supports processing `.gbff` (GenBank flat file) files via the `-g` flag also when running with Docker. The gbff files must be placed inside the `input/` directory (which is mounted as a volume in the container).
+
+**1. Prepare the gbff files**
+
+Place your `.gbff` files in a subfolder of `input/`, for example `input/gbff/`. You can extract the bundled example files:
+
+```bash
+unzip files/gbff.zip -d input/gbff/
+```
+
+**2. Prepare a `.pdi` file name for the output**
+
+The `-i` flag specifies the path where the generated `.pdi` file will be written. It must also be inside `input/` so that it is accessible both inside and outside the container.
+
+**3. Run the pipeline**
+
+**Using the wrapper script:**
+
+```bash
+./run-docker.sh -i input/custom.pdi -o output/custom -g input/gbff/
+```
+
+**Using docker run:**
+
+```bash
+docker run --rm \
+  -v "$(pwd)/input:/home/pdp/PanDelos-plus/input" \
+  -v "$(pwd)/output:/home/pdp/PanDelos-plus/output" \
+  pandelosplus -i input/custom.pdi -o output/custom -g input/gbff/
+```
+
+**Using Docker Compose:**
+
+```bash
+docker compose run --rm pandelosplus -i input/custom.pdi -o output/custom -g input/gbff/
+```
+
+The pipeline will convert the gbff files to gbk format, generate a `.pdi` file, and then compute the gene families. All intermediate files (the `gbk/` subfolder and the generated `.pdi` file) are created inside the `input/` volume, so they will be visible on the host machine.
+
 ## Advanced usage
 
 **Important**
@@ -309,6 +351,8 @@ docker compose run --rm --entrypoint bash pandelosplus
 ```
 
 ### Using gbff files as input
+
+> If you are using Docker, see [Docker execution with gbff files](#docker-execution-with-gbff-files) for instructions on running this workflow inside a container.
 
 You can generate an input file from a set of `.gbff` files following these steps:
 
@@ -429,7 +473,7 @@ NC_000913	NC_000913:NC_000913.3:b0018:1	regulatory protein MokC
 MLNTCRVPLTDRKVKEKRAMKQHKAMIVALIVICITAVVAALVTRKDLCEVHIRTGQTEVAVFTAYESE
 ```
 
-In the case of this pair the gene identified by `NC_000913:NC_000913.3:b0001:1` has a length equal to $69$ and the other has length equal to $21$ so a discard greater than $0.2$ will skip this comparison
+In the case of this pair the gene identified by `NC_000913:NC_000913.3:b0001:1` has a length equal to $21$ and the other has length equal to $69$ so a discard greater than $0.3$ will skip this comparison
 
 ### Fragmented genes
 
