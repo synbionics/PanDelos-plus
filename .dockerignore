@@ -1,6 +1,16 @@
 .vscode
 .gitignore
 .git
+.github
 docker-compose.yml
 Dockerfile
 .dockerignore
+run-docker.sh
+README.md
+LICENSE
+examples
+input
+output
+pdp_env
+__pycache__
+main
