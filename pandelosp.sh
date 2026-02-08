@@ -1,4 +1,4 @@
-#! bin/bash
+#!/bin/bash
 
 sdir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)/$(basename "${BASH_SOURCE[0]}")"
 sdir=`dirname $sdir`

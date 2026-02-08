@@ -17,9 +17,12 @@ PanDelos-plus: a parallel algorithm for computing sequence homology in pangenomi
   - [Use with docker](#use-with-docker)
     - [Installation](#installation-1)
     - [Usage](#usage-1)
+      - [Method A: Docker run](#method-a-docker-run)
+      - [Method B: Docker Compose](#method-b-docker-compose)
   - [Run with a custom file](#run-with-a-custom-file)
     - [Local execution with custom file](#local-execution-with-custom-file)
     - [Docker execution with custom file](#docker-execution-with-custom-file)
+    - [Docker execution with gbff files](#docker-execution-with-gbff-files)
   - [Advanced usage](#advanced-usage)
     - [Using gbff files as input](#using-gbff-files-as-input)
     - [Custom execution](#custom-execution)
@@ -38,7 +41,7 @@ PanDelos-plus: a parallel algorithm for computing sequence homology in pangenomi
 
 ## Introduction
 
-PanDelos-plus implements a dictionary-based method for pan-genome content discovery. This updated version is a re-engineered and parallelized C++ implementation of the original [PanDelos](https://github.com/InfOmics/PanDelos). It integrates several Python modules with a C++ library, coordinated via the `execute.sh` Bash script, which facilitates streamlined access to the complete PanDelos-plus pipeline.
+PanDelos-plus implements a dictionary-based method for pan-genome content discovery. This updated version is a re-engineered and parallelized C++ implementation of the original [PanDelos](https://github.com/InfOmics/PanDelos). It integrates several Python modules with a C++ library, coordinated via the `pandelosp.sh` Bash script, which facilitates streamlined access to the complete PanDelos-plus pipeline.
 
 <br>
 
@@ -120,7 +123,7 @@ deactivate
 
 ## Use with docker
 
-sure to have git installed on your machine.
+Make sure to have git installed on your machine.
 
 If you don't have git installed, you can install it with the following command on Ubuntu machine:
 
@@ -162,12 +165,12 @@ Build the container:
 If you are on a windows machine you probably have to start docker engine by opening the docker desktop application.
 
 ```bash
-docker compose build --no-cache
+docker build -t pandelosplus .
 ```
 
-> Note that `docker compose` command may raise some errors so try also with `docker-compose`
-
 ### Usage
+
+PanDelos-plus can be run with Docker using two methods: direct `docker run` or Docker Compose.
 
 **Important**
 
@@ -181,15 +184,38 @@ cp files/pdi/mycoplasma5.pdi input/mycoplasma5.pdi
 
 > If you are on windows you probably have to use `cp .\files\pdi\mycoplasma5.pdi input\mycoplasma5.pdi`
 
-Run the pipeline:
+#### Method A: Docker run
+
+This is the standard approach for running containerized tools. You can use the provided wrapper script or run docker directly.
+
+**Using the wrapper script:**
 
 ```bash
-docker compose run --rm pandelosplus bash pandelosp.sh -i input/mycoplasma5.pdi -o output/mycoplasma5
+./run-docker.sh -i input/mycoplasma5.pdi -o output/mycoplasma5
 ```
+
+**Using docker run directly:**
+
+```bash
+docker run --rm \
+  -v "$(pwd)/input:/home/pdp/PanDelos-plus/input" \
+  -v "$(pwd)/output:/home/pdp/PanDelos-plus/output" \
+  pandelosplus -i input/mycoplasma5.pdi -o output/mycoplasma5
+```
+
+#### Method B: Docker Compose
+
+For those who prefer declarative configuration, Docker Compose is also supported.
 
 > Note that `docker compose` command may raise some errors so try also with `docker-compose`
 
-This script will run the PanDelos-plus pipeline inside the docker on the input file `input/mycoplasma5.pdi` and save the output in the `output/mycoplasma5.clus` and `output/mycoplasma5.json` files.
+```bash
+docker compose run --rm pandelosplus -i input/mycoplasma5.pdi -o output/mycoplasma5
+```
+
+---
+
+Both methods will run the PanDelos-plus pipeline on the input file `input/mycoplasma5.pdi` and save the output in the `output/mycoplasma5.clus` and `output/mycoplasma5.json` files.
 
 The output files will contain the gene families computed by the pipeline.
 
@@ -249,14 +275,61 @@ deactivate
 
 After you have prepared your input file (supposing it is in the `input` folder and is named `custom.pdi`), you can run the pipeline as follows:
 
-Run the pipeline:
+**Using docker run:**
 
 ```bash
-docker compose run --rm pandelosplus bash pandelosp.sh -i input/custom.pdi -o output/custom
+./run-docker.sh -i input/custom.pdi -o output/custom
 ```
 
-This script will run the PanDelos-plus pipeline inside the docker on the input file `input/custom.pdi` and save the output in the `output/custom.clus` file.
+**Using Docker Compose:**
+
+```bash
+docker compose run --rm pandelosplus -i input/custom.pdi -o output/custom
+```
+
+This will run the PanDelos-plus pipeline inside the docker on the input file `input/custom.pdi` and save the output in the `output/custom.clus` file.
 The output files will contain the gene families computed by the pipeline.
+
+### Docker execution with gbff files
+
+PanDelos-plus supports processing `.gbff` (GenBank flat file) files via the `-g` flag also when running with Docker. The gbff files must be placed inside the `input/` directory (which is mounted as a volume in the container).
+
+**1. Prepare the gbff files**
+
+Place your `.gbff` files in a subfolder of `input/`, for example `input/gbff/`. You can extract the bundled example files:
+
+```bash
+unzip files/gbff.zip -d input/gbff/
+```
+
+**2. Prepare a `.pdi` file name for the output**
+
+The `-i` flag specifies the path where the generated `.pdi` file will be written. It must also be inside `input/` so that it is accessible both inside and outside the container.
+
+**3. Run the pipeline**
+
+**Using the wrapper script:**
+
+```bash
+./run-docker.sh -i input/custom.pdi -o output/custom -g input/gbff/
+```
+
+**Using docker run:**
+
+```bash
+docker run --rm \
+  -v "$(pwd)/input:/home/pdp/PanDelos-plus/input" \
+  -v "$(pwd)/output:/home/pdp/PanDelos-plus/output" \
+  pandelosplus -i input/custom.pdi -o output/custom -g input/gbff/
+```
+
+**Using Docker Compose:**
+
+```bash
+docker compose run --rm pandelosplus -i input/custom.pdi -o output/custom -g input/gbff/
+```
+
+The pipeline will convert the gbff files to gbk format, generate a `.pdi` file, and then compute the gene families. All intermediate files (the `gbk/` subfolder and the generated `.pdi` file) are created inside the `input/` volume, so they will be visible on the host machine.
 
 ## Advanced usage
 
@@ -264,10 +337,22 @@ The output files will contain the gene families computed by the pipeline.
 If you installed pandeslos-plus with docker you must enter inside the container to execute the following steps.
 
 ```bash
-docker compose run --rm pandelosplus bash
+docker run --rm -it \
+  -v "$(pwd)/input:/home/pdp/PanDelos-plus/input" \
+  -v "$(pwd)/output:/home/pdp/PanDelos-plus/output" \
+  --entrypoint bash \
+  pandelosplus
+```
+
+Or using Docker Compose:
+
+```bash
+docker compose run --rm --entrypoint bash pandelosplus
 ```
 
 ### Using gbff files as input
+
+> If you are using Docker, see [Docker execution with gbff files](#docker-execution-with-gbff-files) for instructions on running this workflow inside a container.
 
 You can generate an input file from a set of `.gbff` files following these steps:
 
@@ -363,7 +448,7 @@ bash pandelosp.sh -h
 You will get this output:
 
 ```bash
-Usage: execute.sh [-i input_file] [-o output_file] [-t thread_num] [-m] [-d discard_value] [-g path to gbks][-h]
+Usage: pandelosp.sh [-i input_file] [-o output_file] [-t thread_num] [-m] [-d discard_value] [-g path to gbks][-h]
 Options:
   -i: Input file path
   -o: Output file path
@@ -388,7 +473,7 @@ NC_000913	NC_000913:NC_000913.3:b0018:1	regulatory protein MokC
 MLNTCRVPLTDRKVKEKRAMKQHKAMIVALIVICITAVVAALVTRKDLCEVHIRTGQTEVAVFTAYESE
 ```
 
-In the case of this pair the gene identified by `NC_000913:NC_000913.3:b0001:1` has a length equal to $69$ and the other has length equal to $21$ so a discard greater than $0.2$ will skip this comparison
+In the case of this pair the gene identified by `NC_000913:NC_000913.3:b0001:1` has a length equal to $21$ and the other has length equal to $69$ so a discard greater than $0.3$ will skip this comparison
 
 ### Fragmented genes
 
@@ -438,15 +523,35 @@ Using the `-p` flag you will use an higher threshold to make the decision, so mo
 
 After the computation of the clusters, you can query the pangenome using the `query_pangenome.py` script.
 
+If you are using docker:
+
+**Using docker run:**
+
 ```bash
-python3 python3 query_pangenome.py -i <path_to_json_file>.json -o <path_to_output_folder> -c <gene_threshold_for_core> [-f < list | mutifasta | all>]
+docker run --rm \
+  -v "$(pwd)/input:/home/pdp/PanDelos-plus/input" \
+  -v "$(pwd)/output:/home/pdp/PanDelos-plus/output" \
+  --entrypoint python3 \
+  pandelosplus query_pangenome.py -i <path_to_json_file>.json -o <path_to_output_folder> -c <gene_threshold_for_core> [-f < list | mutifasta | all>]
 ```
+
+**Using Docker Compose:**
+
+```bash
+docker compose run --rm --entrypoint python3 pandelosplus query_pangenome.py -i <path_to_json_file>.json -o <path_to_output_folder> -c <gene_threshold_for_core> [-f < list | mutifasta | all>]
+```
+
+If you are not using docker:
 
 > Remember to activate the virtual environment before running the script. You can do this by running the following command:
 >
 > ```bash
 > source pdp_env/bin/activate
 > ```
+
+```bash
+python3 query_pangenome.py -i <path_to_json_file>.json -o <path_to_output_folder> -c <gene_threshold_for_core> [-f < list | mutifasta | all>]
+```
 
 | Flag | Description                                                                                                                                                                                                                                  |
 | ---- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -485,6 +590,24 @@ Supposing that you have executed the example of execution with custom gbff files
 -   `custom.json`
 
 You can query the pangenome using the following command:
+
+If inside docker (using docker run):
+
+```bash
+docker run --rm \
+  -v "$(pwd)/input:/home/pdp/PanDelos-plus/input" \
+  -v "$(pwd)/output:/home/pdp/PanDelos-plus/output" \
+  --entrypoint python3 \
+  pandelosplus query_pangenome.py -i output/custom.json -o output/ -c 2 -f all
+```
+
+Or using Docker Compose:
+
+```bash
+docker compose run --rm --entrypoint python3 pandelosplus query_pangenome.py -i output/custom.json -o output/ -c 2 -f all
+```
+
+If outside docker:
 
 ```bash
 python3 query_pangenome.py -i output/custom.json -o output/ -c 2 -f all
@@ -583,6 +706,7 @@ If you used `-f list` or `-f all`, you will find in the `types/list` folder the 
 -   `singleton.txt` contains the genes identifiers of the accessory genes.
 
 If you used `-f multifasta` or `-f all`, you will find in the `types/multifasta` folder the following files:
+
 -   `accessory.ffn` contains the accessory genes, in multifasta format.
 -   `core.ffn` contains the core genes, in multifasta format.
 -   `singleton.ffn` contains the singleton genes, in multifasta format.
