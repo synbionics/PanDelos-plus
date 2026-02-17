@@ -41,14 +41,15 @@ void printTitle() {
 }
 void printHelp() {
 #ifdef DEV_MODE
-    std::cerr << "Utilizzo:\n"
-        << "-i per selezionare il file di input (path_to_file/file.pdi\n"
-        << "-o per indicare il path/file di output\n"
-        << "-k per indicare la dimensione dei kmers (1 default)\n"
-        << "-t per indicare il numero di thread\n"
-        << "-m per attivare la modalità con un costo minore in ram (0 default)\n"
-        << "-d per selezionare un valore di scarto (0 <= d <= 1) per il calcolo della similarità (0.5 default, un valore maggiore corrisponde a un scarto più aggressivo)\n";
-    << "-f per i geni frammentanti\n";
+    std::cerr << "Usage:\n"
+        << "-i to select the input file (path_to_file/file.pdi)\n"
+        << "-o to specify the file for output(path_to_file/file_name.extension)\n"
+        << "-k to indicate the size of kmers\n"
+        << "-t to indicate the number of threads\n"
+        << "-m to activate specific mode with lower RAM cost (0 default)\n"
+        << "-d to select a discard value (0 <= d <= 1) for similarity computation (0.5 default, a grater value implies a more aggressive discard)\n"
+        << "-f for fragmented genes\n"
+        << "-p to enable a stronger threshold (sensibility parameter)\n";
 #else
     std::cout << "Usage:\n"
         << "-i to select the input file (path_to_file/file.pdi)\n"
