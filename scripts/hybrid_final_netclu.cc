@@ -11,12 +11,11 @@
 #include <atomic>
 #include <chrono>
 #include "../lib/Graph.hh"
+//#include "../lib/kahan_v3_hybr_Umbrella_algo.hh"
 #include "../lib/kahan_v4_umb_algo.hh"
 #include "../lib/types.hh"
 #include "../lib/UmbrThreadPool.hh"
 #include <cmath>
-
-const size_t MAX_THREADS = std::thread::hardware_concurrency();
 
 std::mutex data_mutex;              // per coms_size_distr e remaining_singletons
 
@@ -131,8 +130,6 @@ int main(int argc, char* argv[]) {
     DEBUG_PRINT("number of network nodes: " << network.get_number_of_nodes());
     DEBUG_PRINT("number of network edges: " << network.get_number_of_edges());
 
-#if !FAST_MODE
-
     std::unordered_map<size_t, node_id_t> comps_size_distr;
     int nof_comps = 0;
     DEBUG_PRINT("----------------------------------------");
@@ -153,12 +150,21 @@ int main(int argc, char* argv[]) {
     if(sizes.empty())
         return 0;
 
+    size_t MAX_THREADS;
+    
+    if (argc >= 4) {
+        MAX_THREADS = std::stoi(argv[3]);
+    } else {
+        MAX_THREADS = std::thread::hardware_concurrency();
+    }
+
+
     //calcolo THRESHOLD
     node_id_t THRESHOLD;
     size_t n = sizes.size();
     size_t idx;
 
-    double percentile = (nof_comps < MAX_THREADS) ? 0.3 : 0.9;
+    double percentile = (nof_comps < MAX_THREADS) ? 0.3 : 0.99;
     auto it = sizes.begin() + static_cast<size_t>(percentile * n);
 
     std::nth_element(sizes.begin(), it, sizes.end());
@@ -170,8 +176,6 @@ int main(int argc, char* argv[]) {
     DEBUG_PRINT("number of connected components: " << nof_comps);
     DEBUG_PRINT("----------------------------------------");
 
-#endif
-
     std::unordered_set<int> remaining_singletons;
     for (auto it = seq_names.begin(); it != seq_names.end(); ++it) {
         remaining_singletons.insert(it->first);
@@ -180,11 +184,11 @@ int main(int argc, char* argv[]) {
     std::unordered_map<size_t, node_id_t> coms_size_distr;
     std::atomic<int> nof_coms = 0;
 
-    auto time_start_parallel = high_resolution_clock::now();
-
     UmbrThreadPool pool(MAX_THREADS);
 
     UmbrThreadPool bw_pool(MAX_THREADS);
+
+    auto time_start_parallel = high_resolution_clock::now();
 
     for (auto& component : components) {
 
