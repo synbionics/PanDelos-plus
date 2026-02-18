@@ -399,7 +399,7 @@ std::vector<std::vector<node_id_t>> split_until_max_k(
         to_process.pop_back();
 
         if (get_max_collision_fast(community, component_subnet, seq_genome) > 0) {
-            std::vector<std::vector<node_id_t>> subresult = split_until_max_k(community, component_subnet, seq_genome, pool, is_weighted);
+            std::vector<std::vector<node_id_t>> subresult = split_until_max_k(community, component_subnet, seq_genome, pool, THRESHOLD, is_weighted);
             to_process.insert(to_process.end(), subresult.begin(), subresult.end());
         } else {
             final_communities.push_back(community);
