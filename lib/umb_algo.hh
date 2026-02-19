@@ -161,7 +161,8 @@ calculate_edge_betweenness(
 
                         for (node_id_t v : pred[w]) {
                             double coeff =
-                                (info[v].paths / info[w].paths) * (1 + info[w].delta);
+                                    (static_cast<double>(info[v].paths) / info[w].paths) * (1 + info[w].delta);
+
 
                             auto edge = std::minmax(v, w);
                             local_edge_betweenness[edge] += coeff;
@@ -221,7 +222,7 @@ calculate_edge_betweenness(
             while (!stack.empty()) {
                 node_id_t w = stack.top(); stack.pop();
                 for (node_id_t v : pred[w]) {
-                    double coefficent = (info[v].paths / info[w].paths) * (1 + info[w].delta);
+                    double coefficent = (static_cast<double>(info[v].paths) / info[w].paths) * (1 + info[w].delta);
                     std::pair<node_id_t, node_id_t> edge = std::minmax(v, w);
                     edge_betweenness[edge] += coefficent;
                     info[v].delta += coefficent;
