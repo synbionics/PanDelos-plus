@@ -18,16 +18,8 @@ public:
         return visible_nodes.count(node) > 0;
     }
 
-    const std::vector<std::pair<node_id_t, weight_t>> get_neighbors(node_id_t node) const {
-        std::vector<std::pair<node_id_t, weight_t>> filtered;
-        if (!has_node(node)) return filtered;
-
-        for (auto const& n : g.get_neighbors(node)) {
-            if (has_node(n.first)) { 
-                filtered.push_back(n);
-            }
-        }
-        return filtered;
+    const std::vector<std::pair<node_id_t, weight_t>> &get_neighbors(node_id_t node) const {
+        return g.get_neighbors(node);
     }
 
     void remove_edge(const std::pair<node_id_t, node_id_t>& edge) {

@@ -63,14 +63,14 @@ private:
 
                         task = std::move(tasks.front());
                         tasks.pop();
-                        activeTasks++;
+                        ++activeTasks;
                     }
 
                     task();
 
                     {
                         std::unique_lock<std::mutex> lock(doneMutex);
-                        activeTasks--;
+                        --activeTasks;
                         if (tasks.empty() && activeTasks == 0) {
                             doneCond.notify_all();
                         }
