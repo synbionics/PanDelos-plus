@@ -53,7 +53,7 @@ namespace genome {
     GenomesContainer::~GenomesContainer() {}
 
 
-    // aggiunge un genoma
+    // add a genome
     inline void
     GenomesContainer::addGenome(const index_t id) {
         genome_t newGenome(id);

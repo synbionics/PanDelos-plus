@@ -31,7 +31,7 @@ namespace utilities {
 
         std::fstream file;
 
-        // apertura in sola lettura
+        // open in read-only mode
         file.open(fileName_, std::ios::in);
         
         if(!file.is_open())

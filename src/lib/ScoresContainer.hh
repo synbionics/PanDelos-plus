@@ -36,8 +36,8 @@ namespace score {
         // dimensione massima effettiva [0, capacity)
         index_t capacity_;
 
-        // invece di allocare una matrice rows_*cols_ si crea un array dove tutte le righe
-        // sono una di seguito all'altra
+        // instead of allocating a rows_*cols_ matrix, an array is created where all rows
+        // are placed one after the other
         scores_t scores_;
     public:
 

@@ -38,10 +38,10 @@ namespace bbh {
             // numero di candidati
             index_t size_;
 
-            // score attualmente migliore
+            // current best score
             score_t currentBestScore_;
             
-            // set di identificativi dei geni sulle colonne
+            // set of gene identifiers on the columns
             container_t candidates_;
 
         public:
@@ -177,10 +177,10 @@ namespace bbh {
     inline void
     BBHCandidate::addCandidate(const score_t score, const index_t index) {
         
-        // confronto punteggio nuovo con quello attuale:
-        // se migliore resetto la lista di candidati e aggiungo il nuovo indice
-        // se uguale aggiungo il nuovo indice al set
-        // se minore viene ignorato
+        // compare new score with the current one:
+        // if better, reset the candidates list and add the new index
+        // if equal, add the new index to the set
+        // if lower, it is ignored
 
         if(score > currentBestScore_ ) {
             candidates_.clear();

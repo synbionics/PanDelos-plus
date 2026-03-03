@@ -241,20 +241,20 @@ namespace genome {
             std::this_thread::sleep_for(std::chrono::milliseconds(1));
     }
 
-    // ritorna il numero di geni
+    // returns the number of genes
     inline FragGenome::index_t
     FragGenome::size() const noexcept {
         return size_;
     }
     
-    // ritorna l'id del genoma
+    // returns the genome ID
     inline FragGenome::index_t
     FragGenome::getId()
     const noexcept {
         return genomeId_;
     }
     
-    // verifica se due genomi sono uguali
+    // checks if two genomes are equal
     inline bool
     FragGenome::operator==(const FragGenome& other)
     const {

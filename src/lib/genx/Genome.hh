@@ -247,20 +247,20 @@ namespace genome {
         #endif
     }
 
-    // ritorna il numero di geni
+    // returns the number of genes
     inline Genome::index_t
     Genome::size() const noexcept {
         return size_;
     }
     
-    // ritorna l'id del genoma
+    // returns the genome ID
     inline Genome::index_t
     Genome::getId()
     const noexcept {
         return genomeId_;
     }
     
-    // verifica se due genomi sono uguali
+    // checks if two genomes are equal
     inline bool
     Genome::operator==(const Genome& other)
     const {

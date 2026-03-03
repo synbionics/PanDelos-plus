@@ -53,7 +53,7 @@ namespace genome {
     FragGenomesContainer::~FragGenomesContainer() {}
 
 
-    // aggiunge un genoma
+    // add a genome
     inline void
     FragGenomesContainer::addGenome(const index_t id) {
         // std::cerr<<"\nAdding new genome "<<id<<std::endl;

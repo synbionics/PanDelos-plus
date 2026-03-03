@@ -257,13 +257,13 @@ namespace gene {
         return *this;
     }
 
-    //! il kmers devono essere precedentemente deallocato
+    //! kmers must be previously deallocated
     inline void
     Gene::createNewKmers(const k_t k) {
         kmers_ = new kmersContainer_t(k, alphabet_, alphabetLength_);
     }
 
-    // ! il kmer container deve essere almeno stato creato o calcolato
+    //! the kmer container must have been at least created or computed
     inline void
     Gene::deleteKmers() {
         kmersNumber_ = 0;
@@ -282,7 +282,7 @@ namespace gene {
         return kmers_;
     }
 
-    // ! il kmer handler deve essere creato precedentemente
+    //! the kmer handler must be previously created
     inline void
     Gene::calculateKmers(kmerMapper_tr mapper) {
         kmers_->calculateKmers(mapper);

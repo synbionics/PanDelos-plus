@@ -453,7 +453,7 @@ namespace homology {
 
         ScoresContainer scores(rowGenes.size(), colGenes.size());
 
-        // per la crezione della comparazione modificare qui il valore passatto usando "startCol"
+        // to modify the comparison, change the value passed here using "startCol"
         calculateRow(
             rowGenes, colGenes,
             bestRows, scores
@@ -603,7 +603,7 @@ namespace homology {
 
         // BBHcandidatesContainer_t::set_tr matchRef = *match;
         // bbh::BidirectionalBestHitContainer& bbhContainerRef = *bbh;
-        // passo per tutte le colonne "candidate"
+        // iterate over all "candidate" columns
 
         for (auto col = match.begin(); col != match.end(); ++col) {
             const auto& currentColRef = *col;
@@ -618,8 +618,8 @@ namespace homology {
             // index_t colGeneId = currentColRef.first;
             index_t colGeneId = currentColRef;;
             gene_tr currentColGene = colGenes[colGeneId];
-            // estrae le migliori righe per la colonna corrente
-            // e li memorizza in current best indexs
+            // extracts the best rows for the current column
+            // and stores them in current best indexes
 
             for (index_t row = 0; row < rowGenes.size(); ++row) {
                 score_t currentScore = scores.getScoreAt(row, colGeneId);
@@ -634,9 +634,9 @@ namespace homology {
                 }
             }
 
-            // passa per tutte le righe con il punteggio migliore
-            // e se quel punteggio è il migliore anche per la riga
-            // crea il bbh
+            // iterates over all rows with the best score
+            // and if that score is also the best for the row
+            // creates the BBH
             if (bestScore > 0.0) {
 
                 score_t minBBH = 2;
@@ -677,8 +677,8 @@ namespace homology {
                     // index_t colGeneId = currentColRef.first;
                     index_t colGeneId = currentColRef;;
                     gene_tr currentColGene = colGenes[colGeneId];
-                    // estrae le migliori righe per la colonna corrente
-                    // e li memorizza in current best indexs
+                    // extracts the best rows for the current column
+                    // and stores them in current best indexes
 
                     for (index_t row = 0; row < rowGenes.size(); ++row) {
                         score_t currentScore = scores.getScoreAt(row, colGeneId);
@@ -693,9 +693,9 @@ namespace homology {
                         }
                     }
 
-                    // passa per tutte le righe con il punteggio migliore
-                    // e se quel punteggio è il migliore anche per la riga
-                    // crea il bbh
+                    // iterates over all rows with the best score
+                    // and if that score is also the best for the row
+                    // creates the BBH
                     if (bestScore > 0.0) {
 
                         score_t minBBH = 2;
@@ -757,7 +757,7 @@ namespace homology {
 
         // bbh::BidirectionalBestHitContainer& bbhContainerRef = *bbh;
 
-        // passo per tutte le colonne "candidate"
+        // iterate over all "candidate" columns
         for (auto col = match.begin(); col != match.end(); ++col) {
             const auto& currentColRef = *col;
             #ifdef SINGLE_THREAD
@@ -808,10 +808,10 @@ namespace homology {
                     // index_t colGeneId = currentColRef.first;
                     index_t colGeneId = currentColRef;
                     gene_tr currentColGene = genes[colGeneId];
-                    // estrae le migliori righe per la colonna corrente
-                    // e li memorizza in current best indexs
+                    // extracts the best rows for the current column
+                    // and stores them in current best indexes
 
-                    // le prime righe fino alla diagonale
+                    // the first rows up to the diagonal
                     for (index_t row = 0; row < colGeneId; ++row) {
                         score_t currentScore = scores.getScoreAt(row, colGeneId);
 
@@ -825,9 +825,9 @@ namespace homology {
                         }
                     }
 
-                    // passa per tutte le righe con il punteggio migliore
-                    // e se quel punteggio è il migliore anche per la riga
-                    // crea il bbh
+                    // iterates over all rows with the best score
+                    // and if that score is also the best for the row
+                    // creates the BBH
 
                     if (bestScore > 0.0) {
                         index_t currentColGeneFileLine = currentColGene.getGeneFilePosition();

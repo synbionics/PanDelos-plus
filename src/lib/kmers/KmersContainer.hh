@@ -256,7 +256,7 @@ namespace kmers {
         return alphabetLength_;
     }
 
-    //! preclude che non ci siano kmers
+    //! assumes that kmers are present
     inline void
         KmersContainer::calculateKmers(KmerMapper& mapper) noexcept {
 
