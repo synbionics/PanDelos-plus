@@ -62,6 +62,12 @@ else
 fi
 
 # echo "Compile flags: $COMPILE_FLAGS"
-g++ $COMPILE_FLAGS src/main.cc -o main
+echo "Compiling homology detection algorithm"
 
+g++ $COMPILE_FLAGS src/homology/main.cc -o homology
 
+echo "Compilation finished"
+
+echo "Compiling clustering algorithm"
+
+g++ -O3 ${PTHREAD_FLAG} src/clustering/umb_netclu.cc -o clustering

@@ -11,11 +11,11 @@
 #include <atomic>
 #include <cmath>
 
-#include "../lib/Graph.hh"
-#include "../lib/SubGraph.hh"
-#include "../lib/umb_algo.hh"
-#include "../lib/types.hh"
-#include "../lib/UmbrThreadPool.hh"
+#include "./lib/Graph.hh"
+#include "./lib/SubGraph.hh"
+#include "./lib/umb_algo.hh"
+#include "./lib/types.hh"
+#include "./lib/UmbrThreadPool.hh"
 
 std::mutex data_mutex;              // per coms_size_distr e remaining_singletons
 
