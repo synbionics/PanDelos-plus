@@ -172,7 +172,7 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo "Executing main"
+echo "Executing homology detection"
 
 
 mainCommand="$sdir/./homology -i $inFile -k $k -o $outFile"
