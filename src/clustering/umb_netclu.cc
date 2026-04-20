@@ -1,0 +1,277 @@
+#include <iostream>
+#include <unordered_map>
+#include <vector>
+#include <string>
+#include <unordered_set>
+#include <fstream>
+#include <sstream>
+#include <thread>
+#include <future>
+#include <mutex>
+#include <atomic>
+#include <cmath>
+
+#include "./lib/Graph.hh"
+#include "./lib/SubGraph.hh"
+#include "./lib/umb_algo.hh"
+#include "./lib/types.hh"
+#include "./lib/UmbrThreadPool.hh"
+
+std::mutex data_mutex;              // per coms_size_distr e remaining_singletons
+
+#ifndef NDEBUG
+    #define DEBUG_PRINT(x) std::cout << "[DEBUG] " << x << std::endl
+#else
+    #define DEBUG_PRINT(x)
+#endif
+
+struct ComponentResult {
+    int nof = 0;
+    std::unordered_map<size_t, node_id_t> sizes;
+    std::vector<node_id_t> erased;
+    std::string output;
+};
+
+
+ComponentResult process_component(
+    const std::vector<node_id_t>& component,
+    const Graph& network,
+    const std::unordered_map<int, std::string>& seq_genome,
+    const std::unordered_map<int, std::string>& seq_names,
+    const std::unordered_map<int, std::string>& seq_descr,
+    UmbrThreadPool& pool,
+    const size_t MAX_THREADS,
+    const bool THRESHOLD
+) {
+    ComponentResult result;
+    std::stringstream oss;
+
+    SubGraph component_subnet = SubGraph(network,component);
+
+    auto communities = split_until_max_k(component, component_subnet, seq_genome, pool, MAX_THREADS, THRESHOLD, false);
+    result.nof = static_cast<int>(communities.size());
+
+    for (auto& community : communities) {
+        result.sizes[community.size()]++;
+
+        for (const node_id_t& node : community)
+            result.erased.push_back(node);
+
+        print_family(community, seq_names, oss);
+        print_family_descriptions(community, seq_descr, oss);
+    }
+
+    result.output = oss.str();
+    return result;
+}
+
+
+int main(int argc, char* argv[]) {
+
+    if (argc < 3) {
+        std::cout << "Missing input values" << std::endl;
+        return -1;
+    }
+
+    std::string seqs_ifile_name = argv[1];
+    std::string net_ifile_name = argv[2];
+
+    char sequenceSeparator = '\t';
+
+    std::unordered_map<int, std::string> seq_names;
+    std::unordered_map<int, std::string> seq_genome;
+    std::unordered_map<int, std::string> seq_descr;
+    std::unordered_map<std::string, std::vector<int>> genomes;
+
+    std::ifstream file(seqs_ifile_name);
+    std::string line;
+    int i = 0, seq_id = 0;
+
+    while (getline(file, line)) {
+        if (i % 2 == 0) {
+            std::stringstream ss(line);
+            std::string col0, col1, col2;
+            getline(ss, col0, sequenceSeparator);
+            getline(ss, col1, sequenceSeparator);
+            getline(ss, col2, sequenceSeparator);
+
+            seq_names[seq_id] = col1;
+            seq_genome[seq_id] = col0;
+            seq_descr[seq_id] = col2;
+
+            genomes[col0].push_back(seq_id);
+            seq_id++;
+        }
+        i++;
+    }
+
+    DEBUG_PRINT("number of sequences: " << seq_names.size());
+    DEBUG_PRINT("number of genomes: " << genomes.size());
+
+    DEBUG_PRINT("Checking duplicates");
+    check_duplicates(seq_names);
+
+    Graph network = build_graph_from_file(net_ifile_name);
+
+    DEBUG_PRINT("number of network nodes: " << network.get_number_of_nodes());
+    DEBUG_PRINT("number of network edges: " << network.get_number_of_edges());
+
+    std::unordered_map<size_t, node_id_t> comps_size_distr;
+    int nof_comps = 0;
+    DEBUG_PRINT("----------------------------------------");
+    DEBUG_PRINT("Computing connected components...");
+    auto components = connected_components(network);
+
+    std::vector<size_t> sizes;
+    sizes.reserve(components.size());
+
+    for (const auto& component : components) {
+        size_t comp_size = component.size();
+        ++(comps_size_distr[comp_size]);
+        ++nof_comps;
+
+        sizes.push_back(comp_size);
+    }
+
+    if(sizes.empty())
+        return 0;
+
+    size_t MAX_THREADS;
+    
+    if (argc >= 4) {
+        MAX_THREADS = std::stoi(argv[3]);
+    } else {
+        MAX_THREADS = std::thread::hardware_concurrency();
+    }
+
+    for (const auto& [size, count] : comps_size_distr)
+        DEBUG_PRINT("con dimensione: " << size << " ci sono: " << count << " componenti");
+
+    DEBUG_PRINT("number of connected components: " << nof_comps);
+    DEBUG_PRINT("----------------------------------------");
+
+    std::unordered_set<int> remaining_singletons;
+    for (auto it = seq_names.begin(); it != seq_names.end(); ++it) {
+        remaining_singletons.insert(it->first);
+    }
+
+    std::unordered_map<size_t, node_id_t> coms_size_distr;
+    std::atomic<int> nof_coms = 0;
+
+    UmbrThreadPool pool(MAX_THREADS);
+
+    UmbrThreadPool bw_pool(MAX_THREADS);
+
+    std::vector<ComponentResult> results;
+    std::mutex results_mutex;
+
+    for (auto& component : components)
+        sort_and_print_component(component, std::cout);
+
+    // le ordino tutte
+    std::sort(components.begin(), components.end(),
+    [](const std::vector<node_id_t>& a,
+       const std::vector<node_id_t>& b) {
+        return a.size() < b.size();
+    });
+
+    bool THRESHOLD = false;
+
+    size_t BATCH = std::max<size_t>(1, components.size() / (MAX_THREADS * 10));
+
+    for (size_t i = 0; i < components.size(); i += BATCH) {
+
+        BATCH = std::max<size_t>(1, (components.size() - i) / (MAX_THREADS * 10));
+
+        pool.execute([&, i, BATCH] {
+
+            size_t end = std::min(i + BATCH, components.size());
+
+            std::vector<ComponentResult> local_results;
+            std::stringstream local_output;
+
+            auto local_threshold = THRESHOLD;
+            if ((components.size() - i) <= MAX_THREADS) local_threshold = true;
+
+            for (size_t j = i; j < end; ++j) {
+
+                auto& component = components[j];
+
+                if (is_inconsistent(component, network, seq_genome)) {
+
+                    ComponentResult r = process_component(
+                        component,
+                        network,
+                        seq_genome,
+                        seq_names,
+                        seq_descr,
+                        bw_pool,
+                        MAX_THREADS,
+                        local_threshold
+                    );
+
+                local_results.push_back(std::move(r));
+
+            } else {
+
+                ++nof_coms;
+
+                {
+                    std::lock_guard<std::mutex> data_lock(data_mutex);
+
+                    coms_size_distr[component.size()] += 1;
+
+                    for (const node_id_t& node : component)
+                        remaining_singletons.erase(node);
+                }
+
+                print_family(component, seq_names, local_output);
+                print_family_descriptions(component, seq_descr, local_output);
+            }
+        }
+
+        {
+            std::lock_guard<std::mutex> lock(results_mutex);
+
+            for (auto& r : local_results)
+                results.push_back(std::move(r));
+
+            std::cout << local_output.str();
+        }
+
+    });
+}
+
+    pool.wait();
+
+    for (auto& r : results) {
+        nof_coms += r.nof;
+
+        for (auto& [k, v] : r.sizes)
+            coms_size_distr[k] += v;
+
+        for (auto n : r.erased)
+            remaining_singletons.erase(n);
+
+        std::cout << r.output;
+    }
+
+    {
+        std::lock_guard<std::mutex> lock(cout_mutex);
+        DEBUG_PRINT("\nfinito lavoro parallelo\n");
+        for (const node_id_t& node : remaining_singletons)
+            std::cout << "F{ " << seq_names.at(node) << " }" << std::endl;
+
+        for (const auto& [k, v] : coms_size_distr)
+            std::cout << k << " " << v << std::endl;
+
+        std::cout << "number of communities " << nof_coms << std::endl;
+
+        std::cout << "----------------------------------------" << std::endl;
+        std::cout << "----------------------------------------" << std::endl;
+    }
+
+    DEBUG_PRINT("end of net_clu_ng");
+
+    return 0;
+}

@@ -13,7 +13,6 @@ gbk_checker_path="${scripts_path}gbk_checker.py"
 faa_checker_path="${scripts_path}faa_checker.py"
 calculate_k_path="${scripts_path}calculate_k.py"
 genes_distribution_path="${scripts_path}genesDistribution.py"
-net_clug_path="${scripts_path}netclu_ng.py"
 clus2json_path="${scripts_path}clus2json.py"
 gbk2ig_path="${scripts_path}gbk2ig.py"
 
@@ -173,10 +172,10 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo "Executing main"
+echo "Executing homology detection"
 
 
-mainCommand="$sdir/./main -i $inFile -k $k -o $outFile"
+mainCommand="$sdir/./homology -i $inFile -k $k -o $outFile"
 
 if [ -n "$threadNum" ]; then
     mainCommand+=" -t $threadNum"
@@ -204,7 +203,7 @@ echo "$mainCommand" >> $tmp
 /usr/bin/time -f "time(seconds): %e user time(seconds): %U memory(KB): %M" $mainCommand > $tmp 2>&1
 
 if [ $? -ne 0 ]; then
-    echo "Error running main command"
+    echo "Error running homology step"
     cat $tmp
     exit 1
 fi
@@ -214,10 +213,12 @@ echo "Computing clusters"
 # cat $tmp
 
 echo "" >> $tmp;
-python3 "$net_clug_path" "$inFile" "$outFile.net" >> $tmp
+# python3 "$net_clug_path" "$inFile" "$outFile.net" >> $tmp
+# /usr/bin/time -f "time(seconds): %e user time(seconds): %U memory(KB): %M" "./clustering $inFile $outFile.net" >> $tmp 2>&1
+/usr/bin/time -f "time(seconds): %e user time(seconds): %U memory(KB): %M" "$sdir/./clustering" "$inFile" "$outFile.net" >> $tmp 2>&1
 
 if [ $? -ne 0 ]; then
-    echo "Error running netclu_ng.py"
+    echo "Error running clustering step"
     cat $tmp
     exit 1
 fi
