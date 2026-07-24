@@ -51,7 +51,6 @@ ${PTHREAD_FLAG} \
 -fsplit-wide-types-early \
 -fmodulo-sched \
 -fmodulo-sched-allow-regmoves \
--fno-lifetime-dse \
 -w"
 
 if [ "$SINGLE_THREAD_ENABLED" = true ]; then
